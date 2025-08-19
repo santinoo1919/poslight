@@ -115,6 +115,20 @@ export default function useTinyBase() {
     }
   }, []);
 
+  // Update product stock in UI
+  const updateProductStock = useCallback((productId, newStock) => {
+    setProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p.id === productId ? { ...p, stock: newStock } : p
+      )
+    );
+    setFilteredProducts((prevFiltered) =>
+      prevFiltered.map((p) =>
+        p.id === productId ? { ...p, stock: newStock } : p
+      )
+    );
+  }, []);
+
   // Get total inventory value (instant)
   const getInventoryValue = useCallback(() => {
     return products.reduce((total, product) => {
@@ -137,6 +151,7 @@ export default function useTinyBase() {
     updateStock,
     refreshProducts,
     getInventoryValue,
+    updateProductStock,
 
     // Store access
     store,

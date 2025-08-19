@@ -1,6 +1,9 @@
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 
 export default function ProductCard({ product, onPress, isSelected = false }) {
+  // Use stock from product prop (simpler and more reliable)
+  const stock = product.stock || 0;
+  const isLowStock = stock <= 10;
   return (
     <TouchableOpacity
       className={`rounded-lg border p-3 flex-1 ${
@@ -43,7 +46,18 @@ export default function ProductCard({ product, onPress, isSelected = false }) {
       </Text>
 
       {/* Stock */}
-      <Text className="text-gray-500 text-xs">Stock: {product.stock}</Text>
+      <Text
+        className={`text-xs font-medium ${
+          isLowStock ? "text-red-600" : "text-gray-500"
+        }`}
+      >
+        Stock: {stock}
+      </Text>
+
+      {/* Low Stock Warning */}
+      {isLowStock && (
+        <Text className="text-xs text-red-500 mt-1">⚠️ Low Stock</Text>
+      )}
     </TouchableOpacity>
   );
 }

@@ -12,7 +12,9 @@ import SearchBar from "./components/SearchBar";
 import ProductGrid from "./components/ProductGrid";
 import SafeAreaWrapper from "./components/platform/SafeAreaWrapper";
 import Keypad from "./components/Keypad";
+import SuccessScreen from "./components/SuccessScreen";
 import useTinyBase from "./hooks/useTinyBase";
+import useStock from "./hooks/useStock";
 
 export default function App() {
   const {
@@ -22,7 +24,10 @@ export default function App() {
     loading,
     error,
     resetProducts,
+    updateProductStock,
   } = useTinyBase();
+
+  const { canSell, sellProduct, isLowStock, updateStock } = useStock();
 
   // Simple local state for filtering
   const [filteredProducts, setFilteredProducts] = useState(products);
@@ -33,6 +38,8 @@ export default function App() {
   const [keypadInput, setKeypadInput] = useState("");
   const [selectedProductForQuantity, setSelectedProductForQuantity] =
     useState(null);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
+  const [lastSaleData, setLastSaleData] = useState(null);
 
   // Update filtered products when products change
   useEffect(() => {
@@ -103,6 +110,40 @@ export default function App() {
     }, 0);
   };
 
+  // Complete the sale and update stock
+  const completeSale = () => {
+    if (selectedProducts.length === 0) {
+      alert("Cart is empty!");
+      return;
+    }
+
+    // Store cart data before clearing
+    const cartItems = [...selectedProducts];
+    const totalAmount = getTotalAmount();
+
+    // Decrement stock for all items in cart and update UI
+    cartItems.forEach((product) => {
+      const newStock = sellProduct(product.id, product.quantity);
+      // Update UI state for immediate feedback
+      if (newStock !== false) {
+        updateProductStock(product.id, newStock);
+      }
+    });
+
+    // Store sale data for success screen
+    setLastSaleData({
+      totalAmount,
+      itemCount: cartItems.length,
+      items: cartItems,
+    });
+
+    // Clear cart first
+    setSelectedProducts([]);
+
+    // Show success screen
+    setShowSuccessScreen(true);
+  };
+
   // Keypad handlers
   const handleKeypadNumber = (number) => {
     if (selectedProductForQuantity) {
@@ -112,25 +153,35 @@ export default function App() {
       // Auto-add to cart when quantity is entered
       const quantity = parseInt(newInput);
       if (quantity > 0) {
-        // Add to cart or update existing
-        setSelectedProducts((prev) => {
-          const existing = prev.find(
-            (p) => p.id === selectedProductForQuantity.id
-          );
-          if (existing) {
-            // Update existing item
-            return prev.map((p) =>
-              p.id === selectedProductForQuantity.id ? { ...p, quantity } : p
+        // Check stock before adding to cart
+        if (canSell(selectedProductForQuantity.id, quantity)) {
+          // Add to cart or update existing
+          setSelectedProducts((prev) => {
+            const existing = prev.find(
+              (p) => p.id === selectedProductForQuantity.id
             );
-          } else {
-            // Add new item
-            return [...prev, { ...selectedProductForQuantity, quantity }];
-          }
-        });
+            if (existing) {
+              // Update existing item
+              return prev.map((p) =>
+                p.id === selectedProductForQuantity.id ? { ...p, quantity } : p
+              );
+            } else {
+              // Add new item
+              return [...prev, { ...selectedProductForQuantity, quantity }];
+            }
+          });
 
-        // Reset keypad state after auto-adding
-        setKeypadInput("");
-        setSelectedProductForQuantity(null);
+          // Don't decrement stock yet - wait for actual sale
+
+          // Reset keypad state after auto-adding
+          setKeypadInput("");
+          setSelectedProductForQuantity(null);
+        } else {
+          // Show stock error
+          alert(
+            `Not enough stock! Available: ${selectedProductForQuantity.stock}`
+          );
+        }
       }
     }
   };
@@ -247,6 +298,9 @@ export default function App() {
                   <Text className="text-lg font-bold text-blue-900 text-center mt-1">
                     {keypadInput || "0"}
                   </Text>
+                  <Text className="text-xs text-blue-700 text-center mt-1">
+                    Available Stock: {selectedProductForQuantity.stock}
+                  </Text>
                 </View>
               )}
 
@@ -303,6 +357,20 @@ export default function App() {
                             €{(product.price * product.quantity).toFixed(2)}
                           </Text>
                         </View>
+
+                        {/* Stock Status */}
+                        <View className="mt-2">
+                          <Text
+                            className={`text-xs ${
+                              (product.stock || 0) <= 10
+                                ? "text-red-600"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            Stock: {product.stock}{" "}
+                            {(product.stock || 0) <= 10 && "⚠️"}
+                          </Text>
+                        </View>
                       </View>
                     ))}
                   </View>
@@ -319,7 +387,10 @@ export default function App() {
                     </Text>
                   </View>
 
-                  <TouchableOpacity className="bg-green-500 rounded-lg py-3 items-center">
+                  <TouchableOpacity
+                    className="bg-green-500 rounded-lg py-3 items-center"
+                    onPress={completeSale}
+                  >
                     <Text className="text-white font-bold text-lg">
                       💳 Checkout
                     </Text>
@@ -330,6 +401,15 @@ export default function App() {
           </View>
         </View>
       </View>
+
+      {/* Success Screen */}
+      {showSuccessScreen && lastSaleData && (
+        <SuccessScreen
+          onClose={() => setShowSuccessScreen(false)}
+          totalAmount={lastSaleData.totalAmount}
+          itemCount={lastSaleData.itemCount}
+        />
+      )}
     </SafeAreaWrapper>
   );
 }
