@@ -41,6 +41,11 @@ export default function ProductGrid({
     );
   }
 
+  // Get most bought products (for now, just take first 4 with good stock)
+  const mostBoughtProducts = products
+    .filter((product) => product.stock > 50) // Good stock availability
+    .slice(0, 4);
+
   return (
     <View className="flex-1">
       {/* Products Header with Count */}
@@ -58,7 +63,7 @@ export default function ProductGrid({
         </View>
       </View>
 
-      {/* Product Grid - 4 columns, scrollable */}
+      {/* Product Grid - Scrollable */}
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="p-4">
           {products.length === 0 ? (
@@ -71,12 +76,34 @@ export default function ProductGrid({
               </Text>
             </View>
           ) : (
-            <View className="flex-row flex-wrap justify-start">
-              {products.map((item) => (
-                <View key={item.id} className="w-1/4 p-1">
-                  <ProductCard product={item} onPress={onProductPress} />
+            <View className="space-y-6">
+              {/* Most Bought Section - Same UI as regular products */}
+              <View>
+                <Text className="text-sm font-semibold text-blue-800 mb-3">
+                  🚀 Most Bought - Quick Access
+                </Text>
+                <View className="flex-row flex-wrap justify-start">
+                  {mostBoughtProducts.map((item) => (
+                    <View key={item.id} className="w-1/4 p-1">
+                      <ProductCard product={item} onPress={onProductPress} />
+                    </View>
+                  ))}
                 </View>
-              ))}
+              </View>
+
+              {/* All Products Grid - 4 columns */}
+              <View>
+                <Text className="text-sm font-semibold text-gray-700 mb-3">
+                  All Products
+                </Text>
+                <View className="flex-row flex-wrap justify-start">
+                  {products.map((item) => (
+                    <View key={item.id} className="w-1/4 p-1">
+                      <ProductCard product={item} onPress={onProductPress} />
+                    </View>
+                  ))}
+                </View>
+              </View>
             </View>
           )}
         </View>

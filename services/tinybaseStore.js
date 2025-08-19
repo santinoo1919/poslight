@@ -1,6 +1,270 @@
 import { createStore } from "tinybase";
 
-// Create the main store
+// Generate bulk products following current FMCG structure
+const generateBulkProducts = () => {
+  const baseCategories = {
+    beverages: { name: "Beverages", color: "#10B981", icon: "🥤" },
+    snacks: { name: "Snacks", color: "#F59E0B", icon: "🍿" },
+    dairy: { name: "Dairy", color: "#8B5CF6", icon: "🥛" },
+    bakery: { name: "Bakery", color: "#EF4444", icon: "🥖" },
+    candy: { name: "Candy", color: "#EC4899", icon: "🍫" },
+    household: { name: "Household", color: "#06B6D4", icon: "🧽" },
+    "personal-care": { name: "Personal Care", color: "#84CC16", icon: "🧴" },
+    frozen: { name: "Frozen", color: "#6366F1", icon: "🧊" },
+    electronics: { name: "Electronics", color: "#F97316", icon: "📱" },
+    clothing: { name: "Clothing", color: "#8B5A2B", icon: "👕" },
+    books: { name: "Books", color: "#059669", icon: "📚" },
+    toys: { name: "Toys", color: "#DC2626", icon: "🧸" },
+  };
+
+  const products = {};
+  let productId = 1;
+
+  // Generate products for each category
+  Object.entries(baseCategories).forEach(([categoryKey, categoryInfo]) => {
+    const categoryName = categoryInfo.name;
+
+    // Generate 40-50 products per category
+    const productsPerCategory = Math.floor(Math.random() * 20) + 40;
+
+    for (let i = 1; i <= productsPerCategory; i++) {
+      const productKey = `${categoryKey}-${productId}`;
+
+      // Generate realistic product names based on category
+      const productName = generateProductName(categoryName, i);
+
+      // Generate realistic prices based on category
+      const basePrice = getBasePriceForCategory(categoryName);
+      const priceVariation = (Math.random() - 0.5) * 0.4; // ±20% variation
+      const price = parseFloat((basePrice * (1 + priceVariation)).toFixed(2));
+
+      // Generate realistic stock levels
+      const stock = Math.floor(Math.random() * 200) + 10; // 10-210 units
+
+      // Generate realistic barcodes
+      const barcode = generateBarcode(productId);
+
+      products[productKey] = {
+        id: productKey,
+        name: productName,
+        price: price,
+        stock: stock,
+        category: categoryKey,
+        barcode: barcode,
+        description: `${productName} - High quality ${categoryName.toLowerCase()} product`,
+        categoryName: categoryName,
+        color: categoryInfo.color,
+        icon: categoryInfo.icon,
+      };
+
+      productId++;
+    }
+  });
+
+  return products;
+};
+
+// Helper function to generate realistic product names
+const generateProductName = (category, index) => {
+  const categoryNames = {
+    Beverages: [
+      "Cola",
+      "Lemonade",
+      "Orange Juice",
+      "Apple Juice",
+      "Grape Juice",
+      "Energy Drink",
+      "Sports Drink",
+      "Tea",
+      "Coffee",
+      "Water",
+      "Milk",
+      "Smoothie",
+      "Shake",
+      "Hot Chocolate",
+      "Iced Tea",
+      "Fruit Punch",
+    ],
+    Snacks: [
+      "Potato Chips",
+      "Tortilla Chips",
+      "Popcorn",
+      "Nuts",
+      "Pretzels",
+      "Crackers",
+      "Cookies",
+      "Granola Bar",
+      "Trail Mix",
+      "Jerky",
+      "Cheese Puffs",
+      "Rice Cakes",
+      "Veggie Chips",
+      "Pita Chips",
+    ],
+    Dairy: [
+      "Milk",
+      "Yogurt",
+      "Cheese",
+      "Butter",
+      "Cream",
+      "Sour Cream",
+      "Cottage Cheese",
+      "Ice Cream",
+      "Whipped Cream",
+      "Half & Half",
+    ],
+    Bakery: [
+      "Bread",
+      "Croissant",
+      "Muffin",
+      "Donut",
+      "Bagel",
+      "Cookie",
+      "Cake",
+      "Pie",
+      "Pastry",
+      "Roll",
+      "Bun",
+      "Scone",
+    ],
+    Candy: [
+      "Chocolate Bar",
+      "Gummy Bears",
+      "Hard Candy",
+      "Caramel",
+      "Toffee",
+      "Lollipop",
+      "Jelly Bean",
+      "Licorice",
+      "Mint",
+      "Fudge",
+    ],
+    Household: [
+      "Cleaning Spray",
+      "Paper Towels",
+      "Toilet Paper",
+      "Dish Soap",
+      "Laundry Detergent",
+      "Trash Bags",
+      "Air Freshener",
+      "Batteries",
+    ],
+    "Personal Care": [
+      "Shampoo",
+      "Conditioner",
+      "Soap",
+      "Toothpaste",
+      "Deodorant",
+      "Lotion",
+      "Sunscreen",
+      "Razor",
+      "Shaving Cream",
+      "Hair Gel",
+    ],
+    Frozen: [
+      "Frozen Pizza",
+      "Ice Cream",
+      "Frozen Vegetables",
+      "Frozen Meals",
+      "Frozen Fruit",
+      "Frozen Fish",
+      "Frozen Chicken",
+      "Frozen Desserts",
+    ],
+    Electronics: [
+      "Phone Charger",
+      "Headphones",
+      "USB Cable",
+      "Power Bank",
+      "Screen Protector",
+      "Phone Case",
+      "Bluetooth Speaker",
+      "Wireless Earbuds",
+      "Cable Adapter",
+    ],
+    Clothing: [
+      "T-Shirt",
+      "Jeans",
+      "Hoodie",
+      "Socks",
+      "Underwear",
+      "Jacket",
+      "Sweater",
+      "Pants",
+      "Shorts",
+      "Dress",
+      "Skirt",
+      "Hat",
+    ],
+    Books: [
+      "Fiction Novel",
+      "Non-Fiction Book",
+      "Cookbook",
+      "Self-Help Book",
+      "Biography",
+      "History Book",
+      "Science Book",
+      "Travel Guide",
+    ],
+    Toys: [
+      "Action Figure",
+      "Board Game",
+      "Puzzle",
+      "Building Blocks",
+      "Doll",
+      "Car Toy",
+      "Plush Animal",
+      "Art Supplies",
+      "Educational Toy",
+    ],
+  };
+
+  const names = categoryNames[category] || ["Product"];
+  const nameIndex = (index - 1) % names.length;
+  const baseName = names[nameIndex];
+
+  // Add variety with sizes, flavors, brands
+  const variations = [
+    "Premium",
+    "Classic",
+    "Organic",
+    "Natural",
+    "Deluxe",
+    "Basic",
+  ];
+  const variation = variations[Math.floor(Math.random() * variations.length)];
+
+  return `${variation} ${baseName}`;
+};
+
+// Helper function to get base prices for categories
+const getBasePriceForCategory = (category) => {
+  const basePrices = {
+    Beverages: 2.5,
+    Snacks: 3.0,
+    Dairy: 4.5,
+    Bakery: 3.5,
+    Candy: 2.0,
+    Household: 5.0,
+    "Personal Care": 6.0,
+    Frozen: 8.0,
+    Electronics: 15.0,
+    Clothing: 25.0,
+    Books: 12.0,
+    Toys: 20.0,
+  };
+
+  return basePrices[category] || 5.0;
+};
+
+// Helper function to generate realistic barcodes
+const generateBarcode = (productId) => {
+  const prefix = "123456789";
+  const paddedId = productId.toString().padStart(6, "0");
+  return `${prefix}${paddedId}`;
+};
+
+// Create the main store with bulk products
 export const store = createStore()
   .setTable("categories", {
     beverages: { name: "Beverages", color: "#10B981", icon: "🥤" },
@@ -11,243 +275,12 @@ export const store = createStore()
     household: { name: "Household", color: "#06B6D4", icon: "🧽" },
     "personal-care": { name: "Personal Care", color: "#84CC16", icon: "🧴" },
     frozen: { name: "Frozen", color: "#6366F1", icon: "🧊" },
+    electronics: { name: "Electronics", color: "#F97316", icon: "📱" },
+    clothing: { name: "Clothing", color: "#8B5A2B", icon: "👕" },
+    books: { name: "Books", color: "#059669", icon: "📚" },
+    toys: { name: "Toys", color: "#DC2626", icon: "🧸" },
   })
-  .setTable("products", {
-    // Beverages
-    "beverage-1": {
-      id: "beverage-1",
-      name: "Coca Cola 330ml",
-      price: 2.5,
-      stock: 45,
-      category: "beverages",
-      barcode: "5000112543211",
-      description: "Classic Coca Cola in 330ml can",
-    },
-    "beverage-2": {
-      id: "beverage-2",
-      name: "Pepsi Max 330ml",
-      price: 2.3,
-      stock: 38,
-      category: "beverages",
-      barcode: "5000112543212",
-      description: "Sugar-free Pepsi Max",
-    },
-    "beverage-3": {
-      id: "beverage-3",
-      name: "Fanta Orange 330ml",
-      price: 2.2,
-      stock: 42,
-      category: "beverages",
-      barcode: "5000112543213",
-      description: "Refreshing orange Fanta",
-    },
-    "beverage-4": {
-      id: "beverage-4",
-      name: "Water Bottle 500ml",
-      price: 1.99,
-      stock: 67,
-      category: "beverages",
-      barcode: "5000112543214",
-      description: "Pure spring water",
-    },
-    "beverage-5": {
-      id: "beverage-5",
-      name: "Red Bull 250ml",
-      price: 3.99,
-      stock: 23,
-      category: "beverages",
-      barcode: "5000112543215",
-      description: "Energy drink with taurine",
-    },
-
-    // Snacks
-    "snack-1": {
-      id: "snack-1",
-      name: "Lay's Classic Chips",
-      price: 1.99,
-      stock: 34,
-      category: "snacks",
-      barcode: "5000112543216",
-      description: "Classic potato chips",
-    },
-    "snack-2": {
-      id: "snack-2",
-      name: "Doritos Nacho Cheese",
-      price: 2.49,
-      stock: 28,
-      category: "snacks",
-      barcode: "5000112543217",
-      description: "Cheesy nacho tortilla chips",
-    },
-    "snack-3": {
-      id: "snack-3",
-      name: "Pringles Original",
-      price: 2.99,
-      stock: 19,
-      category: "snacks",
-      barcode: "5000112543218",
-      description: "Stackable potato crisps",
-    },
-    "snack-4": {
-      id: "snack-4",
-      name: "Popcorn Sweet & Salty",
-      price: 1.79,
-      stock: 31,
-      category: "snacks",
-      barcode: "5000112543219",
-      description: "Perfect movie snack",
-    },
-    "snack-5": {
-      id: "snack-5",
-      name: "Nuts Mixed 100g",
-      price: 3.49,
-      stock: 15,
-      category: "snacks",
-      barcode: "5000112543220",
-      description: "Premium mixed nuts",
-    },
-
-    // Dairy
-    "dairy-1": {
-      id: "dairy-1",
-      name: "Fresh Milk 1L",
-      price: 4.99,
-      stock: 12,
-      category: "dairy",
-      barcode: "5000112543221",
-      description: "Fresh whole milk",
-    },
-    "dairy-2": {
-      id: "dairy-2",
-      name: "Greek Yogurt 500g",
-      price: 3.99,
-      stock: 18,
-      category: "dairy",
-      barcode: "5000112543222",
-      description: "Creamy Greek yogurt",
-    },
-    "dairy-3": {
-      id: "dairy-3",
-      name: "Cheddar Cheese 200g",
-      price: 5.49,
-      stock: 9,
-      category: "dairy",
-      barcode: "5000112543223",
-      description: "Aged cheddar cheese",
-    },
-    "dairy-4": {
-      id: "dairy-4",
-      name: "Butter 250g",
-      price: 3.29,
-      stock: 22,
-      category: "dairy",
-      barcode: "5000112543224",
-      description: "Pure butter",
-    },
-    "dairy-5": {
-      id: "dairy-5",
-      name: "Cream 300ml",
-      price: 2.79,
-      stock: 16,
-      category: "dairy",
-      barcode: "5000112543225",
-      description: "Heavy whipping cream",
-    },
-
-    // Bakery
-    "bakery-1": {
-      id: "bakery-1",
-      name: "Fresh Bread Loaf",
-      price: 3.49,
-      stock: 8,
-      category: "bakery",
-      barcode: "5000112543226",
-      description: "Fresh baked bread",
-    },
-    "bakery-2": {
-      id: "bakery-2",
-      name: "Croissant",
-      price: 2.99,
-      stock: 14,
-      category: "bakery",
-      barcode: "5000112543227",
-      description: "Buttery French croissant",
-    },
-    "bakery-3": {
-      id: "bakery-3",
-      name: "Chocolate Muffin",
-      price: 2.49,
-      stock: 11,
-      category: "bakery",
-      barcode: "5000112543228",
-      description: "Chocolate chip muffin",
-    },
-    "bakery-4": {
-      id: "bakery-4",
-      name: "Donut Glazed",
-      price: 1.99,
-      stock: 19,
-      category: "bakery",
-      barcode: "5000112543229",
-      description: "Glazed donut",
-    },
-    "bakery-5": {
-      id: "bakery-5",
-      name: "Bagel Everything",
-      price: 2.79,
-      stock: 13,
-      category: "bakery",
-      barcode: "5000112543230",
-      description: "Everything bagel with toppings",
-    },
-
-    // Candy
-    "candy-1": {
-      id: "candy-1",
-      name: "Snickers Bar",
-      price: 1.49,
-      stock: 56,
-      category: "candy",
-      barcode: "5000112543231",
-      description: "Chocolate bar with caramel and nuts",
-    },
-    "candy-2": {
-      id: "candy-2",
-      name: "KitKat 4-Finger",
-      price: 1.79,
-      stock: 43,
-      category: "candy",
-      barcode: "5000112543232",
-      description: "Crispy wafer chocolate bar",
-    },
-    "candy-3": {
-      id: "candy-3",
-      name: "Twix Bar",
-      price: 1.59,
-      stock: 38,
-      category: "candy",
-      barcode: "5000112543233",
-      description: "Caramel and cookie chocolate bar",
-    },
-    "candy-4": {
-      id: "candy-4",
-      name: "M&M's Chocolate",
-      price: 2.19,
-      stock: 29,
-      category: "candy",
-      barcode: "5000112543234",
-      description: "Colorful chocolate candies",
-    },
-    "candy-5": {
-      id: "candy-5",
-      name: "Skittles 100g",
-      price: 1.99,
-      stock: 35,
-      category: "candy",
-      barcode: "5000112543235",
-      description: "Fruit-flavored chewy candies",
-    },
-  })
+  .setTable("products", generateBulkProducts())
   .setTable("transactions", {})
   .setTable("transaction_items", {});
 
