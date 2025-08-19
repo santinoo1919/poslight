@@ -7,12 +7,11 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import SearchBar from "./components/SearchBar";
 import ProductGrid from "./components/ProductGrid";
 import SafeAreaWrapper from "./components/platform/SafeAreaWrapper";
-import DatabaseStatus from "./components/DatabaseStatus";
-import PerformanceIndicator from "./components/PerformanceIndicator";
+import Keypad from "./components/Keypad";
 import useTinyBase from "./hooks/useTinyBase";
 
 export default function App() {
@@ -30,27 +29,20 @@ export default function App() {
   const [currentCategory, setCurrentCategory] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
 
+  // Keypad state
+  const [keypadInput, setKeypadInput] = useState("");
+  const [selectedProductForQuantity, setSelectedProductForQuantity] =
+    useState(null);
+
   // Update filtered products when products change
   useEffect(() => {
     setFilteredProducts(products);
   }, [products]);
 
   const handleProductPress = (product) => {
-    console.log("Product selected:", product.name);
-
-    // Add to selected products (simple cart functionality)
-    setSelectedProducts((prev) => {
-      const existing = prev.find((p) => p.id === product.id);
-      if (existing) {
-        // Increment quantity if already selected
-        return prev.map((p) =>
-          p.id === product.id ? { ...p, quantity: (p.quantity || 1) + 1 } : p
-        );
-      } else {
-        // Add new product with quantity 1
-        return [...prev, { ...product, quantity: 1 }];
-      }
-    });
+    // Set this product for quantity input via keypad
+    setSelectedProductForQuantity(product);
+    setKeypadInput("");
   };
 
   const handleCategorySelect = (categoryName) => {
@@ -60,7 +52,6 @@ export default function App() {
       return;
     }
 
-    // Simple filtering by category name
     const categoryProducts = products.filter(
       (product) => product.categoryName === categoryName
     );
@@ -70,7 +61,14 @@ export default function App() {
 
   const handleSearch = (query) => {
     if (!query.trim()) {
-      setFilteredProducts(products);
+      if (currentCategory && currentCategory !== "Show All") {
+        const categoryProducts = products.filter(
+          (product) => product.categoryName === currentCategory
+        );
+        setFilteredProducts(categoryProducts);
+      } else {
+        setFilteredProducts(products);
+      }
       return;
     }
 
@@ -105,6 +103,43 @@ export default function App() {
     }, 0);
   };
 
+  // Keypad handlers
+  const handleKeypadNumber = (number) => {
+    if (selectedProductForQuantity) {
+      const newInput = keypadInput + number;
+      setKeypadInput(newInput);
+
+      // Auto-add to cart when quantity is entered
+      const quantity = parseInt(newInput);
+      if (quantity > 0) {
+        // Add to cart or update existing
+        setSelectedProducts((prev) => {
+          const existing = prev.find(
+            (p) => p.id === selectedProductForQuantity.id
+          );
+          if (existing) {
+            // Update existing item
+            return prev.map((p) =>
+              p.id === selectedProductForQuantity.id ? { ...p, quantity } : p
+            );
+          } else {
+            // Add new item
+            return [...prev, { ...selectedProductForQuantity, quantity }];
+          }
+        });
+
+        // Reset keypad state after auto-adding
+        setKeypadInput("");
+        setSelectedProductForQuantity(null);
+      }
+    }
+  };
+
+  const handleKeypadClear = () => {
+    setKeypadInput("");
+    setSelectedProductForQuantity(null);
+  };
+
   return (
     <SafeAreaWrapper className="flex-1 bg-gray-50">
       <StatusBar style="auto" />
@@ -123,56 +158,61 @@ export default function App() {
       <View className="flex-1 flex-row">
         {/* Left Panel - Products & Search */}
         <View className="flex-1 border-r border-gray-200">
-          {/* Search Bar */}
-          <View className="p-4 border-b border-gray-200">
-            <SearchBar onSearch={handleSearch} />
-          </View>
-
           {/* Categories */}
           <View className="px-4 py-3 border-b border-gray-200">
             <Text className="text-sm font-medium text-gray-700 mb-2">
               Categories
             </Text>
-            <View className="flex-row flex-wrap">
-              {/* Show All option */}
-              <TouchableOpacity
-                className={`mr-2 mb-2 px-3 py-1 rounded-full border ${
-                  currentCategory === null
-                    ? "border-blue-500 bg-blue-100"
-                    : "border-gray-200 bg-white"
-                }`}
-                onPress={() => handleCategorySelect("Show All")}
-              >
-                <Text
-                  className={`text-xs font-medium ${
-                    currentCategory === null ? "text-blue-600" : "text-gray-600"
-                  }`}
-                >
-                  📦 Show All
-                </Text>
-              </TouchableOpacity>
-
-              {categories.map((category) => (
+            <View className="flex-row items-center">
+              {/* Categories on the left */}
+              <View className="flex-row flex-wrap flex-1">
+                {/* Show All option */}
                 <TouchableOpacity
-                  key={category.name}
                   className={`mr-2 mb-2 px-3 py-1 rounded-full border ${
-                    currentCategory === category.name
+                    currentCategory === null
                       ? "border-blue-500 bg-blue-100"
                       : "border-gray-200 bg-white"
                   }`}
-                  onPress={() => handleCategorySelect(category.name)}
+                  onPress={() => handleCategorySelect("Show All")}
                 >
                   <Text
-                    className={`text-xs ${
-                      currentCategory === category.name
+                    className={`text-xs font-medium ${
+                      currentCategory === null
                         ? "text-blue-600"
                         : "text-gray-600"
                     }`}
                   >
-                    {category.icon} {category.name}
+                    📦 Show All
                   </Text>
                 </TouchableOpacity>
-              ))}
+
+                {categories.map((category) => (
+                  <TouchableOpacity
+                    key={category.name}
+                    className={`mr-2 mb-2 px-3 py-1 rounded-full border ${
+                      currentCategory === category.name
+                        ? "border-blue-500 bg-blue-100"
+                        : "border-gray-200 bg-white"
+                    }`}
+                    onPress={() => handleCategorySelect(category.name)}
+                  >
+                    <Text
+                      className={`text-xs ${
+                        currentCategory === category.name
+                          ? "text-blue-600"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {category.icon} {category.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Search Bar - On the right, using remaining space */}
+              <View className="ml-4 flex-1 max-w-64">
+                <SearchBar onSearch={handleSearch} />
+              </View>
             </View>
           </View>
 
@@ -184,30 +224,38 @@ export default function App() {
               loading={loading}
               error={error}
               onRefresh={resetProducts}
+              selectedProductForQuantity={selectedProductForQuantity}
             />
           </View>
         </View>
 
         {/* Right Panel - POS Interface */}
         <View className="w-80 bg-white border-l border-gray-200">
-          {/* Database Status */}
-          <View className="p-4 border-b border-gray-200">
-            <DatabaseStatus
-              productCount={products.length}
-              categoryCount={categories.length}
-            />
-          </View>
-
-          {/* Performance Indicator */}
-          <View className="p-4 border-b border-gray-200">
-            <PerformanceIndicator />
-          </View>
-
           {/* POS Interface - Cart */}
           <View className="flex-1 p-4">
             <Text className="text-lg font-semibold text-gray-800 mb-4">
               🛒 Cart ({selectedProducts.length} items)
             </Text>
+
+            {/* Keypad Section */}
+            <View className="mb-4">
+              {selectedProductForQuantity && (
+                <View className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                  <Text className="text-sm font-medium text-blue-800 text-center">
+                    Setting quantity for: {selectedProductForQuantity.name}
+                  </Text>
+                  <Text className="text-lg font-bold text-blue-900 text-center mt-1">
+                    {keypadInput || "0"}
+                  </Text>
+                </View>
+              )}
+
+              <Keypad
+                onNumberPress={handleKeypadNumber}
+                onClear={handleKeypadClear}
+                disabled={!selectedProductForQuantity}
+              />
+            </View>
 
             {selectedProducts.length === 0 ? (
               <View className="bg-gray-50 rounded-lg p-4">
@@ -219,71 +267,49 @@ export default function App() {
                 </Text>
               </View>
             ) : (
-              <View className="space-y-3">
-                {/* Cart Items */}
+              <View className="flex-1 flex-col">
+                {/* Cart Items - Scrollable */}
                 <ScrollView
                   className="flex-1"
                   showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 20 }}
                 >
-                  {selectedProducts.map((product) => (
-                    <View
-                      key={product.id}
-                      className="bg-gray-50 rounded-lg p-3 border border-gray-200"
-                    >
-                      <View className="flex-row items-center justify-between mb-2">
-                        <Text
-                          className="font-medium text-gray-800 text-sm"
-                          numberOfLines={1}
-                        >
-                          {product.name}
-                        </Text>
-                        <TouchableOpacity
-                          onPress={() => removeFromCart(product.id)}
-                          className="p-1"
-                        >
-                          <Text className="text-red-500 text-lg">×</Text>
-                        </TouchableOpacity>
+                  <View className="space-y-3">
+                    {selectedProducts.map((product) => (
+                      <View
+                        key={product.id}
+                        className="bg-gray-50 rounded-lg p-3 border border-gray-200"
+                      >
+                        <View className="flex-row items-center justify-between mb-2">
+                          <Text
+                            className="font-medium text-gray-800 text-sm"
+                            numberOfLines={1}
+                          >
+                            {product.name}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => removeFromCart(product.id)}
+                            className="p-1"
+                          >
+                            <Text className="text-red-500 text-lg">×</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        <View className="flex-row items-center justify-between">
+                          <Text className="text-gray-600 text-sm">
+                            €{product.price.toFixed(2)} × {product.quantity}
+                          </Text>
+                          <Text className="font-bold text-gray-800">
+                            €{(product.price * product.quantity).toFixed(2)}
+                          </Text>
+                        </View>
                       </View>
-
-                      <View className="flex-row items-center justify-between">
-                        <Text className="text-gray-600 text-sm">
-                          €{product.price.toFixed(2)} × {product.quantity}
-                        </Text>
-                        <Text className="font-bold text-gray-800">
-                          €{(product.price * product.quantity).toFixed(2)}
-                        </Text>
-                      </View>
-
-                      {/* Quantity Controls */}
-                      <View className="flex-row items-center justify-center mt-2 space-x-2">
-                        <TouchableOpacity
-                          onPress={() =>
-                            updateQuantity(product.id, product.quantity - 1)
-                          }
-                          className="w-8 h-8 bg-red-100 rounded-full items-center justify-center"
-                        >
-                          <Text className="text-red-600 font-bold">-</Text>
-                        </TouchableOpacity>
-
-                        <Text className="text-gray-700 font-medium px-3">
-                          {product.quantity}
-                        </Text>
-
-                        <TouchableOpacity
-                          onPress={() =>
-                            updateQuantity(product.id, product.quantity + 1)
-                          }
-                          className="w-8 h-8 bg-green-100 rounded-full items-center justify-center"
-                        >
-                          <Text className="text-green-600 font-bold">+</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))}
+                    ))}
+                  </View>
                 </ScrollView>
 
-                {/* Total and Checkout */}
-                <View className="border-t border-gray-200 pt-3">
+                {/* Total and Checkout - Sticky at Bottom */}
+                <View className="border-t border-gray-200 pt-3 bg-white">
                   <View className="flex-row justify-between items-center mb-3">
                     <Text className="text-lg font-semibold text-gray-800">
                       Total:

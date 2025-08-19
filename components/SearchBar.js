@@ -18,11 +18,11 @@ export default function SearchBar({
   };
 
   return (
-    <View className="px-4 py-3 bg-white border-b border-gray-200">
-      <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
+    <View className="bg-gray-100 rounded-lg px-3 py-2">
+      <View className="flex-row items-center">
         <Text className="text-gray-500 mr-2">🔍</Text>
         <TextInput
-          className="flex-1 text-gray-800 text-base"
+          className="flex-1 text-gray-800 text-sm"
           placeholder={placeholder}
           placeholderTextColor="#9CA3AF"
           value={searchText}

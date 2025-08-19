@@ -14,6 +14,7 @@ export default function ProductGrid({
   loading,
   error,
   onRefresh,
+  selectedProductForQuantity, // New prop for highlighting selected product
 }) {
   if (loading) {
     return (
@@ -77,7 +78,7 @@ export default function ProductGrid({
             </View>
           ) : (
             <View className="space-y-6">
-              {/* Most Bought Section - Same UI as regular products */}
+              {/* Most Bought Section - Quick Access */}
               <View>
                 <Text className="text-sm font-semibold text-blue-800 mb-3">
                   🚀 Most Bought - Quick Access
@@ -85,7 +86,11 @@ export default function ProductGrid({
                 <View className="flex-row flex-wrap justify-start">
                   {mostBoughtProducts.map((item) => (
                     <View key={item.id} className="w-1/4 p-1">
-                      <ProductCard product={item} onPress={onProductPress} />
+                      <ProductCard
+                        product={item}
+                        onPress={onProductPress}
+                        isSelected={selectedProductForQuantity?.id === item.id}
+                      />
                     </View>
                   ))}
                 </View>
@@ -94,14 +99,25 @@ export default function ProductGrid({
               {/* All Products Grid - 4 columns */}
               <View>
                 <Text className="text-sm font-semibold text-gray-700 mb-3">
-                  All Products
+                  All Products ({products.length - mostBoughtProducts.length})
                 </Text>
                 <View className="flex-row flex-wrap justify-start">
-                  {products.map((item) => (
-                    <View key={item.id} className="w-1/4 p-1">
-                      <ProductCard product={item} onPress={onProductPress} />
-                    </View>
-                  ))}
+                  {products
+                    .filter(
+                      (item) =>
+                        !mostBoughtProducts.some((mb) => mb.id === item.id)
+                    )
+                    .map((item) => (
+                      <View key={item.id} className="w-1/4 p-1">
+                        <ProductCard
+                          product={item}
+                          onPress={onProductPress}
+                          isSelected={
+                            selectedProductForQuantity?.id === item.id
+                          }
+                        />
+                      </View>
+                    ))}
                 </View>
               </View>
             </View>

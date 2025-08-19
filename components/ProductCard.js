@@ -1,9 +1,13 @@
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 
-export default function ProductCard({ product, onPress }) {
+export default function ProductCard({ product, onPress, isSelected = false }) {
   return (
     <TouchableOpacity
-      className="bg-white rounded-lg border border-gray-200 p-3 flex-1"
+      className={`rounded-lg border p-3 flex-1 ${
+        isSelected
+          ? "bg-blue-50 border-blue-300 shadow-sm"
+          : "bg-white border-gray-200"
+      }`}
       onPress={() => onPress(product)}
       activeOpacity={Platform.OS === "ios" ? 0.7 : 1}
     >
