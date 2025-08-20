@@ -12,6 +12,8 @@
     "@expo/metro-runtime": "~5.0.4",
     "expo": "~53.0.20",
     "expo-status-bar": "~2.2.3",
+    "fuse.js": "^7.1.0",
+    "lodash": "^4.17.21",
     "nativewind": "^4.1.23",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "react": "19.0.0",

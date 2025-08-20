@@ -24,8 +24,8 @@ const generateBulkProducts = () => {
   Object.entries(baseCategories).forEach(([categoryKey, categoryInfo]) => {
     const categoryName = categoryInfo.name;
 
-    // Generate 40-50 products per category
-    const productsPerCategory = Math.floor(Math.random() * 20) + 40;
+    // Generate 150-200 products per category for 2000 total
+    const productsPerCategory = Math.floor(Math.random() * 50) + 150;
 
     for (let i = 1; i <= productsPerCategory; i++) {
       const productKey = `${categoryKey}-${productId}`;

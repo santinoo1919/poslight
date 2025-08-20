@@ -79,11 +79,8 @@ export default function App() {
       return;
     }
 
-    const searchResults = products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(query.toLowerCase()) ||
-        product.categoryName.toLowerCase().includes(query.toLowerCase())
-    );
+    // Use Fuse.js for lightning-fast fuzzy search
+    const searchResults = searchProducts(query);
     setFilteredProducts(searchResults);
   };
 
@@ -201,7 +198,7 @@ export default function App() {
           POS Light
         </Text>
         <Text className="text-gray-500 text-center mt-1 text-sm">
-          Simple • Fast • TinyBase
+          Simple • Fast • Offline
         </Text>
       </View>
 
@@ -214,12 +211,12 @@ export default function App() {
             <Text className="text-sm font-medium text-gray-700 mb-2">
               Categories
             </Text>
-            <View className="flex-row items-center">
+            <View className="flex-row items-center justify-between">
               {/* Categories on the left */}
-              <View className="flex-row flex-wrap flex-1">
+              <View className="flex-row flex-wrap items-center flex-1">
                 {/* Show All option */}
                 <TouchableOpacity
-                  className={`mr-2 mb-2 px-3 py-1 rounded-full border ${
+                  className={`mr-2 px-3 py-2 rounded-full border ${
                     currentCategory === null
                       ? "border-blue-500 bg-blue-100"
                       : "border-gray-200 bg-white"
@@ -240,7 +237,7 @@ export default function App() {
                 {categories.map((category) => (
                   <TouchableOpacity
                     key={category.name}
-                    className={`mr-2 mb-2 px-3 py-1 rounded-full border ${
+                    className={`mr-2 px-3 py-2 rounded-full border ${
                       currentCategory === category.name
                         ? "border-blue-500 bg-blue-100"
                         : "border-gray-200 bg-white"
@@ -261,7 +258,7 @@ export default function App() {
               </View>
 
               {/* Search Bar - On the right, using remaining space */}
-              <View className="ml-4 flex-1 max-w-64">
+              <View className="ml-4 flex-shrink-0">
                 <SearchBar onSearch={handleSearch} />
               </View>
             </View>

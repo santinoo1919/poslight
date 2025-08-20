@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { store, db } from "../services/tinybaseStore";
+import Fuse from "fuse.js";
+import { debounce } from "lodash";
 
 export default function useTinyBase() {
   const [products, setProducts] = useState([]);
@@ -29,25 +31,49 @@ export default function useTinyBase() {
     }
   }, []);
 
-  // Super fast search (in-memory, instant results)
+  // Initialize Fuse.js search engine for lightning-fast search
+  const fuseSearch = useMemo(() => {
+    if (products.length === 0) return null;
+
+    return new Fuse(products, {
+      keys: [
+        { name: "name", weight: 2 }, // Product name is most important
+        { name: "categoryName", weight: 1 }, // Category is secondary
+        { name: "barcode", weight: 0.5 }, // Barcode is least important
+      ],
+      threshold: 0.3, // How fuzzy the search should be
+      includeScore: true, // Include relevance scores
+      minMatchCharLength: 2, // Minimum characters to start searching
+      shouldSort: true, // Sort by relevance
+    });
+  }, [products]);
+
+  // Lightning-fast search with Fuse.js (fuzzy, instant results)
   const searchProducts = useCallback(
     (query) => {
       if (!query.trim()) {
-        setFilteredProducts(products);
-        return;
+        return products; // Return all products instead of setting state
       }
 
-      // Instant search - no async needed!
-      const queryLower = query.toLowerCase();
-      const searchResults = products.filter(
-        (product) =>
-          product.name.toLowerCase().includes(queryLower) ||
-          product.category.toLowerCase().includes(queryLower) ||
-          (product.barcode && product.barcode.includes(query))
-      );
-      setFilteredProducts(searchResults);
+      if (!fuseSearch) {
+        return products; // Return all products instead of setting state
+      }
+
+      // Super fast fuzzy search with Fuse.js
+      const searchResults = fuseSearch.search(query);
+
+      // Extract just the items from Fuse results
+      const filteredItems = searchResults.map((result) => result.item);
+
+      return filteredItems; // Return results instead of setting state
     },
-    [products]
+    [products, fuseSearch]
+  );
+
+  // Debounced search for smooth typing experience
+  const debouncedSearch = useMemo(
+    () => debounce(searchProducts, 300),
+    [searchProducts]
   );
 
   // Super fast category filtering
@@ -146,6 +172,7 @@ export default function useTinyBase() {
 
     // Operations
     searchProducts,
+    debouncedSearch,
     getProductsByCategory,
     resetProducts,
     updateStock,

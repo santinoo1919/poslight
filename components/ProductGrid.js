@@ -56,7 +56,6 @@ export default function ProductGrid({
             Products ({products.length})
           </Text>
           <View className="flex-row items-center space-x-2">
-            <Text className="text-blue-600 text-xs">⚡ TinyBase</Text>
             <Text className="text-sm text-gray-500">
               {products.length} items
             </Text>

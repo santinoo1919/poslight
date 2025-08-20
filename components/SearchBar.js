@@ -22,13 +22,19 @@ export default function SearchBar({
       <View className="flex-row items-center">
         <Text className="text-gray-500 mr-2">🔍</Text>
         <TextInput
-          className="flex-1 text-gray-800 text-sm"
+          className="flex-1 text-gray-800 text-sm focus:outline-none"
           placeholder={placeholder}
           placeholderTextColor="#9CA3AF"
           value={searchText}
           onChangeText={handleSearch}
           autoCapitalize="none"
           autoCorrect={false}
+          style={{
+            outline: "none",
+            outlineStyle: "none",
+            outlineWidth: 0,
+            outlineColor: "transparent",
+          }}
         />
         {searchText.length > 0 && (
           <TouchableOpacity onPress={clearSearch} className="ml-2">
