@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 
 export default function TestComponent() {
   return (
@@ -10,9 +11,7 @@ export default function TestComponent() {
         If you can see this styled text, NativeWind is working!
       </Text>
       <TouchableOpacity className="bg-blue-500 px-4 py-2 rounded-md">
-        <Text className="text-white font-medium text-center">
-          Test Button
-        </Text>
+        <Text className="text-white font-medium text-center">Test Button</Text>
       </TouchableOpacity>
     </View>
   );

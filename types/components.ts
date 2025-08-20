@@ -9,6 +9,7 @@ export interface ProductCardProps {
 export interface ProductGridProps {
   products: Product[];
   loading?: boolean;
+  error?: string | null;
   onProductPress?: (product: Product) => void;
   onRefresh?: () => void;
 }
@@ -18,11 +19,6 @@ export interface SearchBarProps {
   placeholder?: string;
   value?: string;
   onChangeText?: (text: string) => void;
-}
-
-export interface QuickAccessSectionProps {
-  categories: Category[];
-  onCategoryPress: (category: Category) => void;
 }
 
 export interface KeypadProps {
@@ -36,6 +32,7 @@ export interface KeypadProps {
 export interface SuccessScreenProps {
   message: string;
   onContinue: () => void;
+  onClose?: () => void;
   onNewTransaction?: () => void;
 }
 

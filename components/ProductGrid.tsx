@@ -9,6 +9,8 @@ import {
 import ProductCard from "./ProductCard";
 import ProductGridSkeleton from "./ProductGridSkeleton";
 import QuickAccessSection from "./QuickAccessSection";
+import type { ProductGridProps } from "../types/components";
+import type { Product } from "../types/database";
 
 export default function ProductGrid({
   onProductPress,
@@ -20,6 +22,11 @@ export default function ProductGrid({
   selectedProductForQuantity, // New prop for highlighting selected product
   isFiltering = false,
   currentCategory = null, // Add current category prop
+}: ProductGridProps & {
+  allProducts: Product[];
+  selectedProductForQuantity?: Product | null;
+  isFiltering?: boolean;
+  currentCategory?: string | null;
 }) {
   // Show skeleton during loading, filtering, or when no products are loaded yet
   if (loading || isFiltering || products.length === 0) {

@@ -16,6 +16,17 @@ import SuccessScreen from "./components/SuccessScreen";
 import useTinyBase from "./hooks/useTinyBase";
 import useStock from "./hooks/useStock";
 import Toast from "react-native-toast-message";
+import type { Product, Category } from "./types/database";
+
+interface CartProduct extends Product {
+  quantity: number;
+}
+
+interface SaleData {
+  totalAmount: number;
+  itemCount: number;
+  items: CartProduct[];
+}
 
 export default function App() {
   const {
@@ -31,15 +42,15 @@ export default function App() {
   const { canSell, sellProduct, isLowStock, updateStock } = useStock();
 
   // Simple local state for filtering
-  const [filteredProducts, setFilteredProducts] = useState(products);
-  const [currentCategory, setCurrentCategory] = useState(null);
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isFiltering, setIsFiltering] = useState(false);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+  const [currentCategory, setCurrentCategory] = useState<string | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<CartProduct[]>([]);
+  const [isFiltering, setIsFiltering] = useState<boolean>(false);
 
   // Pre-compute results for instant performance
   const allProductsResult = useMemo(() => products, [products]);
   const categoryResults = useMemo(() => {
-    const results = {};
+    const results: Record<string, Product[]> = {};
     if (products.length > 0 && categories) {
       categories.forEach((category) => {
         results[category.name] = products.filter(
@@ -51,37 +62,35 @@ export default function App() {
   }, [products, categories]);
 
   // Keypad state
-  const [keypadInput, setKeypadInput] = useState("");
+  const [keypadInput, setKeypadInput] = useState<string>("");
   const [selectedProductForQuantity, setSelectedProductForQuantity] =
-    useState(null);
-  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
-  const [lastSaleData, setLastSaleData] = useState(null);
+    useState<Product | null>(null);
+  const [showSuccessScreen, setShowSuccessScreen] = useState<boolean>(false);
+  const [lastSaleData, setLastSaleData] = useState<SaleData | null>(null);
 
   // Update filtered products when products change
   useEffect(() => {
     setFilteredProducts(products);
   }, [products]);
 
-  const handleProductPress = (product) => {
+  const handleProductPress = (product: Product) => {
     // Set this product for quantity input via keypad
     setSelectedProductForQuantity(product);
     setKeypadInput("");
   };
 
-  const handleCategorySelect = (categoryName) => {
+  const handleCategorySelect = (categoryName: string) => {
     if (categoryName === "Show All") {
       // Performance monitoring for "Show All"
       console.log("🚀 Show All clicked - starting...");
-      const startTime = performance.now();
+      const startTime = Date.now();
 
       // Use pre-computed result for instant performance
       setFilteredProducts(allProductsResult);
       setCurrentCategory(null);
 
-      const endTime = performance.now();
-      console.log(
-        `⚡ Show All completed in: ${(endTime - startTime).toFixed(0)}ms`
-      );
+      const endTime = Date.now();
+      console.log(`⚡ Show All completed in: ${endTime - startTime}ms`);
       return;
     }
 
@@ -91,7 +100,7 @@ export default function App() {
     setCurrentCategory(categoryName);
   };
 
-  const handleSearch = (query) => {
+  const handleSearch = (query: string) => {
     if (!query.trim()) {
       if (currentCategory && currentCategory !== "Show All") {
         // Use pre-computed category results
@@ -109,11 +118,11 @@ export default function App() {
     setFilteredProducts(searchResults);
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (productId: string) => {
     setSelectedProducts((prev) => prev.filter((p) => p.id !== productId));
   };
 
-  const updateQuantity = (productId, newQuantity) => {
+  const updateQuantity = (productId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeFromCart(productId);
       return;
@@ -126,7 +135,7 @@ export default function App() {
     );
   };
 
-  const getTotalAmount = () => {
+  const getTotalAmount = (): number => {
     return selectedProducts.reduce((total, product) => {
       return total + product.price * product.quantity;
     }, 0);
@@ -135,7 +144,15 @@ export default function App() {
   // Complete the sale and update stock
   const completeSale = () => {
     if (selectedProducts.length === 0) {
-      alert("Cart is empty!");
+      Toast.show({
+        type: "error",
+        text1: "Cart is empty!",
+        text2: "Please add products to cart",
+        position: "bottom",
+        visibilityTime: 3000,
+        text1Style: { fontSize: 16, fontWeight: "bold" },
+        text2Style: { fontSize: 14, fontWeight: "500" },
+      });
       return;
     }
 
@@ -169,6 +186,8 @@ export default function App() {
       text2: `€${totalAmount.toFixed(2)} added to daily sales`,
       position: "bottom",
       visibilityTime: 4000,
+      text1Style: { fontSize: 16, fontWeight: "bold" },
+      text2Style: { fontSize: 14, fontWeight: "500" },
     });
 
     // Show success screen
@@ -176,7 +195,7 @@ export default function App() {
   };
 
   // Keypad handlers
-  const handleKeypadNumber = (number) => {
+  const handleKeypadNumber = (number: string) => {
     if (selectedProductForQuantity) {
       const newInput = keypadInput + number;
       setKeypadInput(newInput);
@@ -215,6 +234,8 @@ export default function App() {
             text2: `Not enough stock! Available: ${selectedProductForQuantity.stock}`,
             position: "bottom",
             visibilityTime: 4000,
+            text1Style: { fontSize: 16, fontWeight: "bold" },
+            text2Style: { fontSize: 14, fontWeight: "500" },
           });
         }
       }
@@ -283,7 +304,7 @@ export default function App() {
                 ) : (
                   categories.map((category) => (
                     <TouchableOpacity
-                      key={category.key}
+                      key={category.name}
                       className={`mr-2 px-3 py-2 rounded-full border ${
                         currentCategory === category.name
                           ? "border-blue-500 bg-blue-100"
@@ -354,7 +375,13 @@ export default function App() {
 
               <Keypad
                 onNumberPress={handleKeypadNumber}
+                onDelete={() => setKeypadInput(keypadInput.slice(0, -1))}
                 onClear={handleKeypadClear}
+                onEnter={() => {
+                  if (keypadInput) {
+                    handleKeypadNumber(keypadInput);
+                  }
+                }}
                 disabled={!selectedProductForQuantity}
               />
             </View>
@@ -436,10 +463,14 @@ export default function App() {
                   </View>
 
                   <TouchableOpacity
-                    className="bg-green-500 rounded-lg py-3 items-center"
+                    className="bg-green-500 rounded-lg py-3 flex-row justify-center items-center"
+                    style={{ backgroundColor: "#10B981" }}
                     onPress={completeSale}
                   >
-                    <Text className="text-white font-bold text-lg">
+                    <Text
+                      className="text-white font-bold text-lg"
+                      style={{ color: "white" }}
+                    >
                       💳 Checkout
                     </Text>
                   </TouchableOpacity>
@@ -453,6 +484,8 @@ export default function App() {
       {/* Success Screen */}
       {showSuccessScreen && lastSaleData && (
         <SuccessScreen
+          message="Sale Complete!"
+          onContinue={() => setShowSuccessScreen(false)}
           onClose={() => setShowSuccessScreen(false)}
           totalAmount={lastSaleData.totalAmount}
           itemCount={lastSaleData.itemCount}
