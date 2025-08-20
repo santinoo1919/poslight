@@ -1,12 +1,56 @@
 import * as SQLite from "expo-sqlite";
+import type {
+  Product,
+  Category,
+  Transaction,
+  TransactionItem,
+} from "../types/database";
+
+interface DatabaseProduct {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;
+  category: string;
+  barcode: string;
+  description?: string;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DatabaseCategory {
+  id: number;
+  name: string;
+  color: string;
+  icon: string;
+}
+
+interface DatabaseTransaction {
+  id: number;
+  total_amount: number;
+  payment_method: string;
+  status: string;
+  created_at: string;
+}
+
+interface DatabaseTransactionItem {
+  id: number;
+  transaction_id: number;
+  product_id: number;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+}
 
 class DatabaseService {
+  private db: SQLite.SQLiteDatabase | null = null;
+
   constructor() {
-    this.db = null;
     this.init();
   }
 
-  async init() {
+  async init(): Promise<void> {
     try {
       this.db = await SQLite.openDatabaseAsync("poslight.db");
       await this.createTables();
@@ -17,7 +61,7 @@ class DatabaseService {
     }
   }
 
-  async createTables() {
+  async createTables(): Promise<void> {
     const createProductsTable = `
       CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,6 +110,8 @@ class DatabaseService {
     `;
 
     try {
+      if (!this.db) throw new Error("Database not initialized");
+
       await this.db.execAsync(createCategoriesTable);
       await this.db.execAsync(createProductsTable);
       await this.db.execAsync(createTransactionsTable);
@@ -76,7 +122,9 @@ class DatabaseService {
     }
   }
 
-  async seedFMCGData() {
+  async seedFMCGData(): Promise<void> {
+    if (!this.db) throw new Error("Database not initialized");
+
     // Check if data already exists
     const { rows } = await this.db.getAllAsync(
       "SELECT COUNT(*) as count FROM products"
@@ -87,7 +135,7 @@ class DatabaseService {
     }
 
     // Insert delightful FMCG categories
-    const categories = [
+    const categories: Array<{ name: string; color: string; icon: string }> = [
       { name: "Beverages", color: "#10B981", icon: "🥤" },
       { name: "Snacks", color: "#F59E0B", icon: "🍿" },
       { name: "Dairy", color: "#8B5CF6", icon: "🥛" },
@@ -106,7 +154,13 @@ class DatabaseService {
     }
 
     // Insert delightful FMCG products
-    const products = [
+    const products: Array<{
+      name: string;
+      price: number;
+      stock: number;
+      category: string;
+      barcode: string;
+    }> = [
       // Beverages
       {
         name: "Coca Cola 330ml",
@@ -310,15 +364,33 @@ class DatabaseService {
   }
 
   // Get all products
-  async getProducts() {
+  async getProducts(): Promise<Product[]> {
     try {
+      if (!this.db) throw new Error("Database not initialized");
+
       const { rows } = await this.db.getAllAsync(`
         SELECT p.*, c.color, c.icon 
         FROM products p 
         LEFT JOIN categories c ON p.category = c.name 
         ORDER BY p.category, p.name
       `);
-      return rows;
+
+      return rows.map(
+        (row: DatabaseProduct & { color: string; icon: string }) => ({
+          id: row.id.toString(),
+          name: row.name,
+          price: row.price,
+          stock: row.stock,
+          category: row.category,
+          barcode: row.barcode,
+          description:
+            row.description ||
+            `${row.name} - High quality ${row.category.toLowerCase()} product`,
+          categoryName: row.category,
+          color: row.color,
+          icon: row.icon,
+        })
+      );
     } catch (error) {
       console.error("Failed to get products:", error);
       return [];
@@ -326,8 +398,10 @@ class DatabaseService {
   }
 
   // Search products
-  async searchProducts(query) {
+  async searchProducts(query: string): Promise<Product[]> {
     try {
+      if (!this.db) throw new Error("Database not initialized");
+
       const { rows } = await this.db.getAllAsync(
         `
         SELECT p.*, c.color, c.icon 
@@ -338,7 +412,23 @@ class DatabaseService {
       `,
         [`%${query}%`, `%${query}%`, `%${query}%`]
       );
-      return rows;
+
+      return rows.map(
+        (row: DatabaseProduct & { color: string; icon: string }) => ({
+          id: row.id.toString(),
+          name: row.name,
+          price: row.price,
+          stock: row.stock,
+          category: row.category,
+          barcode: row.barcode,
+          description:
+            row.description ||
+            `${row.name} - High quality ${row.category.toLowerCase()} product`,
+          categoryName: row.category,
+          color: row.color,
+          icon: row.icon,
+        })
+      );
     } catch (error) {
       console.error("Search failed:", error);
       return [];
@@ -346,8 +436,10 @@ class DatabaseService {
   }
 
   // Get products by category
-  async getProductsByCategory(category) {
+  async getProductsByCategory(category: string): Promise<Product[]> {
     try {
+      if (!this.db) throw new Error("Database not initialized");
+
       const { rows } = await this.db.getAllAsync(
         `
         SELECT p.*, c.color, c.icon 
@@ -358,7 +450,23 @@ class DatabaseService {
       `,
         [category]
       );
-      return rows;
+
+      return rows.map(
+        (row: DatabaseProduct & { color: string; icon: string }) => ({
+          id: row.id.toString(),
+          name: row.name,
+          price: row.price,
+          stock: row.stock,
+          category: row.category,
+          barcode: row.barcode,
+          description:
+            row.description ||
+            `${row.name} - High quality ${row.category.toLowerCase()} product`,
+          categoryName: row.category,
+          color: row.color,
+          icon: row.icon,
+        })
+      );
     } catch (error) {
       console.error("Failed to get products by category:", error);
       return [];
@@ -366,12 +474,19 @@ class DatabaseService {
   }
 
   // Get all categories
-  async getCategories() {
+  async getCategories(): Promise<Category[]> {
     try {
+      if (!this.db) throw new Error("Database not initialized");
+
       const { rows } = await this.db.getAllAsync(
         "SELECT * FROM categories ORDER BY name"
       );
-      return rows;
+
+      return rows.map((row: DatabaseCategory) => ({
+        name: row.name,
+        color: row.color,
+        icon: row.icon,
+      }));
     } catch (error) {
       console.error("Failed to get categories:", error);
       return [];
@@ -379,8 +494,10 @@ class DatabaseService {
   }
 
   // Update stock
-  async updateStock(productId, newStock) {
+  async updateStock(productId: number, newStock: number): Promise<boolean> {
     try {
+      if (!this.db) throw new Error("Database not initialized");
+
       await this.db.runAsync(
         "UPDATE products SET stock = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
         [newStock, productId]

@@ -1,9 +1,18 @@
 import { createStore } from "tinybase";
 import { createLocalPersister } from "tinybase/persisters/persister-browser";
+import type {
+  Product,
+  Category,
+  Transaction,
+  TransactionItem,
+} from "../types/database";
 
 // Generate bulk products following current FMCG structure
-const generateBulkProducts = () => {
-  const baseCategories = {
+const generateBulkProducts = (): Record<string, Omit<Product, "id">> => {
+  const baseCategories: Record<
+    string,
+    { name: string; color: string; icon: string }
+  > = {
     beverages: { name: "Beverages", color: "#10B981", icon: "🥤" },
     snacks: { name: "Snacks", color: "#F59E0B", icon: "🍿" },
     dairy: { name: "Dairy", color: "#8B5CF6", icon: "🥛" },
@@ -18,7 +27,7 @@ const generateBulkProducts = () => {
     toys: { name: "Toys", color: "#DC2626", icon: "🧸" },
   };
 
-  const products = {};
+  const products: Record<string, Omit<Product, "id">> = {};
   let productId = 1;
 
   // Generate products for each category
@@ -46,7 +55,6 @@ const generateBulkProducts = () => {
       const barcode = generateBarcode(productId);
 
       products[productKey] = {
-        id: productKey,
         name: productName,
         price: price,
         stock: stock,
@@ -66,8 +74,8 @@ const generateBulkProducts = () => {
 };
 
 // Helper function to generate realistic product names
-const generateProductName = (category, index) => {
-  const categoryNames = {
+const generateProductName = (category: string, index: number): string => {
+  const categoryNames: Record<string, string[]> = {
     Beverages: [
       "Cola",
       "Lemonade",
@@ -239,8 +247,8 @@ const generateProductName = (category, index) => {
 };
 
 // Helper function to get base prices for categories
-const getBasePriceForCategory = (category) => {
-  const basePrices = {
+const getBasePriceForCategory = (category: string): number => {
+  const basePrices: Record<string, number> = {
     Beverages: 2.5,
     Snacks: 3.0,
     Dairy: 4.5,
@@ -259,7 +267,7 @@ const getBasePriceForCategory = (category) => {
 };
 
 // Helper function to generate realistic barcodes
-const generateBarcode = (productId) => {
+const generateBarcode = (productId: number): string => {
   const prefix = "123456789";
   const paddedId = productId.toString().padStart(6, "0");
   return `${prefix}${paddedId}`;
@@ -289,7 +297,7 @@ export const store = createStore()
 export const persister = createLocalPersister(store, "poslight-cache");
 
 // Initialize store with data and persistence
-export const initializeStore = async () => {
+export const initializeStore = async (): Promise<void> => {
   try {
     // Try to load existing data from localStorage
     await persister.startAutoLoad();
@@ -369,13 +377,25 @@ export const initializeStore = async () => {
 // For now, run without persistence to get the app working
 
 // Database operations
-export const db = {
+export const db: {
+  getProducts: () => Product[];
+  getCategories: () => Category[];
+  searchProducts: (query: string) => Product[];
+  getProductsByCategory: (category: string) => Product[];
+  updateStock: (productId: string, newStock: number) => boolean;
+  addTransaction: (transaction: Omit<Transaction, "id">) => string;
+  addTransactionItems: (
+    transactionId: string,
+    items: Omit<TransactionItem, "id">[]
+  ) => void;
+} = {
   // Get all products with category info
-  getProducts: () => {
+  getProducts: (): Product[] => {
     const products = store.getTable("products");
     const categories = store.getTable("categories");
 
-    return Object.values(products).map((product) => ({
+    return Object.entries(products).map(([productId, product]) => ({
+      id: productId,
       ...product,
       categoryName: categories[product.category]?.name || product.category,
       color: categories[product.category]?.color || "#3B82F6",
@@ -384,24 +404,25 @@ export const db = {
   },
 
   // Get all categories
-  getCategories: () => {
+  getCategories: (): Category[] => {
     return Object.values(store.getTable("categories"));
   },
 
   // Search products (super fast in-memory search)
-  searchProducts: (query) => {
+  searchProducts: (query: string): Product[] => {
     const products = store.getTable("products");
     const categories = store.getTable("categories");
     const queryLower = query.toLowerCase();
 
-    return Object.values(products)
+    return Object.entries(products)
       .filter(
-        (product) =>
+        ([productId, product]) =>
           product.name.toLowerCase().includes(queryLower) ||
           product.category.toLowerCase().includes(queryLower) ||
           (product.barcode && product.barcode.includes(query))
       )
-      .map((product) => ({
+      .map(([productId, product]) => ({
+        id: productId,
         ...product,
         categoryName: categories[product.category]?.name || product.category,
         color: categories[product.category]?.color || "#3B82F6",
@@ -410,13 +431,14 @@ export const db = {
   },
 
   // Get products by category
-  getProductsByCategory: (category) => {
+  getProductsByCategory: (category: string): Product[] => {
     const products = store.getTable("products");
     const categories = store.getTable("categories");
 
-    return Object.values(products)
-      .filter((product) => product.category === category)
-      .map((product) => ({
+    return Object.entries(products)
+      .filter(([productId, product]) => product.category === category)
+      .map(([productId, product]) => ({
+        id: productId,
         ...product,
         categoryName: categories[product.category]?.name || product.category,
         color: categories[product.category]?.color || "#3B82F6",
@@ -425,13 +447,13 @@ export const db = {
   },
 
   // Update stock (instant update)
-  updateStock: (productId, newStock) => {
+  updateStock: (productId: string, newStock: number): boolean => {
     store.setCell("products", productId, "stock", newStock);
     return true;
   },
 
   // Add transaction
-  addTransaction: (transaction) => {
+  addTransaction: (transaction: Omit<Transaction, "id">): string => {
     const transactionId = `txn-${Date.now()}`;
     store.setRow("transactions", transactionId, {
       id: transactionId,
@@ -444,7 +466,10 @@ export const db = {
   },
 
   // Add transaction items
-  addTransactionItems: (transactionId, items) => {
+  addTransactionItems: (
+    transactionId: string,
+    items: Omit<TransactionItem, "id">[]
+  ): void => {
     items.forEach((item, index) => {
       const itemId = `${transactionId}-item-${index}`;
       store.setRow("transaction_items", itemId, {
