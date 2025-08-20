@@ -317,11 +317,13 @@ export default function App() {
             <ProductGrid
               onProductPress={handleProductPress}
               products={filteredProducts}
+              allProducts={products}
               loading={loading}
               error={error}
               onRefresh={resetProducts}
               selectedProductForQuantity={selectedProductForQuantity}
               isFiltering={isFiltering}
+              currentCategory={currentCategory}
             />
           </View>
         </View>

@@ -1,3 +1,4 @@
+import React from "react";
 import {
   View,
   Text,
@@ -7,16 +8,18 @@ import {
 } from "react-native";
 import ProductCard from "./ProductCard";
 import ProductGridSkeleton from "./ProductGridSkeleton";
-import React from "react";
+import QuickAccessSection from "./QuickAccessSection";
 
 export default function ProductGrid({
   onProductPress,
   products,
+  allProducts, // Add allProducts prop for QuickAccessSection
   loading,
   error,
   onRefresh,
   selectedProductForQuantity, // New prop for highlighting selected product
   isFiltering = false,
+  currentCategory = null, // Add current category prop
 }) {
   // Show skeleton during loading, filtering, or when no products are loaded yet
   if (loading || isFiltering || products.length === 0) {
@@ -65,28 +68,20 @@ export default function ProductGrid({
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="p-4">
           <View className="space-y-6">
-            {/* Most Bought Section - Quick Access */}
-            <View>
-              <Text className="text-sm font-semibold text-blue-800 mb-3">
-                🚀 Most Bought - Quick Access
-              </Text>
-              <View className="flex-row flex-wrap justify-start">
-                {mostBoughtProducts.map((item) => (
-                  <View key={item.id} className="w-1/4 p-1">
-                    <ProductCard
-                      product={item}
-                      onPress={onProductPress}
-                      isSelected={selectedProductForQuantity?.id === item.id}
-                    />
-                  </View>
-                ))}
-              </View>
-            </View>
+            {/* Dynamic Quick Access Section - Always shows all products */}
+            <QuickAccessSection
+              products={allProducts}
+              onProductPress={onProductPress}
+              selectedProductForQuantity={selectedProductForQuantity}
+            />
 
             {/* All Products Grid - 4 columns */}
             <View>
               <Text className="text-sm font-semibold text-gray-700 mb-3">
-                All Products ({products.length - mostBoughtProducts.length})
+                {currentCategory
+                  ? `${currentCategory} Products`
+                  : "All Products"}{" "}
+                ({products.length - mostBoughtProducts.length})
               </Text>
               <View className="flex-row flex-wrap justify-start">
                 {products
