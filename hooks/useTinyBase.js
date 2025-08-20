@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { store, db } from "../services/tinybaseStore";
+import { store, initializeStore } from "../services/tinybaseStore";
 import Fuse from "fuse.js";
 import { debounce } from "lodash";
 
@@ -12,23 +12,61 @@ export default function useTinyBase() {
 
   // Initialize store and load data
   useEffect(() => {
-    try {
-      setLoading(true);
+    const initStore = async () => {
+      try {
+        setLoading(true);
 
-      // Load data immediately (synchronous)
-      const productsData = db.getProducts();
-      const categoriesData = db.getCategories();
+        // Initialize store with persistence
+        await initializeStore();
 
-      setProducts(productsData);
-      setFilteredProducts(productsData);
-      setCategories(categoriesData);
+        // Get data from store
+        const productsData = store.getTable("products");
+        const categoriesData = store.getTable("categories");
 
-      setLoading(false);
-    } catch (err) {
-      console.error("Failed to initialize store:", err);
-      setError(err.message);
-      setLoading(false);
-    }
+        // Ensure we have valid data
+        if (
+          productsData &&
+          Object.keys(productsData).length > 0 &&
+          categoriesData &&
+          Object.keys(categoriesData).length > 0
+        ) {
+          // Process products to add category info (like the old db.getProducts did)
+          const processedProducts = Object.values(productsData).map(
+            (product) => ({
+              ...product,
+              categoryName:
+                categoriesData[product.category]?.name || product.category,
+              color: categoriesData[product.category]?.color || "#3B82F6",
+              icon: categoriesData[product.category]?.icon || "📦",
+            })
+          );
+
+          console.log("Products processed:", processedProducts.length, "items");
+          setProducts(processedProducts);
+          setFilteredProducts(processedProducts);
+        }
+
+        if (categoriesData && Object.keys(categoriesData).length > 0) {
+          // Convert TinyBase object to array format for easier use
+          const categoriesArray = Object.entries(categoriesData).map(
+            ([key, category]) => ({
+              key,
+              ...category,
+            })
+          );
+          console.log("Categories loaded:", categoriesArray);
+          setCategories(categoriesArray);
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to initialize store:", err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    initStore();
   }, []);
 
   // Initialize Fuse.js search engine for lightning-fast search

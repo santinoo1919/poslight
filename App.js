@@ -15,6 +15,7 @@ import Keypad from "./components/Keypad";
 import SuccessScreen from "./components/SuccessScreen";
 import useTinyBase from "./hooks/useTinyBase";
 import useStock from "./hooks/useStock";
+import Toast from "react-native-toast-message";
 
 export default function App() {
   const {
@@ -35,6 +36,20 @@ export default function App() {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [isFiltering, setIsFiltering] = useState(false);
 
+  // Pre-compute results for instant performance
+  const allProductsResult = useMemo(() => products, [products]);
+  const categoryResults = useMemo(() => {
+    const results = {};
+    if (products.length > 0 && categories) {
+      categories.forEach((category) => {
+        results[category.name] = products.filter(
+          (product) => product.categoryName === category.name
+        );
+      });
+    }
+    return results;
+  }, [products, categories]);
+
   // Keypad state
   const [keypadInput, setKeypadInput] = useState("");
   const [selectedProductForQuantity, setSelectedProductForQuantity] =
@@ -54,35 +69,37 @@ export default function App() {
   };
 
   const handleCategorySelect = (categoryName) => {
-    setIsFiltering(true);
-
     if (categoryName === "Show All") {
-      // Small delay to show loading state for "Show All" (2000 items)
-      setTimeout(() => {
-        setFilteredProducts(products);
-        setCurrentCategory(null);
-        setIsFiltering(false);
-      }, 100);
+      // Performance monitoring for "Show All"
+      console.log("🚀 Show All clicked - starting...");
+      const startTime = performance.now();
+
+      // Use pre-computed result for instant performance
+      setFilteredProducts(allProductsResult);
+      setCurrentCategory(null);
+
+      const endTime = performance.now();
+      console.log(
+        `⚡ Show All completed in: ${(endTime - startTime).toFixed(0)}ms`
+      );
       return;
     }
 
-    const categoryProducts = products.filter(
-      (product) => product.categoryName === categoryName
-    );
+    // Use pre-computed category results for instant performance
+    const categoryProducts = categoryResults[categoryName] || [];
     setFilteredProducts(categoryProducts);
     setCurrentCategory(categoryName);
-    setIsFiltering(false);
   };
 
   const handleSearch = (query) => {
     if (!query.trim()) {
       if (currentCategory && currentCategory !== "Show All") {
-        const categoryProducts = products.filter(
-          (product) => product.categoryName === currentCategory
-        );
+        // Use pre-computed category results
+        const categoryProducts = categoryResults[currentCategory] || [];
         setFilteredProducts(categoryProducts);
       } else {
-        setFilteredProducts(products);
+        // Use pre-computed all products result
+        setFilteredProducts(allProductsResult);
       }
       return;
     }
@@ -145,6 +162,15 @@ export default function App() {
     // Clear cart first
     setSelectedProducts([]);
 
+    // Show success toast
+    Toast.show({
+      type: "success",
+      text1: "Sale Complete! 🎉",
+      text2: `€${totalAmount.toFixed(2)} added to daily sales`,
+      position: "bottom",
+      visibilityTime: 4000,
+    });
+
     // Show success screen
     setShowSuccessScreen(true);
   };
@@ -182,10 +208,14 @@ export default function App() {
           setKeypadInput("");
           setSelectedProductForQuantity(null);
         } else {
-          // Show stock error
-          alert(
-            `Not enough stock! Available: ${selectedProductForQuantity.stock}`
-          );
+          // Show stock error toast
+          Toast.show({
+            type: "error",
+            text1: "Stock Error ❌",
+            text2: `Not enough stock! Available: ${selectedProductForQuantity.stock}`,
+            position: "bottom",
+            visibilityTime: 4000,
+          });
         }
       }
     }
@@ -242,27 +272,37 @@ export default function App() {
                   </Text>
                 </TouchableOpacity>
 
-                {categories.map((category) => (
-                  <TouchableOpacity
-                    key={category.name}
-                    className={`mr-2 px-3 py-2 rounded-full border ${
-                      currentCategory === category.name
-                        ? "border-blue-500 bg-blue-100"
-                        : "border-gray-200 bg-white"
-                    }`}
-                    onPress={() => handleCategorySelect(category.name)}
-                  >
-                    <Text
-                      className={`text-xs ${
-                        currentCategory === category.name
-                          ? "text-blue-600"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      {category.icon} {category.name}
+                {!categories ||
+                !Array.isArray(categories) ||
+                categories.length === 0 ? (
+                  <View className="mr-2 px-3 py-2 rounded-full border border-gray-200 bg-gray-100">
+                    <Text className="text-xs text-gray-500">
+                      Loading categories...
                     </Text>
-                  </TouchableOpacity>
-                ))}
+                  </View>
+                ) : (
+                  categories.map((category) => (
+                    <TouchableOpacity
+                      key={category.key}
+                      className={`mr-2 px-3 py-2 rounded-full border ${
+                        currentCategory === category.name
+                          ? "border-blue-500 bg-blue-100"
+                          : "border-gray-200 bg-white"
+                      }`}
+                      onPress={() => handleCategorySelect(category.name)}
+                    >
+                      <Text
+                        className={`text-xs ${
+                          currentCategory === category.name
+                            ? "text-blue-600"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {category.icon} {category.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))
+                )}
               </View>
 
               {/* Search Bar - On the right, using remaining space */}
@@ -416,6 +456,9 @@ export default function App() {
           itemCount={lastSaleData.itemCount}
         />
       )}
+
+      {/* Toast Notifications */}
+      <Toast position="bottom" bottomOffset={20} />
     </SafeAreaWrapper>
   );
 }

@@ -1,4 +1,5 @@
 import { createStore } from "tinybase";
+import { createLocalPersister } from "tinybase/persisters/persister-browser";
 
 // Generate bulk products following current FMCG structure
 const generateBulkProducts = () => {
@@ -280,9 +281,90 @@ export const store = createStore()
     books: { name: "Books", color: "#059669", icon: "📚" },
     toys: { name: "Toys", color: "#DC2626", icon: "🧸" },
   })
-  .setTable("products", generateBulkProducts())
+  .setTable("products", {}) // ← Start empty for true persistence!
   .setTable("transactions", {})
   .setTable("transaction_items", {});
+
+// Create persister for localStorage
+export const persister = createLocalPersister(store, "poslight-cache");
+
+// Initialize store with data and persistence
+export const initializeStore = async () => {
+  try {
+    // Try to load existing data from localStorage
+    await persister.startAutoLoad();
+
+    // Check if we have existing data
+    const existingProducts = store.getTable("products");
+    const existingCategories = store.getTable("categories");
+
+    if (
+      !existingProducts ||
+      Object.keys(existingProducts).length === 0 ||
+      !existingCategories ||
+      Object.keys(existingCategories).length === 0
+    ) {
+      // No existing data, generate and save
+      console.log("🚀 No cached data found, generating 2,000+ products...");
+      const startTime = performance.now();
+      const products = generateBulkProducts();
+      const endTime = performance.now();
+      console.log(`⏱️ Generation took: ${(endTime - startTime).toFixed(0)}ms`);
+
+      // Ensure categories are set (they should be set in store creation, but let's be safe)
+      store.setTable("categories", {
+        beverages: { name: "Beverages", color: "#10B981", icon: "🥤" },
+        snacks: { name: "Snacks", color: "#F59E0B", icon: "🍿" },
+        dairy: { name: "Dairy", color: "#8B5CF6", icon: "🥛" },
+        bakery: { name: "Bakery", color: "#EF4444", icon: "🥖" },
+        candy: { name: "Candy", color: "#EC4899", icon: "🍫" },
+        household: { name: "Household", color: "#06B6D4", icon: "🧽" },
+        "personal-care": {
+          name: "Personal Care",
+          color: "#84CC16",
+          icon: "🧴",
+        },
+        frozen: { name: "Frozen", color: "#6366F1", icon: "🧊" },
+        electronics: { name: "Electronics", color: "#F97316", icon: "📱" },
+        clothing: { name: "Clothing", color: "#8B5A2B", icon: "👕" },
+        books: { name: "Books", color: "#059669", icon: "📚" },
+        toys: { name: "Toys", color: "#DC2626", icon: "🧸" },
+      });
+      store.setTable("products", products);
+
+      // Save to localStorage
+      await persister.startAutoSave();
+      console.log("Products and categories generated and saved to cache");
+    } else {
+      // Data exists, just start auto-save
+      await persister.startAutoSave();
+      console.log(
+        `⚡ Loaded ${Object.keys(existingProducts).length} products from cache (instant!)`
+      );
+    }
+  } catch (error) {
+    console.error("Error initializing store:", error);
+    // Fallback to in-memory if persistence fails
+    const products = generateBulkProducts();
+
+    // Ensure categories are set in fallback
+    store.setTable("categories", {
+      beverages: { name: "Beverages", color: "#10B981", icon: "🥤" },
+      snacks: { name: "Snacks", color: "#F59E0B", icon: "🍿" },
+      dairy: { name: "Dairy", color: "#8B5CF6", icon: "🥛" },
+      bakery: { name: "Bakery", color: "#EF4444", icon: "🥖" },
+      candy: { name: "Candy", color: "#EC4899", icon: "🍫" },
+      household: { name: "Household", color: "#06B6D4", icon: "🧽" },
+      "personal-care": { name: "Personal Care", color: "#84CC16", icon: "🧴" },
+      frozen: { name: "Frozen", color: "#6366F1", icon: "🧊" },
+      electronics: { name: "Electronics", color: "#F97316", icon: "📱" },
+      clothing: { name: "Clothing", color: "#8B5A2B", icon: "👕" },
+      books: { name: "Books", color: "#059669", icon: "📚" },
+      toys: { name: "Toys", color: "#DC2626", icon: "🧸" },
+    });
+    store.setTable("products", products);
+  }
+};
 
 // For now, run without persistence to get the app working
 
