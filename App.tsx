@@ -464,13 +464,9 @@ export default function App() {
 
                   <TouchableOpacity
                     className="bg-green-500 rounded-lg py-3 flex-row justify-center items-center"
-                    style={{ backgroundColor: "#10B981" }}
                     onPress={completeSale}
                   >
-                    <Text
-                      className="text-white font-bold text-lg"
-                      style={{ color: "white" }}
-                    >
+                    <Text className="text-white font-bold text-lg">
                       💳 Checkout
                     </Text>
                   </TouchableOpacity>
