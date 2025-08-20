@@ -6,6 +6,7 @@ import {
   ScrollView,
 } from "react-native";
 import ProductCard from "./ProductCard";
+import ProductGridSkeleton from "./ProductGridSkeleton";
 import React from "react";
 
 export default function ProductGrid({
@@ -15,14 +16,11 @@ export default function ProductGrid({
   error,
   onRefresh,
   selectedProductForQuantity, // New prop for highlighting selected product
+  isFiltering = false,
 }) {
-  if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center py-20">
-        <Text className="text-gray-500 text-lg mb-2">Loading products...</Text>
-        <Text className="text-gray-400 text-sm">Initializing TinyBase</Text>
-      </View>
-    );
+  // Show skeleton during loading, filtering, or when no products are loaded yet
+  if (loading || isFiltering || products.length === 0) {
+    return <ProductGridSkeleton />;
   }
 
   if (error) {
@@ -66,24 +64,37 @@ export default function ProductGrid({
       {/* Product Grid - Scrollable */}
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="p-4">
-          {products.length === 0 ? (
-            <View className="flex-1 items-center justify-center py-20">
-              <Text className="text-gray-500 text-lg mb-2">
-                No products found
+          <View className="space-y-6">
+            {/* Most Bought Section - Quick Access */}
+            <View>
+              <Text className="text-sm font-semibold text-blue-800 mb-3">
+                🚀 Most Bought - Quick Access
               </Text>
-              <Text className="text-gray-400 text-sm">
-                Try selecting a different category or search term
-              </Text>
+              <View className="flex-row flex-wrap justify-start">
+                {mostBoughtProducts.map((item) => (
+                  <View key={item.id} className="w-1/4 p-1">
+                    <ProductCard
+                      product={item}
+                      onPress={onProductPress}
+                      isSelected={selectedProductForQuantity?.id === item.id}
+                    />
+                  </View>
+                ))}
+              </View>
             </View>
-          ) : (
-            <View className="space-y-6">
-              {/* Most Bought Section - Quick Access */}
-              <View>
-                <Text className="text-sm font-semibold text-blue-800 mb-3">
-                  🚀 Most Bought - Quick Access
-                </Text>
-                <View className="flex-row flex-wrap justify-start">
-                  {mostBoughtProducts.map((item) => (
+
+            {/* All Products Grid - 4 columns */}
+            <View>
+              <Text className="text-sm font-semibold text-gray-700 mb-3">
+                All Products ({products.length - mostBoughtProducts.length})
+              </Text>
+              <View className="flex-row flex-wrap justify-start">
+                {products
+                  .filter(
+                    (item) =>
+                      !mostBoughtProducts.some((mb) => mb.id === item.id)
+                  )
+                  .map((item) => (
                     <View key={item.id} className="w-1/4 p-1">
                       <ProductCard
                         product={item}
@@ -92,35 +103,9 @@ export default function ProductGrid({
                       />
                     </View>
                   ))}
-                </View>
-              </View>
-
-              {/* All Products Grid - 4 columns */}
-              <View>
-                <Text className="text-sm font-semibold text-gray-700 mb-3">
-                  All Products ({products.length - mostBoughtProducts.length})
-                </Text>
-                <View className="flex-row flex-wrap justify-start">
-                  {products
-                    .filter(
-                      (item) =>
-                        !mostBoughtProducts.some((mb) => mb.id === item.id)
-                    )
-                    .map((item) => (
-                      <View key={item.id} className="w-1/4 p-1">
-                        <ProductCard
-                          product={item}
-                          onPress={onProductPress}
-                          isSelected={
-                            selectedProductForQuantity?.id === item.id
-                          }
-                        />
-                      </View>
-                    ))}
-                </View>
               </View>
             </View>
-          )}
+          </View>
         </View>
       </ScrollView>
     </View>

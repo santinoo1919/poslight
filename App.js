@@ -33,6 +33,7 @@ export default function App() {
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [currentCategory, setCurrentCategory] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [isFiltering, setIsFiltering] = useState(false);
 
   // Keypad state
   const [keypadInput, setKeypadInput] = useState("");
@@ -53,9 +54,15 @@ export default function App() {
   };
 
   const handleCategorySelect = (categoryName) => {
+    setIsFiltering(true);
+
     if (categoryName === "Show All") {
-      setFilteredProducts(products);
-      setCurrentCategory(null);
+      // Small delay to show loading state for "Show All" (2000 items)
+      setTimeout(() => {
+        setFilteredProducts(products);
+        setCurrentCategory(null);
+        setIsFiltering(false);
+      }, 100);
       return;
     }
 
@@ -64,6 +71,7 @@ export default function App() {
     );
     setFilteredProducts(categoryProducts);
     setCurrentCategory(categoryName);
+    setIsFiltering(false);
   };
 
   const handleSearch = (query) => {
@@ -273,6 +281,7 @@ export default function App() {
               error={error}
               onRefresh={resetProducts}
               selectedProductForQuantity={selectedProductForQuantity}
+              isFiltering={isFiltering}
             />
           </View>
         </View>
