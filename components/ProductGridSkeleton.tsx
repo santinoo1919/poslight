@@ -1,13 +1,27 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import type { ProductGridSkeletonProps } from "../types/components";
 
-export default function ProductGridSkeleton() {
+interface SkeletonItemProps {
+  width: number | string;
+  height: number;
+  marginBottom?: number;
+}
+
+export default function ProductGridSkeleton({
+  count = 20,
+  columns = 4,
+}: ProductGridSkeletonProps = {}) {
   // Simple skeleton item component
-  const SkeletonItem = ({ width, height, marginBottom = 8 }) => (
+  const SkeletonItem: React.FC<SkeletonItemProps> = ({
+    width,
+    height,
+    marginBottom = 8,
+  }) => (
     <View
       className="bg-gray-200 rounded-lg"
       style={{
-        width,
+        width: width as any,
         height,
         marginBottom,
         opacity: 0.7,
@@ -55,9 +69,9 @@ export default function ProductGridSkeleton() {
               <SkeletonItem width={150} height={20} marginBottom={12} />
 
               <View className="flex-row flex-wrap justify-start">
-                {/* 20 skeleton items for All Products (5 rows x 4 columns) */}
-                {Array.from({ length: 20 }).map((_, index) => (
-                  <View key={index} className="w-1/4 p-1">
+                {/* Dynamic skeleton items based on props */}
+                {Array.from({ length: count }).map((_, index) => (
+                  <View key={index} className={`w-1/${columns} p-1`}>
                     <SkeletonItem width="100%" height={140} />
                   </View>
                 ))}

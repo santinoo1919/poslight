@@ -1,21 +1,29 @@
+import React, { useState } from "react";
 import { View, TextInput, TouchableOpacity, Text } from "react-native";
-import { useState } from "react";
+import type { SearchBarProps } from "../types/components";
 
 export default function SearchBar({
   onSearch,
   placeholder = "Search products...",
-}) {
-  const [searchText, setSearchText] = useState("");
+  value,
+  onChangeText,
+}: SearchBarProps) {
+  const [searchText, setSearchText] = useState(value || "");
 
-  const handleSearch = (text) => {
+  const handleSearch = (text: string) => {
     setSearchText(text);
     onSearch(text);
+    onChangeText?.(text);
   };
 
   const clearSearch = () => {
     setSearchText("");
     onSearch("");
+    onChangeText?.("");
   };
+
+  // Use controlled value if provided, otherwise use local state
+  const displayValue = value !== undefined ? value : searchText;
 
   return (
     <View className="bg-gray-100 rounded-lg px-3 py-2">
@@ -25,18 +33,12 @@ export default function SearchBar({
           className="flex-1 text-gray-800 text-sm focus:outline-none"
           placeholder={placeholder}
           placeholderTextColor="#9CA3AF"
-          value={searchText}
+          value={displayValue}
           onChangeText={handleSearch}
           autoCapitalize="none"
           autoCorrect={false}
-          style={{
-            outline: "none",
-            outlineStyle: "none",
-            outlineWidth: 0,
-            outlineColor: "transparent",
-          }}
         />
-        {searchText.length > 0 && (
+        {displayValue.length > 0 && (
           <TouchableOpacity onPress={clearSearch} className="ml-2">
             <Text className="text-gray-500 text-lg">✕</Text>
           </TouchableOpacity>

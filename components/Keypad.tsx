@@ -1,14 +1,24 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+import type { KeypadProps } from "../types/components";
+
+type ButtonVariant = "default" | "number" | "function" | "clear";
+
+interface KeypadButtonProps {
+  value: string;
+  onPress: (value: string) => void;
+  variant?: ButtonVariant;
+  disabled?: boolean;
+}
 
 // Keypad button component - single responsibility
-const KeypadButton = ({
+const KeypadButton: React.FC<KeypadButtonProps> = ({
   value,
   onPress,
   variant = "default",
   disabled = false,
 }) => {
-  const getButtonStyle = () => {
+  const getButtonStyle = (): string => {
     const baseStyle =
       "w-16 h-16 rounded-lg items-center justify-center mx-2 mb-3";
 
@@ -24,7 +34,7 @@ const KeypadButton = ({
     }
   };
 
-  const getTextStyle = () => {
+  const getTextStyle = (): string => {
     const baseStyle = "font-bold text-xl";
 
     switch (variant) {
@@ -52,8 +62,14 @@ const KeypadButton = ({
 };
 
 // Main Keypad component - orchestrates the keypad layout
-const Keypad = ({ onNumberPress, onClear, disabled = false }) => {
-  const handleNumberPress = (number) => {
+const Keypad: React.FC<KeypadProps> = ({
+  onNumberPress,
+  onDelete,
+  onClear,
+  onEnter,
+  disabled = false,
+}) => {
+  const handleNumberPress = (number: string) => {
     if (onNumberPress && !disabled) {
       onNumberPress(number);
     }
@@ -62,6 +78,18 @@ const Keypad = ({ onNumberPress, onClear, disabled = false }) => {
   const handleClear = () => {
     if (onClear && !disabled) {
       onClear();
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDelete && !disabled) {
+      onDelete();
+    }
+  };
+
+  const handleEnter = () => {
+    if (onEnter && !disabled) {
+      onEnter();
     }
   };
 
@@ -142,18 +170,34 @@ const Keypad = ({ onNumberPress, onClear, disabled = false }) => {
           />
         </View>
 
-        {/* Row 4: Clear, 0 */}
+        {/* Row 4: Delete, 0, Enter */}
         <View className="flex-row justify-center">
           <KeypadButton
-            value="C"
-            variant="clear"
-            onPress={handleClear}
+            value="⌫"
+            variant="function"
+            onPress={handleDelete}
             disabled={disabled}
           />
           <KeypadButton
             value="0"
             variant="number"
             onPress={handleNumberPress}
+            disabled={disabled}
+          />
+          <KeypadButton
+            value="↵"
+            variant="function"
+            onPress={handleEnter}
+            disabled={disabled}
+          />
+        </View>
+
+        {/* Row 5: Clear */}
+        <View className="flex-row justify-center">
+          <KeypadButton
+            value="C"
+            variant="clear"
+            onPress={handleClear}
             disabled={disabled}
           />
         </View>

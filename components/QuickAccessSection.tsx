@@ -6,7 +6,10 @@ import {
   ScrollView,
   Dimensions,
 } from "react-native";
-import { QuickAccessSectionProps, QuickAccessView } from "../types";
+import type {
+  QuickAccessSectionProps,
+  QuickAccessView,
+} from "../types/components";
 
 const { width } = Dimensions.get("window");
 

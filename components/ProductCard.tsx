@@ -1,9 +1,16 @@
+import React from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
+import type { ProductCardProps } from "../types/components";
 
-export default function ProductCard({ product, onPress, isSelected = false }) {
+export default function ProductCard({
+  product,
+  onPress,
+  isSelected = false,
+}: ProductCardProps & { isSelected?: boolean }) {
   // Use stock from product prop (simpler and more reliable)
   const stock = product.stock || 0;
   const isLowStock = stock <= 10;
+
   return (
     <TouchableOpacity
       className={`rounded-lg border p-3 flex-1 ${
@@ -11,7 +18,7 @@ export default function ProductCard({ product, onPress, isSelected = false }) {
           ? "bg-blue-50 border-blue-300 shadow-sm"
           : "bg-white border-gray-200"
       }`}
-      onPress={() => onPress(product)}
+      onPress={() => onPress?.(product)}
       activeOpacity={Platform.OS === "ios" ? 0.7 : 1}
     >
       {/* Category Badge */}
