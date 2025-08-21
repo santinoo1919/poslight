@@ -221,7 +221,7 @@ export default function App() {
       <View className="bg-white pt-4 pb-3 px-4 border-b border-gray-200 sticky top-0 z-10">
         <View className="flex-row items-center justify-between">
           {/* Left side - Empty space to balance layout */}
-          <View className="w-32" />
+          <View className="w-40" />
 
           {/* Centered title and subtitle */}
           <View className="items-center flex-1">
@@ -234,7 +234,7 @@ export default function App() {
           </View>
 
           {/* Right side - Daily metrics */}
-          <View className="w-32">
+          <View className="flex-shrink-0">
             <DailyMetricsCard
               dailyRevenue={dailyRevenue}
               dailyProfit={dailyProfit}

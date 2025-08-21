@@ -47,19 +47,32 @@ export default function ProductCard({
         {product.name}
       </Text>
 
-      {/* Price */}
-      <Text className="text-green-600 font-bold text-base mb-1">
-        €{product.price.toFixed(2)}
-      </Text>
+      {/* Price Layout */}
+      <View className="mb-1 space-y-1">
+        {/* Top row: Sell Price + Profit */}
+        <View className="flex-row justify-between items-center">
+          <Text className="text-green-600 font-bold text-base">
+            €{product.sellPrice.toFixed(2)}
+          </Text>
+          <Text className="text-xs text-green-600 font-medium">
+            +€{(product.sellPrice - product.buyPrice).toFixed(2)}
+          </Text>
+        </View>
 
-      {/* Stock */}
-      <Text
-        className={`text-xs font-medium ${
-          isLowStock ? "text-red-600" : "text-gray-500"
-        }`}
-      >
-        Stock: {stock}
-      </Text>
+        {/* Bottom row: Buy Price + Stock */}
+        <View className="flex-row justify-between items-center">
+          <Text className="text-xs text-gray-600">
+            €{product.buyPrice.toFixed(2)}
+          </Text>
+          <Text
+            className={`text-xs font-medium ${
+              isLowStock ? "text-red-600" : "text-gray-500"
+            }`}
+          >
+            Stock: {stock}
+          </Text>
+        </View>
+      </View>
 
       {/* Low Stock Warning */}
       {isLowStock && (
