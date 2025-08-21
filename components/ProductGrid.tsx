@@ -22,12 +22,35 @@ export default function ProductGrid({
   selectedProductForQuantity, // New prop for highlighting selected product
   isFiltering = false,
   currentCategory = null, // Add current category prop
+  searchResults = [], // Add search results prop instead of searchQuery
 }: ProductGridProps & {
   allProducts: Product[];
   selectedProductForQuantity?: Product | null;
   isFiltering?: boolean;
   currentCategory?: string | null;
+  searchResults?: Product[];
 }) {
+  // SIMPLE: Use search results or filter by category
+  const visibleProducts = React.useMemo(() => {
+    // If searching, use search results
+    if (searchResults.length > 0) {
+      return searchResults;
+    }
+
+    // If not searching, apply category filter
+    if (currentCategory) {
+      const categoryKey = currentCategory.toLowerCase();
+      return products.filter((product) => product.category === categoryKey);
+    }
+
+    // No search, no category = show all products
+    return products;
+  }, [products, currentCategory, searchResults]);
+
+  // Debug: Log when products change
+  console.log(
+    `🔍 ProductGrid render: ${visibleProducts.length} products, first product stock: ${visibleProducts[0]?.stock}`
+  );
   // Show skeleton during loading, filtering, or when no products are loaded yet
   if (loading || isFiltering || products.length === 0) {
     return <ProductGridSkeleton />;
@@ -51,7 +74,7 @@ export default function ProductGrid({
   }
 
   // Get most bought products (for now, just take first 4 with good stock)
-  const mostBoughtProducts = products
+  const mostBoughtProducts = visibleProducts
     .filter((product) => product.stock > 50) // Good stock availability
     .slice(0, 4);
 
@@ -61,11 +84,11 @@ export default function ProductGrid({
       <View className="px-4 py-3 border-b border-gray-200 bg-gray-50">
         <View className="flex-row justify-between items-center">
           <Text className="text-lg font-semibold text-gray-800">
-            Products ({products.length})
+            Products ({visibleProducts.length})
           </Text>
           <View className="flex-row items-center space-x-2">
             <Text className="text-sm text-gray-500">
-              {products.length} items
+              {visibleProducts.length} items
             </Text>
           </View>
         </View>
@@ -91,7 +114,7 @@ export default function ProductGrid({
                 ({products.length - mostBoughtProducts.length})
               </Text>
               <View className="flex-row flex-wrap justify-start">
-                {products
+                {visibleProducts
                   .filter(
                     (item) =>
                       !mostBoughtProducts.some((mb) => mb.id === item.id)

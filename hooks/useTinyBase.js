@@ -5,7 +5,7 @@ import { debounce } from "lodash";
 
 export default function useTinyBase() {
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,14 +23,19 @@ export default function useTinyBase() {
         const productsData = store.getTable("products");
         const categoriesData = store.getTable("categories");
 
-        // Ensure we have valid data
+        // Check if we have cached data first
         if (
           productsData &&
           Object.keys(productsData).length > 0 &&
           categoriesData &&
           Object.keys(categoriesData).length > 0
         ) {
-          // Process products to add category info (like the old db.getProducts did)
+          console.log("⚡ Cached data found, processing...");
+
+          // Set loading to false early for cached data
+          setLoading(false);
+
+          // Process products to add category info
           const processedProducts = Object.values(productsData).map(
             (product) => ({
               ...product,
@@ -43,10 +48,7 @@ export default function useTinyBase() {
 
           console.log("Products processed:", processedProducts.length, "items");
           setProducts(processedProducts);
-          setFilteredProducts(processedProducts);
-        }
 
-        if (categoriesData && Object.keys(categoriesData).length > 0) {
           // Convert TinyBase object to array format for easier use
           const categoriesArray = Object.entries(categoriesData).map(
             ([key, category]) => ({
@@ -56,9 +58,38 @@ export default function useTinyBase() {
           );
           console.log("Categories loaded:", categoriesArray);
           setCategories(categoriesArray);
-        }
+        } else {
+          // No cached data, keep loading until generation is complete
+          console.log("🚀 No cached data, generating products...");
 
-        setLoading(false);
+          // Process products to add category info
+          const processedProducts = Object.values(productsData).map(
+            (product) => ({
+              ...product,
+              categoryName:
+                categoriesData[product.category]?.name || product.category,
+              color: categoriesData[product.category]?.color || "#3B82F6",
+              icon: categoriesData[product.category]?.icon || "📦",
+            })
+          );
+
+          console.log("Products processed:", processedProducts.length, "items");
+          setProducts(processedProducts);
+
+          if (categoriesData && Object.keys(categoriesData).length > 0) {
+            // Convert TinyBase object to array format for easier use
+            const categoriesArray = Object.entries(categoriesData).map(
+              ([key, category]) => ({
+                key,
+                ...category,
+              })
+            );
+            console.log("Categories loaded:", categoriesArray);
+            setCategories(categoriesArray);
+          }
+
+          setLoading(false);
+        }
       } catch (err) {
         console.error("Failed to initialize store:", err);
         setError(err.message);
@@ -114,62 +145,50 @@ export default function useTinyBase() {
     [searchProducts]
   );
 
-  // Super fast category filtering
+  // SIMPLE: Category filtering (no state management)
   const getProductsByCategory = useCallback(
     (category) => {
       if (!category || category === "all") {
-        // Show all products
-        setFilteredProducts(products);
-        return;
+        return products; // Return all products
       }
 
-      // Instant filtering - no async needed!
-      const categoryProducts = products.filter(
-        (product) => product.category === category
-      );
-      setFilteredProducts(categoryProducts);
+      // Return filtered products
+      return products.filter((product) => product.category === category);
     },
     [products]
   );
 
-  // Reset to show all products
+  // SIMPLE: Reset products (no state management)
   const resetProducts = useCallback(() => {
-    setFilteredProducts(products);
-  }, [products]);
-
-  // Instant stock update
-  const updateStock = useCallback(
-    (productId, newStock) => {
-      try {
-        // Update TinyBase store
-        db.updateStock(productId, newStock);
-
-        // Update local state
-        const updatedProducts = products.map((product) =>
-          product.id === productId ? { ...product, stock: newStock } : product
-        );
-        setProducts(updatedProducts);
-        setFilteredProducts(updatedProducts);
-        return true;
-      } catch (err) {
-        console.error("Failed to update stock:", err);
-        return false;
-      }
-    },
-    [products]
-  );
-
-  // Refresh products
-  const refreshProducts = useCallback(() => {
+    // Just refresh from store
     try {
       setLoading(true);
 
-      const productsData = db.getProducts();
-      const categoriesData = db.getCategories();
+      const productsData = store.getTable("products");
+      const categoriesData = store.getTable("categories");
 
-      setProducts(productsData);
-      setFilteredProducts(productsData);
-      setCategories(categoriesData);
+      if (productsData && Object.keys(productsData).length > 0) {
+        const processedProducts = Object.values(productsData).map(
+          (product) => ({
+            ...product,
+            categoryName:
+              categoriesData[product.category]?.name || product.category,
+            color: categoriesData[product.category]?.color || "#3B82F6",
+            icon: categoriesData[product.category]?.icon || "📦",
+          })
+        );
+        setProducts(processedProducts);
+      }
+
+      if (categoriesData && Object.keys(categoriesData).length > 0) {
+        const categoriesArray = Object.entries(categoriesData).map(
+          ([key, category]) => ({
+            key,
+            ...category,
+          })
+        );
+        setCategories(categoriesArray);
+      }
 
       setLoading(false);
     } catch (err) {
@@ -179,18 +198,16 @@ export default function useTinyBase() {
     }
   }, []);
 
-  // Update product stock in UI
+  // SIMPLE: Just update the main products array
   const updateProductStock = useCallback((productId, newStock) => {
-    setProducts((prevProducts) =>
-      prevProducts.map((p) =>
+    console.log(`🔍 updateProductStock: ${productId} -> ${newStock}`);
+
+    // Update main products array
+    setProducts((prevProducts) => {
+      return prevProducts.map((p) =>
         p.id === productId ? { ...p, stock: newStock } : p
-      )
-    );
-    setFilteredProducts((prevFiltered) =>
-      prevFiltered.map((p) =>
-        p.id === productId ? { ...p, stock: newStock } : p
-      )
-    );
+      );
+    });
   }, []);
 
   // Get total inventory value (instant)
@@ -203,7 +220,7 @@ export default function useTinyBase() {
   return {
     // Data
     products,
-    filteredProducts,
+
     categories,
     loading,
     error,
@@ -213,8 +230,6 @@ export default function useTinyBase() {
     debouncedSearch,
     getProductsByCategory,
     resetProducts,
-    updateStock,
-    refreshProducts,
     getInventoryValue,
     updateProductStock,
 

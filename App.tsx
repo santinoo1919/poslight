@@ -12,9 +12,11 @@ import SearchBar from "./components/SearchBar";
 import ProductGrid from "./components/ProductGrid";
 import SafeAreaWrapper from "./components/platform/SafeAreaWrapper";
 import Keypad from "./components/Keypad";
-import SuccessScreen from "./components/SuccessScreen";
+import DailyMetricsCard from "./components/DailyMetricsCard";
+
 import useTinyBase from "./hooks/useTinyBase";
 import useStock from "./hooks/useStock";
+import useSearch from "./hooks/useSearch";
 import Toast from "react-native-toast-message";
 import type { Product, Category } from "./types/database";
 
@@ -39,10 +41,9 @@ export default function App() {
     updateProductStock,
   } = useTinyBase();
 
-  const { canSell, sellProduct, isLowStock, updateStock } = useStock();
+  const { canSell, sellProduct, isLowStock } = useStock();
 
-  // Simple local state for filtering
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+  // SIMPLE: Just use the main products array
   const [currentCategory, setCurrentCategory] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<CartProduct[]>([]);
   const [isFiltering, setIsFiltering] = useState<boolean>(false);
@@ -65,13 +66,12 @@ export default function App() {
   const [keypadInput, setKeypadInput] = useState<string>("");
   const [selectedProductForQuantity, setSelectedProductForQuantity] =
     useState<Product | null>(null);
-  const [showSuccessScreen, setShowSuccessScreen] = useState<boolean>(false);
-  const [lastSaleData, setLastSaleData] = useState<SaleData | null>(null);
 
-  // Update filtered products when products change
-  useEffect(() => {
-    setFilteredProducts(products);
-  }, [products]);
+  // Daily metrics state
+  const [dailyRevenue, setDailyRevenue] = useState<number>(0);
+  const [dailyProfit, setDailyProfit] = useState<number>(0);
+
+  // SIMPLE: No more complex filtering logic
 
   const handleProductPress = (product: Product) => {
     // Set this product for quantity input via keypad
@@ -81,42 +81,15 @@ export default function App() {
 
   const handleCategorySelect = (categoryName: string) => {
     if (categoryName === "Show All") {
-      // Performance monitoring for "Show All"
-      console.log("🚀 Show All clicked - starting...");
-      const startTime = Date.now();
-
-      // Use pre-computed result for instant performance
-      setFilteredProducts(allProductsResult);
       setCurrentCategory(null);
-
-      const endTime = Date.now();
-      console.log(`⚡ Show All completed in: ${endTime - startTime}ms`);
       return;
     }
-
-    // Use pre-computed category results for instant performance
-    const categoryProducts = categoryResults[categoryName] || [];
-    setFilteredProducts(categoryProducts);
     setCurrentCategory(categoryName);
   };
 
-  const handleSearch = (query: string) => {
-    if (!query.trim()) {
-      if (currentCategory && currentCategory !== "Show All") {
-        // Use pre-computed category results
-        const categoryProducts = categoryResults[currentCategory] || [];
-        setFilteredProducts(categoryProducts);
-      } else {
-        // Use pre-computed all products result
-        setFilteredProducts(allProductsResult);
-      }
-      return;
-    }
-
-    // Use Fuse.js for lightning-fast fuzzy search
-    const searchResults = searchProducts(query);
-    setFilteredProducts(searchResults);
-  };
+  // SOLID: Use search hook for all search logic
+  const { searchQuery, searchResults, handleSearch, clearSearch, isSearching } =
+    useSearch(products);
 
   const removeFromCart = (productId: string) => {
     setSelectedProducts((prev) => prev.filter((p) => p.id !== productId));
@@ -137,7 +110,7 @@ export default function App() {
 
   const getTotalAmount = (): number => {
     return selectedProducts.reduce((total, product) => {
-      return total + product.price * product.quantity;
+      return total + product.sellPrice * product.quantity;
     }, 0);
   };
 
@@ -160,24 +133,20 @@ export default function App() {
     const cartItems = [...selectedProducts];
     const totalAmount = getTotalAmount();
 
-    // Decrement stock for all items in cart and update UI
+    // Decrement stock for all items in cart
     cartItems.forEach((product) => {
-      const newStock = sellProduct(product.id, product.quantity);
-      // Update UI state for immediate feedback
-      if (newStock !== false) {
-        updateProductStock(product.id, newStock);
-      }
+      sellProduct(product.id, product.quantity);
     });
 
-    // Store sale data for success screen
-    setLastSaleData({
-      totalAmount,
-      itemCount: cartItems.length,
-      items: cartItems,
-    });
+    // Refresh products from TinyBase to show updated stock
+    resetProducts();
 
     // Clear cart first
     setSelectedProducts([]);
+
+    // Accumulate daily metrics
+    setDailyRevenue((prev) => prev + totalAmount);
+    setDailyProfit((prev) => prev + totalAmount * 0.4); // Assuming 40% profit margin
 
     // Show success toast
     Toast.show({
@@ -189,9 +158,6 @@ export default function App() {
       text1Style: { fontSize: 16, fontWeight: "bold" },
       text2Style: { fontSize: 14, fontWeight: "500" },
     });
-
-    // Show success screen
-    setShowSuccessScreen(true);
   };
 
   // Keypad handlers
@@ -253,12 +219,28 @@ export default function App() {
 
       {/* Header - Sticky and Reduced Height */}
       <View className="bg-white pt-4 pb-3 px-4 border-b border-gray-200 sticky top-0 z-10">
-        <Text className="text-xl font-bold text-gray-800 text-center">
-          POS Light
-        </Text>
-        <Text className="text-gray-500 text-center mt-1 text-sm">
-          Simple • Fast • Offline
-        </Text>
+        <View className="flex-row items-center justify-between">
+          {/* Left side - Empty space to balance layout */}
+          <View className="w-32" />
+
+          {/* Centered title and subtitle */}
+          <View className="items-center flex-1">
+            <Text className="text-xl font-bold text-gray-800 text-center">
+              POS Light
+            </Text>
+            <Text className="text-gray-500 mt-1 text-sm text-center">
+              Simple • Fast • Offline
+            </Text>
+          </View>
+
+          {/* Right side - Daily metrics */}
+          <View className="w-32">
+            <DailyMetricsCard
+              dailyRevenue={dailyRevenue}
+              dailyProfit={dailyProfit}
+            />
+          </View>
+        </View>
       </View>
 
       {/* Main Layout - Left Panel (Products) + Right Panel (POS) */}
@@ -337,7 +319,7 @@ export default function App() {
           <View className="flex-1">
             <ProductGrid
               onProductPress={handleProductPress}
-              products={filteredProducts}
+              products={products}
               allProducts={products}
               loading={loading}
               error={error}
@@ -345,6 +327,7 @@ export default function App() {
               selectedProductForQuantity={selectedProductForQuantity}
               isFiltering={isFiltering}
               currentCategory={currentCategory}
+              searchResults={searchResults}
             />
           </View>
         </View>
@@ -426,10 +409,10 @@ export default function App() {
 
                         <View className="flex-row items-center justify-between">
                           <Text className="text-gray-600 text-sm">
-                            €{product.price.toFixed(2)} × {product.quantity}
+                            €{product.sellPrice.toFixed(2)} × {product.quantity}
                           </Text>
                           <Text className="font-bold text-gray-800">
-                            €{(product.price * product.quantity).toFixed(2)}
+                            €{(product.sellPrice * product.quantity).toFixed(2)}
                           </Text>
                         </View>
 
@@ -476,17 +459,6 @@ export default function App() {
           </View>
         </View>
       </View>
-
-      {/* Success Screen */}
-      {showSuccessScreen && lastSaleData && (
-        <SuccessScreen
-          message="Sale Complete!"
-          onContinue={() => setShowSuccessScreen(false)}
-          onClose={() => setShowSuccessScreen(false)}
-          totalAmount={lastSaleData.totalAmount}
-          itemCount={lastSaleData.itemCount}
-        />
-      )}
 
       {/* Toast Notifications */}
       <Toast position="bottom" bottomOffset={20} />

@@ -26,7 +26,7 @@ export default function SearchBar({
   const displayValue = value !== undefined ? value : searchText;
 
   return (
-    <View className="bg-gray-100 rounded-lg px-3 py-2">
+    <View className="bg-gray-100 rounded-lg px-3 py-2 w-full">
       <View className="flex-row items-center">
         <Text className="text-gray-500 mr-2">🔍</Text>
         <TextInput
@@ -38,11 +38,14 @@ export default function SearchBar({
           autoCapitalize="none"
           autoCorrect={false}
         />
-        {displayValue.length > 0 && (
-          <TouchableOpacity onPress={clearSearch} className="ml-2">
-            <Text className="text-gray-500 text-lg">✕</Text>
-          </TouchableOpacity>
-        )}
+        {/* Always render clear button to prevent layout shifts */}
+        <View className="ml-2 w-6 h-6 justify-center items-center">
+          {displayValue.length > 0 && (
+            <TouchableOpacity onPress={clearSearch}>
+              <Text className="text-gray-500 text-lg">✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );

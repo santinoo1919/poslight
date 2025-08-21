@@ -54,9 +54,16 @@ const generateBulkProducts = (): Record<string, Omit<Product, "id">> => {
       // Generate realistic barcodes
       const barcode = generateBarcode(productId);
 
+      // Calculate buy price (cost) and sell price with profit margin
+      const buyPrice = parseFloat((price * 0.6).toFixed(2)); // 40% profit margin
+      const sellPrice = price;
+      const margin = sellPrice - buyPrice;
+
       products[productKey] = {
         name: productName,
-        price: price,
+        buyPrice: buyPrice,
+        sellPrice: sellPrice,
+        margin: margin,
         stock: stock,
         category: categoryKey,
         barcode: barcode,
@@ -480,6 +487,47 @@ export const db: {
         unit_price: item.unit_price,
         total_price: item.total_price,
       });
+    });
+  },
+
+  // Get daily metrics
+  getDailyMetrics: (): {
+    revenue: number;
+    profit: number;
+    lastUpdated: string;
+  } => {
+    const metrics = store.getTable("dailyMetrics");
+    const today = new Date().toDateString();
+
+    // Check if we have today's metrics
+    if (metrics[today]) {
+      return {
+        revenue: metrics[today].revenue || 0,
+        profit: metrics[today].profit || 0,
+        lastUpdated: metrics[today].lastUpdated || new Date().toISOString(),
+      };
+    }
+
+    // Return default values for new day
+    return {
+      revenue: 0,
+      profit: 0,
+      lastUpdated: new Date().toISOString(),
+    };
+  },
+
+  // Update daily metrics
+  updateDailyMetrics: (revenue: number, profit: number): void => {
+    const today = new Date().toDateString();
+    const currentMetrics = store.getTable("dailyMetrics")[today] || {
+      revenue: 0,
+      profit: 0,
+    };
+
+    store.setRow("dailyMetrics", today, {
+      revenue: currentMetrics.revenue + revenue,
+      profit: currentMetrics.profit + profit,
+      lastUpdated: new Date().toISOString(),
     });
   },
 };
