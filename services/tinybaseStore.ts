@@ -303,81 +303,37 @@ export const store = createStore()
 // Create persister for localStorage
 export const persister = createLocalPersister(store, "poslight-cache");
 
+
+
 // Initialize store with data and persistence
 export const initializeStore = async (): Promise<void> => {
   try {
-    // Try to load existing data from localStorage
+    console.log("🚀 Starting fresh data generation...");
+    
+    // Always generate fresh, clean data
+    const startTime = Date.now();
+    const products = generateBulkProducts();
+    const endTime = Date.now();
+    
+    console.log(`⏱️ Generated ${Object.keys(products).length} products in ${endTime - startTime}ms`);
+    
+    // Set fresh products
+    store.setTable("products", products);
+    
+    // Categories are already set in store creation
+    console.log("✅ Fresh data loaded into store");
+    
+    // Start persistence
     await persister.startAutoLoad();
-
-    // Check if we have existing data
-    const existingProducts = store.getTable("products");
-    const existingCategories = store.getTable("categories");
-
-    if (
-      !existingProducts ||
-      Object.keys(existingProducts).length === 0 ||
-      !existingCategories ||
-      Object.keys(existingCategories).length === 0
-    ) {
-      // No existing data, generate and save
-      console.log("🚀 No cached data found, generating 2,000+ products...");
-      const startTime = performance.now();
-      const products = generateBulkProducts();
-      const endTime = performance.now();
-      console.log(`⏱️ Generation took: ${(endTime - startTime).toFixed(0)}ms`);
-
-      // Ensure categories are set (they should be set in store creation, but let's be safe)
-      store.setTable("categories", {
-        beverages: { name: "Beverages", color: "#10B981", icon: "🥤" },
-        snacks: { name: "Snacks", color: "#F59E0B", icon: "🍿" },
-        dairy: { name: "Dairy", color: "#8B5CF6", icon: "🥛" },
-        bakery: { name: "Bakery", color: "#EF4444", icon: "🥖" },
-        candy: { name: "Candy", color: "#EC4899", icon: "🍫" },
-        household: { name: "Household", color: "#06B6D4", icon: "🧽" },
-        "personal-care": {
-          name: "Personal Care",
-          color: "#84CC16",
-          icon: "🧴",
-        },
-        frozen: { name: "Frozen", color: "#6366F1", icon: "🧊" },
-        electronics: { name: "Electronics", color: "#F97316", icon: "📱" },
-        clothing: { name: "Clothing", color: "#8B5A2B", icon: "👕" },
-        books: { name: "Books", color: "#059669", icon: "📚" },
-        toys: { name: "Toys", color: "#DC2626", icon: "🧸" },
-      });
-      store.setTable("products", products);
-
-      // Save to localStorage
-      await persister.startAutoSave();
-      console.log("Products and categories generated and saved to cache");
-    } else {
-      // Data exists, just start auto-save
-      await persister.startAutoSave();
-      console.log(
-        `⚡ Loaded ${Object.keys(existingProducts).length} products from cache (instant!)`
-      );
-    }
+    await persister.startAutoSave();
+    console.log("💾 Persistence started");
+    
   } catch (error) {
     console.error("Error initializing store:", error);
-    // Fallback to in-memory if persistence fails
+    // Fallback: generate in-memory data
     const products = generateBulkProducts();
-
-    // Ensure categories are set in fallback
-    store.setTable("categories", {
-      beverages: { name: "Beverages", color: "#10B981", icon: "🥤" },
-      snacks: { name: "Snacks", color: "#F59E0B", icon: "🍿" },
-      dairy: { name: "Dairy", color: "#8B5CF6", icon: "🥛" },
-      bakery: { name: "Bakery", color: "#EF4444", icon: "🥖" },
-      candy: { name: "Candy", color: "#EC4899", icon: "🍫" },
-      household: { name: "Household", color: "#06B6D4", icon: "🧽" },
-      "personal-care": { name: "Personal Care", color: "#84CC16", icon: "🧴" },
-      frozen: { name: "Frozen", color: "#6366F1", icon: "🧊" },
-      electronics: { name: "Electronics", color: "#F97316", icon: "📱" },
-      clothing: { name: "Clothing", color: "#8B5A2B", icon: "👕" },
-      books: { name: "Books", color: "#059669", icon: "📚" },
-      toys: { name: "Toys", color: "#DC2626", icon: "🧸" },
-    });
     store.setTable("products", products);
+    console.log("🔄 Fallback: Generated in-memory data");
   }
 };
 
@@ -395,6 +351,12 @@ export const db: {
     transactionId: string,
     items: Omit<TransactionItem, "id">[]
   ) => void;
+  getDailyMetrics: () => {
+    revenue: number;
+    profit: number;
+    lastUpdated: string;
+  };
+  updateDailyMetrics: (revenue: number, profit: number) => void;
 } = {
   // Get all products with category info
   getProducts: (): Product[] => {
@@ -404,15 +366,15 @@ export const db: {
     return Object.entries(products).map(([productId, product]) => ({
       id: productId,
       ...product,
-      categoryName: categories[product.category]?.name || product.category,
-      color: categories[product.category]?.color || "#3B82F6",
-      icon: categories[product.category]?.icon || "📦",
-    }));
+      categoryName: (categories[product.category as string] as any)?.name || product.category,
+      color: (categories[product.category as string] as any)?.color || "#3B82F6",
+      icon: (categories[product.category as string] as any)?.icon || "📦",
+    } as Product));
   },
 
   // Get all categories
   getCategories: (): Category[] => {
-    return Object.values(store.getTable("categories"));
+    return Object.values(store.getTable("categories")) as unknown as Category[];
   },
 
   // Search products (super fast in-memory search)
@@ -424,17 +386,17 @@ export const db: {
     return Object.entries(products)
       .filter(
         ([productId, product]) =>
-          product.name.toLowerCase().includes(queryLower) ||
-          product.category.toLowerCase().includes(queryLower) ||
-          (product.barcode && product.barcode.includes(query))
+          (product.name as string).toLowerCase().includes(queryLower) ||
+          (product.category as string).toLowerCase().includes(queryLower) ||
+          (product.barcode && (product.barcode as string).includes(query))
       )
       .map(([productId, product]) => ({
         id: productId,
         ...product,
-        categoryName: categories[product.category]?.name || product.category,
-        color: categories[product.category]?.color || "#3B82F6",
-        icon: categories[product.category]?.icon || "📦",
-      }));
+        categoryName: (categories[product.category as string] as any)?.name || product.category,
+        color: (categories[product.category as string] as any)?.color || "#3B82F6",
+        icon: (categories[product.category as string] as any)?.icon || "📦",
+      } as Product));
   },
 
   // Get products by category
@@ -447,10 +409,10 @@ export const db: {
       .map(([productId, product]) => ({
         id: productId,
         ...product,
-        categoryName: categories[product.category]?.name || product.category,
-        color: categories[product.category]?.color || "#3B82F6",
-        icon: categories[product.category]?.icon || "📦",
-      }));
+        categoryName: (categories[product.category as string] as any)?.name || product.category,
+        color: (categories[product.category as string] as any)?.color || "#3B82F6",
+        icon: (categories[product.category as string] as any)?.icon || "📦",
+      } as Product));
   },
 
   // Update stock (instant update)
@@ -502,9 +464,9 @@ export const db: {
     // Check if we have today's metrics
     if (metrics[today]) {
       return {
-        revenue: metrics[today].revenue || 0,
-        profit: metrics[today].profit || 0,
-        lastUpdated: metrics[today].lastUpdated || new Date().toISOString(),
+        revenue: (metrics[today].revenue as number) || 0,
+        profit: (metrics[today].profit as number) || 0,
+        lastUpdated: (metrics[today].lastUpdated as string) || new Date().toISOString(),
       };
     }
 
@@ -525,8 +487,8 @@ export const db: {
     };
 
     store.setRow("dailyMetrics", today, {
-      revenue: currentMetrics.revenue + revenue,
-      profit: currentMetrics.profit + profit,
+      revenue: ((currentMetrics.revenue as number) || 0) + revenue,
+      profit: ((currentMetrics.profit as number) || 0) + profit,
       lastUpdated: new Date().toISOString(),
     });
   },
