@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import SearchBar from "./components/SearchBar";
 import ProductGrid from "./components/ProductGrid";
 import SafeAreaWrapper from "./components/platform/SafeAreaWrapper";
@@ -17,6 +17,7 @@ import DailyMetricsCard from "./components/DailyMetricsCard";
 import useTinyBase from "./hooks/useTinyBase";
 import useStock from "./hooks/useStock";
 import useSearch from "./hooks/useSearch";
+import { ToastService } from "./services/toastService";
 import Toast from "react-native-toast-message";
 import type { Product, Category } from "./types/database";
 
@@ -30,7 +31,7 @@ interface SaleData {
   items: CartProduct[];
 }
 
-export default function App() {
+function AppContent() {
   const {
     searchProducts,
     products,
@@ -74,9 +75,11 @@ export default function App() {
   // SIMPLE: No more complex filtering logic
 
   const handleProductPress = (product: Product) => {
-    // Set this product for quantity input via keypad
-    setSelectedProductForQuantity(product);
-    setKeypadInput("");
+    // Batch state updates to reduce re-renders
+    React.startTransition(() => {
+      setSelectedProductForQuantity(product);
+      setKeypadInput("");
+    });
   };
 
   const handleCategorySelect = (categoryName: string) => {
@@ -117,15 +120,7 @@ export default function App() {
   // Complete the sale and update stock
   const completeSale = () => {
     if (selectedProducts.length === 0) {
-      Toast.show({
-        type: "error",
-        text1: "Cart is empty!",
-        text2: "Please add products to cart",
-        position: "bottom",
-        visibilityTime: 3000,
-        text1Style: { fontSize: 16, fontWeight: "bold" },
-        text2Style: { fontSize: 14, fontWeight: "500" },
-      });
+      ToastService.order.cartEmpty();
       return;
     }
 
@@ -149,15 +144,8 @@ export default function App() {
     setDailyProfit((prev) => prev + totalAmount * 0.4); // Assuming 40% profit margin
 
     // Show success toast
-    Toast.show({
-      type: "success",
-      text1: "Sale Complete! 🎉",
-      text2: `€${totalAmount.toFixed(2)} added to daily sales`,
-      position: "bottom",
-      visibilityTime: 4000,
-      text1Style: { fontSize: 16, fontWeight: "bold" },
-      text2Style: { fontSize: 14, fontWeight: "500" },
-    });
+    ToastService.sale.complete(totalAmount, cartItems.length);
+    ToastService.sale.stockUpdated();
   };
 
   // Keypad handlers
@@ -194,15 +182,11 @@ export default function App() {
           setSelectedProductForQuantity(null);
         } else {
           // Show stock error toast
-          Toast.show({
-            type: "error",
-            text1: "Stock Error ❌",
-            text2: `Not enough stock! Available: ${selectedProductForQuantity.stock}`,
-            position: "bottom",
-            visibilityTime: 4000,
-            text1Style: { fontSize: 16, fontWeight: "bold" },
-            text2Style: { fontSize: 14, fontWeight: "500" },
-          });
+          ToastService.stock.insufficient(
+            selectedProductForQuantity.name,
+            quantity,
+            selectedProductForQuantity.stock
+          );
         }
       }
     }
@@ -459,9 +443,16 @@ export default function App() {
           </View>
         </View>
       </View>
-
-      {/* Toast Notifications */}
-      <Toast position="bottom" bottomOffset={20} />
     </SafeAreaWrapper>
+  );
+}
+
+export default function App() {
+  return (
+    <>
+      <AppContent />
+      {/* React Native Toast Message - Fixed positioning */}
+      <Toast position="bottom" bottomOffset={20} />
+    </>
   );
 }

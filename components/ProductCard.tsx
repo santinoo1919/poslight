@@ -15,9 +15,7 @@ export default function ProductCard({
   return (
     <TouchableOpacity
       className={`rounded-lg border p-3 flex-1 ${
-        isSelected
-          ? "bg-blue-50 border-blue-300 shadow-sm"
-          : "bg-white border-gray-200"
+        isSelected ? "bg-blue-50 border-blue-300" : "bg-white border-gray-200"
       }`}
       onPress={() => onPress?.(product)}
       activeOpacity={Platform.OS === "ios" ? 0.7 : 1}

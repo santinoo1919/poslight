@@ -12,6 +12,18 @@ import QuickAccessSection from "./QuickAccessSection";
 import type { ProductGridProps } from "../types/components";
 import type { Product } from "../types/database";
 
+// Memoized ProductCard to prevent unnecessary re-renders
+const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
+  // Only re-render if these critical props actually changed
+  return (
+    prevProps.product.id === nextProps.product.id &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.product.stock === nextProps.product.stock &&
+    prevProps.product.sellPrice === nextProps.product.sellPrice &&
+    prevProps.product.buyPrice === nextProps.product.buyPrice
+  );
+});
+
 export default function ProductGrid({
   onProductPress,
   products,
@@ -47,10 +59,6 @@ export default function ProductGrid({
     return products;
   }, [products, currentCategory, searchResults]);
 
-  // Debug: Log when products change
-  console.log(
-    `🔍 ProductGrid render: ${visibleProducts.length} products, first product stock: ${visibleProducts[0]?.stock}`
-  );
   // Show skeleton during loading, filtering, or when no products are loaded yet
   if (loading || isFiltering || products.length === 0) {
     return <ProductGridSkeleton />;
@@ -121,7 +129,7 @@ export default function ProductGrid({
                   )
                   .map((item) => (
                     <View key={item.id} className="w-1/4 p-1">
-                      <ProductCard
+                      <MemoizedProductCard
                         product={item}
                         onPress={onProductPress}
                         isSelected={selectedProductForQuantity?.id === item.id}
