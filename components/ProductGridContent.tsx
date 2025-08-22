@@ -3,6 +3,10 @@ import { View, Text, ScrollView } from "react-native";
 import ProductCard from "./ProductCard";
 import QuickAccessSection from "./QuickAccessSection";
 import type { Product } from "../types/database";
+import {
+  getMostBoughtProducts,
+  getMainGridProducts,
+} from "../utils/productHelpers";
 
 // Memoized ProductCard to prevent unnecessary re-renders
 const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
@@ -31,93 +35,11 @@ export default function ProductGridContent({
   selectedProductForQuantity,
   currentCategory,
 }: ProductGridContentProps) {
-  // 🔍 COMPREHENSIVE DEBUGGING - ONE TIME ONLY
-  console.log("🚨 COMPREHENSIVE DEBUG START 🚨");
+  // Component logic starts here
 
-  // Force console expansion with JSON.stringify
-  console.log(
-    "📊 INPUT DATA:",
-    JSON.stringify({
-      products: {
-        type: typeof products,
-        isArray: Array.isArray(products),
-        length: products?.length,
-        isNull: products === null,
-        isUndefined: products === undefined,
-        firstItem: products?.[0],
-        firstItemType: typeof products?.[0],
-      },
-      allProducts: {
-        type: typeof allProducts,
-        isArray: Array.isArray(allProducts),
-        length: allProducts?.length,
-      },
-      currentCategory: currentCategory,
-    })
-  );
-
-  // Show first product structure if exists
-  if (products && products.length > 0) {
-    console.log("🔍 FIRST PRODUCT STRUCTURE:");
-    console.table({
-      id: products[0]?.id,
-      name: products[0]?.name,
-      stock: products[0]?.stock,
-      hasId: !!products[0]?.id,
-      allKeys: Object.keys(products[0] || {}),
-    });
-
-    // Also show full product as JSON
-    console.log("🔍 FULL PRODUCT JSON:");
-    console.log(JSON.stringify(products[0], null, 2));
-  }
-
-  // Get most bought products (for now, just take first 4 with good stock)
-  const mostBoughtProducts = products
-    .filter((product) => product.stock > 50) // Good stock availability
-    .slice(0, 4);
-
-  // Filter out most bought products from main grid to avoid duplication
-  const mainGridProducts = products.filter(
-    (item) => !mostBoughtProducts.some((mb) => mb.id === item.id)
-  );
-
-  // 🔍 FILTERING DEBUGGING
-  console.log("🔍 FILTERING PROCESS:", {
-    totalProducts: products.length,
-    mostBoughtCount: mostBoughtProducts.length,
-    mainGridCount: mainGridProducts.length,
-    filterLogic:
-      "products.filter(item => !mostBoughtProducts.some(mb => mb.id === item.id))",
-    filterResult:
-      products.length - mostBoughtProducts.length === mainGridProducts.length
-        ? "✅ Correct"
-        : "❌ Wrong",
-  });
-
-  // Show sample of filtered products
-  if (mainGridProducts.length > 0) {
-    console.log("🔍 MAIN GRID SAMPLE:", {
-      firstProduct: {
-        id: mainGridProducts[0]?.id,
-        name: mainGridProducts[0]?.name,
-        hasId: !!mainGridProducts[0]?.id,
-      },
-      totalInGrid: mainGridProducts.length,
-    });
-  }
-
-  console.log("🚨 COMPREHENSIVE DEBUG END 🚨");
-
-  // Debug the actual product structure
-  if (mainGridProducts.length > 0) {
-    console.log("🔍 First product structure:", {
-      id: mainGridProducts[0]?.id,
-      name: mainGridProducts[0]?.name,
-      hasId: !!mainGridProducts[0]?.id,
-      productKeys: Object.keys(mainGridProducts[0] || {}),
-    });
-  }
+  // Use our clean helpers for product filtering
+  const mostBoughtProducts = getMostBoughtProducts(products, 4, 50);
+  const mainGridProducts = getMainGridProducts(products, mostBoughtProducts);
 
   return (
     <ScrollView
@@ -139,14 +61,6 @@ export default function ProductGridContent({
               {currentCategory ? `${currentCategory} Products` : "All Products"}{" "}
               ({mainGridProducts.length})
             </Text>
-
-            {/* Debug info */}
-            {__DEV__ && (
-              <Text className="text-xs text-gray-400 mb-2">
-                Debug: {products.length} total, {mainGridProducts.length} in
-                grid, {mostBoughtProducts.length} in quick access
-              </Text>
-            )}
 
             <View className="flex-row flex-wrap justify-start">
               {mainGridProducts.map((item, index) => (

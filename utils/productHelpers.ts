@@ -174,3 +174,21 @@ export const sortProductsBy = (
 
   return sorted;
 };
+
+// 🎯 PRODUCT GRID LOGIC HELPERS
+export const getMostBoughtProducts = (
+  products: Product[],
+  count: number = 4,
+  minStock: number = 50
+): Product[] => {
+  return products.filter((product) => product.stock > minStock).slice(0, count);
+};
+
+export const getMainGridProducts = (
+  products: Product[],
+  mostBoughtProducts: Product[]
+): Product[] => {
+  return products.filter(
+    (item) => !mostBoughtProducts.some((mb) => mb.id === item.id)
+  );
+};
