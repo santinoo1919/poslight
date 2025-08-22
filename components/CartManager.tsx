@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import type { Product } from "../types/database";
 import { store } from "../services/tinybaseStore";
+import { calculateSaleTotals } from "../utils/productHelpers";
 
 interface CartProduct extends Product {
   quantity: number;
@@ -74,10 +75,17 @@ export default function CartManager({
   );
 
   const getTotalAmount = useCallback((): number => {
-    return selectedProducts.reduce((total, product) => {
-      const price = product.sellPrice || product.price || 0;
-      return total + price * product.quantity;
-    }, 0);
+    // Use our helper for clean calculation
+    const quantities = selectedProducts.reduce(
+      (acc, product) => {
+        acc[product.id] = product.quantity;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+
+    const { totalAmount } = calculateSaleTotals(selectedProducts, quantities);
+    return totalAmount;
   }, [selectedProducts]);
 
   const completeSale = useCallback(() => {
@@ -87,18 +95,22 @@ export default function CartManager({
         return;
       }
 
-      // Calculate totals
+      // Calculate totals using our helper function
       const totalAmount = getTotalAmount();
-      const totalProfit = selectedProducts.reduce((profit, product) => {
-        const buyPrice = product.buyPrice || 0;
-        const sellPrice = product.sellPrice || product.price || 0;
-        return profit + (sellPrice - buyPrice) * product.quantity;
-      }, 0);
+      const quantities = selectedProducts.reduce(
+        (acc, product) => {
+          acc[product.id] = product.quantity;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
+      const { totalProfit } = calculateSaleTotals(selectedProducts, quantities);
 
       // Update stock levels for all sold products
       selectedProducts.forEach((product) => {
         const currentStock =
-          store.getCell("products", product.id, "stock") || 0;
+          (store.getCell("products", product.id, "stock") as number) || 0;
         const newStock = Math.max(0, currentStock - product.quantity);
         store.setCell("products", product.id, "stock", newStock);
         console.log(

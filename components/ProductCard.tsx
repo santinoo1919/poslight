@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 import type { ProductCardProps } from "../types/components";
 import { getProfitTextColor } from "../utils/profitLevels";
+import { calculateProductProfit } from "../utils/productHelpers";
 
 export default function ProductCard({
   product,
@@ -69,7 +70,10 @@ export default function ProductCard({
                 !isNaN(product.sellPrice) &&
                 !isNaN(product.buyPrice)
               ) {
-                calculatedProfit = product.sellPrice - product.buyPrice;
+                calculatedProfit = calculateProductProfit(
+                  product.buyPrice || 0,
+                  product.sellPrice || product.price || 0
+                );
               } else if (
                 product.profit !== undefined &&
                 !isNaN(product.profit)

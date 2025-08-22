@@ -34,24 +34,27 @@ export default function ProductGridContent({
   // 🔍 COMPREHENSIVE DEBUGGING - ONE TIME ONLY
   console.log("🚨 COMPREHENSIVE DEBUG START 🚨");
 
-  // Force console expansion with console.dir
-  console.dir("📊 INPUT DATA:", {
-    products: {
-      type: typeof products,
-      isArray: Array.isArray(products),
-      length: products?.length,
-      isNull: products === null,
-      isUndefined: products === undefined,
-      firstItem: products?.[0],
-      firstItemType: typeof products?.[0],
-    },
-    allProducts: {
-      type: typeof allProducts,
-      isArray: Array.isArray(allProducts),
-      length: allProducts?.length,
-    },
-    currentCategory,
-  });
+  // Force console expansion with JSON.stringify
+  console.log(
+    "📊 INPUT DATA:",
+    JSON.stringify({
+      products: {
+        type: typeof products,
+        isArray: Array.isArray(products),
+        length: products?.length,
+        isNull: products === null,
+        isUndefined: products === undefined,
+        firstItem: products?.[0],
+        firstItemType: typeof products?.[0],
+      },
+      allProducts: {
+        type: typeof allProducts,
+        isArray: Array.isArray(allProducts),
+        length: allProducts?.length,
+      },
+      currentCategory: currentCategory,
+    })
+  );
 
   // Show first product structure if exists
   if (products && products.length > 0) {

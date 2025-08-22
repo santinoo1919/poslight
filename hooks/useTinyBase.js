@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { store, initializeStore } from "../services/tinybaseStore";
-import Fuse from "fuse.js";
-import { debounce } from "lodash";
-import { calculateProfitLevel } from "../utils/profitLevels";
+import {
+  enrichProductsWithCategories,
+  enrichProductWithProfit,
+  updateProductStock as updateProductStockHelper,
+  filterProductsByCategory,
+} from "../utils/productHelpers";
 
 export default function useTinyBase() {
   const [products, setProducts] = useState([]);
@@ -84,60 +87,18 @@ export default function useTinyBase() {
     initStore();
   }, []);
 
-  // Initialize Fuse.js search engine for lightning-fast search
-  const fuseSearch = useMemo(() => {
-    if (products.length === 0) return null;
+  // Search functionality is now handled by useSearch hook
+  // This keeps useTinyBase focused on data management only
 
-    return new Fuse(products, {
-      keys: [
-        { name: "name", weight: 2 }, // Product name is most important
-        { name: "categoryName", weight: 1 }, // Category is secondary
-        { name: "barcode", weight: 0.5 }, // Barcode is least important
-      ],
-      threshold: 0.3, // How fuzzy the search should be
-      includeScore: true, // Include relevance scores
-      minMatchCharLength: 2, // Minimum characters to start searching
-      shouldSort: true, // Sort by relevance
-    });
-  }, [products]);
-
-  // Lightning-fast search with Fuse.js (fuzzy, instant results)
-  const searchProducts = useCallback(
-    (query) => {
-      if (!query.trim()) {
-        return products; // Return all products instead of setting state
-      }
-
-      if (!fuseSearch) {
-        return products; // Return all products instead of setting state
-      }
-
-      // Super fast fuzzy search with Fuse.js
-      const searchResults = fuseSearch.search(query);
-
-      // Extract just the items from Fuse results
-      const filteredItems = searchResults.map((result) => result.item);
-
-      return filteredItems; // Return results instead of setting state
-    },
-    [products, fuseSearch]
-  );
-
-  // Debounced search for smooth typing experience
-  const debouncedSearch = useMemo(
-    () => debounce(searchProducts, 300),
-    [searchProducts]
-  );
-
-  // SIMPLE: Category filtering (no state management)
+  // SIMPLE: Category filtering using our helper
   const getProductsByCategory = useCallback(
     (category) => {
       if (!category || category === "all") {
         return products; // Return all products
       }
 
-      // Return filtered products
-      return products.filter((product) => product.category === category);
+      // Use our helper for clean filtering
+      return filterProductsByCategory(products, category);
     },
     [products]
   );
@@ -152,30 +113,18 @@ export default function useTinyBase() {
       const categoriesData = store.getTable("categories");
 
       if (productsData && Object.keys(productsData).length > 0) {
-        const processedProducts = Object.values(productsData).map(
-          (product) => ({
-            ...product,
-            categoryName:
-              categoriesData[product.category]?.name || product.category,
-            color: categoriesData[product.category]?.color || "#3B82F6",
-            icon: categoriesData[product.category]?.icon || "📦",
-            // Pre-calculate profit and profit level
-            profit: product.sellPrice - product.buyPrice,
-            profitLevel: calculateProfitLevel(
-              product.buyPrice,
-              product.sellPrice
-            ),
-          })
-        );
-        setProducts(processedProducts);
+        // Use our clean helper functions instead of complex inline logic
+        const enrichedProducts = enrichProductsWithCategories(
+          productsData,
+          categoriesData
+        ).map((product) => enrichProductWithProfit(product));
+        setProducts(enrichedProducts);
       }
 
       if (categoriesData && Object.keys(categoriesData).length > 0) {
+        // Use our helper for categories
         const categoriesArray = Object.entries(categoriesData).map(
-          ([key, category]) => ({
-            key,
-            ...category,
-          })
+          ([key, category]) => ({ key, ...category })
         );
         setCategories(categoriesArray);
       }
@@ -188,36 +137,32 @@ export default function useTinyBase() {
     }
   }, []);
 
-  // SIMPLE: Just update the main products array
+  // SIMPLE: Just update the main products array using our helper
   const updateProductStock = useCallback((productId, newStock) => {
     console.log(`🔍 updateProductStock: ${productId} -> ${newStock}`);
 
-    // Update main products array
-    setProducts((prevProducts) => {
-      return prevProducts.map((p) =>
-        p.id === productId ? { ...p, stock: newStock } : p
-      );
-    });
+    // Use our clean helper function
+    setProducts((prevProducts) =>
+      updateProductStockHelper(prevProducts, productId, newStock)
+    );
   }, []);
 
   // Get total inventory value (instant)
   const getInventoryValue = useCallback(() => {
-    return products.reduce((total, product) => {
-      return total + product.price * product.stock;
-    }, 0);
+    return products.reduce(
+      (total, product) => total + product.price * product.stock,
+      0
+    );
   }, [products]);
 
   return {
     // Data
     products,
-
     categories,
     loading,
     error,
 
     // Operations
-    searchProducts,
-    debouncedSearch,
     getProductsByCategory,
     resetProducts,
     getInventoryValue,

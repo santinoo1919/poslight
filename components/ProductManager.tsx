@@ -2,6 +2,10 @@ import React, { useState, useMemo, useCallback } from "react";
 import type { Product, Category } from "../types/database";
 import useTinyBase from "../hooks/useTinyBase";
 import useSearch from "../hooks/useSearch";
+import {
+  filterProductsByCategory,
+  searchProductsByName,
+} from "../utils/productHelpers";
 
 interface ProductManagerProps {
   children: (props: {
@@ -51,12 +55,14 @@ export default function ProductManager({ children }: ProductManagerProps) {
     isSearching,
   } = useSearch(products);
 
-  // Memoized search handler
+  // Memoized search handler using our helper
   const handleSearch = useCallback(
     (query: string) => {
+      // Use our helper for clean search
+      const results = searchProductsByName(products, query);
       searchHookHandleSearch(query);
     },
-    [searchHookHandleSearch]
+    [searchHookHandleSearch, products]
   );
 
   // Category selection
@@ -68,17 +74,16 @@ export default function ProductManager({ children }: ProductManagerProps) {
     setCurrentCategory(categoryName);
   }, []);
 
-  // Visible products logic
+  // Visible products logic - simplified using our helper
   const visibleProducts = useMemo(() => {
     // If searching, use search results
     if (searchResults.length > 0) {
       return searchResults;
     }
 
-    // If not searching, apply category filter
+    // If not searching, apply category filter using our helper
     if (currentCategory) {
-      const categoryKey = currentCategory.toLowerCase();
-      return products.filter((product) => product.category === categoryKey);
+      return filterProductsByCategory(products, currentCategory);
     }
 
     // No search, no category = show all products
