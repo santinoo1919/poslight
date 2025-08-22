@@ -51,13 +51,13 @@ export default function ProductCard({
         {/* Top row: Sell Price + Profit */}
         <View className="flex-row justify-between items-center">
           <Text className="text-green-600 font-bold text-base">
-            €{product.sellPrice.toFixed(2)}
+            €{(product.sellPrice || product.price || 0).toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${getProfitTextColor(product.profitLevel || "medium")}`}
           >
             +€
-            {(product.profit || product.sellPrice - product.buyPrice).toFixed(
+            {(product.profit || (product.sellPrice && product.buyPrice ? product.sellPrice - product.buyPrice : 0)).toFixed(
               2
             )}
           </Text>
@@ -66,7 +66,7 @@ export default function ProductCard({
         {/* Bottom row: Buy Price + Stock */}
         <View className="flex-row justify-between items-center">
           <Text className="text-xs text-gray-600">
-            €{product.buyPrice.toFixed(2)}
+            €{(product.buyPrice || (product.price ? product.price * 0.6 : 0)).toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${

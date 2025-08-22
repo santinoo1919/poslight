@@ -411,10 +411,18 @@ function AppContent() {
 
                         <View className="flex-row items-center justify-between">
                           <Text className="text-gray-600 text-sm">
-                            €{product.sellPrice.toFixed(2)} × {product.quantity}
+                            €
+                            {(product.sellPrice || product.price || 0).toFixed(
+                              2
+                            )}{" "}
+                            × {product.quantity}
                           </Text>
                           <Text className="font-bold text-gray-800">
-                            €{(product.sellPrice * product.quantity).toFixed(2)}
+                            €
+                            {(
+                              (product.sellPrice || product.price || 0) *
+                              product.quantity
+                            ).toFixed(2)}
                           </Text>
                         </View>
 
