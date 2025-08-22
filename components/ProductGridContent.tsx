@@ -55,6 +55,16 @@ export default function ProductGridContent({
     mainGridSample: mainGridProducts?.slice(0, 3),
   });
 
+  // Debug the actual product structure
+  if (mainGridProducts.length > 0) {
+    console.log("🔍 First product structure:", {
+      id: mainGridProducts[0]?.id,
+      name: mainGridProducts[0]?.name,
+      hasId: !!mainGridProducts[0]?.id,
+      productKeys: Object.keys(mainGridProducts[0] || {}),
+    });
+  }
+
   return (
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
       <View className="p-4">
