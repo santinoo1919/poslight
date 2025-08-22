@@ -31,7 +31,7 @@ export default function CartManager({ children }: CartManagerProps) {
 
   // Daily metrics state
   const [dailyRevenue, setDailyRevenue] = useState<number>(0);
-  const [dailyProfit, setDailyRevenue] = useState<number>(0);
+  const [dailyProfit, setDailyProfit] = useState<number>(0);
 
   // Cart operations
   const addToCart = useCallback((product: Product, quantity: number) => {
