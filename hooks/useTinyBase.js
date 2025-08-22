@@ -20,7 +20,7 @@ export default function useTinyBase() {
         // Initialize store with persistence
         await initializeStore();
 
-        // Get data from store
+        // Get data from store using the proper db.getProducts() function
         const productsData = store.getTable("products");
         const categoriesData = store.getTable("categories");
 
@@ -31,19 +31,9 @@ export default function useTinyBase() {
           // Set loading to false
           setLoading(false);
 
-          // Data is already in correct format, just convert to array
-          const processedProducts = Object.values(productsData).map(
-            (product) => ({
-              ...product,
-              // Data already has categoryName, color, icon from generateBulkProducts
-              // Just ensure profit calculation is correct
-              profit: product.sellPrice - product.buyPrice,
-              profitLevel: calculateProfitLevel(
-                product.buyPrice,
-                product.sellPrice
-              ),
-            })
-          );
+          // Use the proper db.getProducts() function to get products with IDs
+          const { db } = await import("../services/tinybaseStore");
+          const processedProducts = db.getProducts();
 
           console.log("Products loaded:", processedProducts.length, "items");
           setProducts(processedProducts);

@@ -1,5 +1,6 @@
 import { createStore } from "tinybase";
 import { createLocalPersister } from "tinybase/persisters/persister-browser";
+import { getProfitLevel } from "../utils/profitLevels";
 import type {
   Product,
   Category,
@@ -71,6 +72,8 @@ const generateBulkProducts = (): Record<string, Omit<Product, "id">> => {
         categoryName: categoryName,
         color: categoryInfo.color,
         icon: categoryInfo.icon,
+        profit: margin, // Add profit field
+        profitLevel: getProfitLevel(margin), // Add profit level
       };
 
       productId++;
