@@ -60,18 +60,25 @@ export default function ProductCard({
             {(() => {
               // Calculate profit with proper fallbacks
               let calculatedProfit = 0;
-              
+
               if (product.profit !== undefined && !isNaN(product.profit)) {
                 calculatedProfit = product.profit;
-              } else if (product.sellPrice && product.buyPrice && 
-                        !isNaN(product.sellPrice) && !isNaN(product.buyPrice)) {
+              } else if (
+                product.sellPrice &&
+                product.buyPrice &&
+                !isNaN(product.sellPrice) &&
+                !isNaN(product.buyPrice)
+              ) {
                 calculatedProfit = product.sellPrice - product.buyPrice;
-              } else if (product.profit !== undefined && !isNaN(product.profit)) {
+              } else if (
+                product.profit !== undefined &&
+                !isNaN(product.profit)
+              ) {
                 calculatedProfit = product.profit;
               } else if (product.price && !isNaN(product.price)) {
                 calculatedProfit = product.price * 0.4; // 40% profit margin for old data
               }
-              
+
               // Ensure we return a valid number
               return isNaN(calculatedProfit) ? 0 : calculatedProfit;
             })().toFixed(2)}
@@ -81,7 +88,10 @@ export default function ProductCard({
         {/* Bottom row: Buy Price + Stock */}
         <View className="flex-row justify-between items-center">
           <Text className="text-xs text-gray-600">
-            €{(product.buyPrice || (product.price ? product.price * 0.6 : 0)).toFixed(2)}
+            €
+            {(
+              product.buyPrice || (product.price ? product.price * 0.6 : 0)
+            ).toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${
