@@ -51,7 +51,7 @@ export default function ProductCard({
         {/* Top row: Sell Price + Profit */}
         <View className="flex-row justify-between items-center">
           <Text className="text-green-600 font-bold text-base">
-            €{(product.sellPrice || product.price || 0).toFixed(2)}
+            €{product.sellPrice.toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${getProfitTextColor(product.profitLevel || "medium")}`}
@@ -59,10 +59,19 @@ export default function ProductCard({
             +€
             {(() => {
               // Calculate profit with proper fallbacks
-              if (product.profit !== undefined) return product.profit;
-              if (product.sellPrice && product.buyPrice) return product.sellPrice - product.buyPrice;
-              if (product.price) return product.price * 0.4; // 40% profit margin for old data
-              return 0;
+              let calculatedProfit = 0;
+              
+              if (product.profit !== undefined && !isNaN(product.profit)) {
+                calculatedProfit = product.profit;
+              } else if (product.sellPrice && product.buyPrice && 
+                        !isNaN(product.sellPrice) && !isNaN(product.buyPrice)) {
+                calculatedProfit = product.sellPrice - product.buyPrice;
+              } else if (product.profit !== undefined && !isNaN(product.profit)) {
+                calculatedProfit = product.profit;
+              }
+              
+              // Ensure we return a valid number
+              return isNaN(calculatedProfit) ? 0 : calculatedProfit;
             })().toFixed(2)}
           </Text>
         </View>
@@ -70,7 +79,7 @@ export default function ProductCard({
         {/* Bottom row: Buy Price + Stock */}
         <View className="flex-row justify-between items-center">
           <Text className="text-xs text-gray-600">
-            €{(product.buyPrice || (product.price ? product.price * 0.6 : 0)).toFixed(2)}
+            €{product.buyPrice.toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${

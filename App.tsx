@@ -126,8 +126,7 @@ function AppContent() {
 
   const getTotalAmount = (): number => {
     return selectedProducts.reduce((total, product) => {
-      const price = product.sellPrice || product.price || 0;
-      return total + price * product.quantity;
+      return total + product.sellPrice * product.quantity;
     }, 0);
   };
 
@@ -412,18 +411,10 @@ function AppContent() {
 
                         <View className="flex-row items-center justify-between">
                           <Text className="text-gray-600 text-sm">
-                            €
-                            {(product.sellPrice || product.price || 0).toFixed(
-                              2
-                            )}{" "}
-                            × {product.quantity}
+                            €{product.sellPrice.toFixed(2)} × {product.quantity}
                           </Text>
                           <Text className="font-bold text-gray-800">
-                            €
-                            {(
-                              (product.sellPrice || product.price || 0) *
-                              product.quantity
-                            ).toFixed(2)}
+                            €{(product.sellPrice * product.quantity).toFixed(2)}
                           </Text>
                         </View>
 
