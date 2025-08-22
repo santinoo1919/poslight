@@ -11,6 +11,9 @@ export interface Product {
   categoryName: string;
   color: string;
   icon: string;
+  // Pre-calculated profit fields
+  profit?: number; // sellPrice - buyPrice
+  profitLevel?: "high" | "medium" | "low"; // Profit level for color coding
 }
 
 export interface Category {

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { store, initializeStore } from "../services/tinybaseStore";
 import Fuse from "fuse.js";
 import { debounce } from "lodash";
+import { calculateProfitLevel } from "../utils/profitLevels";
 
 export default function useTinyBase() {
   const [products, setProducts] = useState([]);
@@ -35,7 +36,7 @@ export default function useTinyBase() {
           // Set loading to false early for cached data
           setLoading(false);
 
-          // Process products to add category info
+          // Process products to add category info and profit levels
           const processedProducts = Object.values(productsData).map(
             (product) => ({
               ...product,
@@ -43,6 +44,12 @@ export default function useTinyBase() {
                 categoriesData[product.category]?.name || product.category,
               color: categoriesData[product.category]?.color || "#3B82F6",
               icon: categoriesData[product.category]?.icon || "📦",
+              // Pre-calculate profit and profit level
+              profit: product.sellPrice - product.buyPrice,
+              profitLevel: calculateProfitLevel(
+                product.buyPrice,
+                product.sellPrice
+              ),
             })
           );
 
@@ -62,7 +69,7 @@ export default function useTinyBase() {
           // No cached data, keep loading until generation is complete
           console.log("🚀 No cached data, generating products...");
 
-          // Process products to add category info
+          // Process products to add category info and profit levels
           const processedProducts = Object.values(productsData).map(
             (product) => ({
               ...product,
@@ -70,6 +77,12 @@ export default function useTinyBase() {
                 categoriesData[product.category]?.name || product.category,
               color: categoriesData[product.category]?.color || "#3B82F6",
               icon: categoriesData[product.category]?.icon || "📦",
+              // Pre-calculate profit and profit level
+              profit: product.sellPrice - product.buyPrice,
+              profitLevel: calculateProfitLevel(
+                product.buyPrice,
+                product.sellPrice
+              ),
             })
           );
 
@@ -175,6 +188,12 @@ export default function useTinyBase() {
               categoriesData[product.category]?.name || product.category,
             color: categoriesData[product.category]?.color || "#3B82F6",
             icon: categoriesData[product.category]?.icon || "📦",
+            // Pre-calculate profit and profit level
+            profit: product.sellPrice - product.buyPrice,
+            profitLevel: calculateProfitLevel(
+              product.buyPrice,
+              product.sellPrice
+            ),
           })
         );
         setProducts(processedProducts);

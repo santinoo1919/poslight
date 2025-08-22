@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 import type { ProductCardProps } from "../types/components";
+import { getProfitTextColor } from "../utils/profitLevels";
 
 export default function ProductCard({
   product,
@@ -54,8 +55,13 @@ export default function ProductCard({
           <Text className="text-green-600 font-bold text-base">
             €{product.sellPrice.toFixed(2)}
           </Text>
-          <Text className="text-xs text-green-600 font-medium">
-            +€{(product.sellPrice - product.buyPrice).toFixed(2)}
+          <Text
+            className={`text-xs font-medium ${getProfitTextColor(product.profitLevel || "medium")}`}
+          >
+            +€
+            {(product.profit || product.sellPrice - product.buyPrice).toFixed(
+              2
+            )}
           </Text>
         </View>
 

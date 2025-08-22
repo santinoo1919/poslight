@@ -61,3 +61,17 @@ export const getProfitLevelConfig = (
 ): ProfitLevelConfig => {
   return PROFIT_LEVELS[profitLevel];
 };
+
+// Simple function to get profit text color
+export const getProfitTextColor = (profitLevel: ProfitLevel): string => {
+  switch (profitLevel) {
+    case "high":
+      return "text-green-600";
+    case "medium":
+      return "text-amber-600";
+    case "low":
+      return "text-red-600";
+    default:
+      return "text-green-600";
+  }
+};
