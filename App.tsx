@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import SearchBar from "./components/SearchBar";
 import ProductGrid from "./components/ProductGrid";
 import SafeAreaWrapper from "./components/platform/SafeAreaWrapper";
@@ -91,8 +91,21 @@ function AppContent() {
   };
 
   // SOLID: Use search hook for all search logic
-  const { searchQuery, searchResults, handleSearch, clearSearch, isSearching } =
-    useSearch(products);
+  const {
+    searchQuery,
+    searchResults,
+    handleSearch: searchHookHandleSearch,
+    clearSearch,
+    isSearching,
+  } = useSearch(products);
+
+  // Memoized search handler to prevent unnecessary re-renders
+  const handleSearch = useCallback(
+    (query: string) => {
+      searchHookHandleSearch(query);
+    },
+    [searchHookHandleSearch]
+  );
 
   const removeFromCart = (productId: string) => {
     setSelectedProducts((prev) => prev.filter((p) => p.id !== productId));
@@ -148,54 +161,59 @@ function AppContent() {
     ToastService.sale.stockUpdated();
   };
 
-  // Keypad handlers
-  const handleKeypadNumber = (number: string) => {
-    if (selectedProductForQuantity) {
-      const newInput = keypadInput + number;
-      setKeypadInput(newInput);
+  // Keypad handlers - Memoized with useCallback to prevent unnecessary re-renders
+  const handleKeypadNumber = useCallback(
+    (number: string) => {
+      if (selectedProductForQuantity) {
+        const newInput = keypadInput + number;
+        setKeypadInput(newInput);
 
-      // Auto-add to cart when quantity is entered
-      const quantity = parseInt(newInput);
-      if (quantity > 0) {
-        // Check stock before adding to cart
-        if (canSell(selectedProductForQuantity.id, quantity)) {
-          // Add to cart or update existing
-          setSelectedProducts((prev) => {
-            const existing = prev.find(
-              (p) => p.id === selectedProductForQuantity.id
-            );
-            if (existing) {
-              // Update existing item
-              return prev.map((p) =>
-                p.id === selectedProductForQuantity.id ? { ...p, quantity } : p
+        // Auto-add to cart when quantity is entered
+        const quantity = parseInt(newInput);
+        if (quantity > 0) {
+          // Check stock before adding to cart
+          if (canSell(selectedProductForQuantity.id, quantity)) {
+            // Add to cart or update existing
+            setSelectedProducts((prev) => {
+              const existing = prev.find(
+                (p) => p.id === selectedProductForQuantity.id
               );
-            } else {
-              // Add new item
-              return [...prev, { ...selectedProductForQuantity, quantity }];
-            }
-          });
+              if (existing) {
+                // Update existing item
+                return prev.map((p) =>
+                  p.id === selectedProductForQuantity.id
+                    ? { ...p, quantity }
+                    : p
+                );
+              } else {
+                // Add new item
+                return [...prev, { ...selectedProductForQuantity, quantity }];
+              }
+            });
 
-          // Don't decrement stock yet - wait for actual sale
+            // Don't decrement stock yet - wait for actual sale
 
-          // Reset keypad state after auto-adding
-          setKeypadInput("");
-          setSelectedProductForQuantity(null);
-        } else {
-          // Show stock error toast
-          ToastService.stock.insufficient(
-            selectedProductForQuantity.name,
-            quantity,
-            selectedProductForQuantity.stock
-          );
+            // Reset keypad state after auto-adding
+            setKeypadInput("");
+            setSelectedProductForQuantity(null);
+          } else {
+            // Show stock error toast
+            ToastService.stock.insufficient(
+              selectedProductForQuantity.name,
+              quantity,
+              selectedProductForQuantity.stock
+            );
+          }
         }
       }
-    }
-  };
+    },
+    [selectedProductForQuantity, keypadInput, canSell]
+  );
 
-  const handleKeypadClear = () => {
+  const handleKeypadClear = useCallback(() => {
     setKeypadInput("");
     setSelectedProductForQuantity(null);
-  };
+  }, []);
 
   return (
     <SafeAreaWrapper className="flex-1 bg-gray-50">

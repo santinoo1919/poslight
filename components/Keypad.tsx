@@ -62,155 +62,151 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 };
 
 // Main Keypad component - orchestrates the keypad layout
-const Keypad: React.FC<KeypadProps> = ({
-  onNumberPress,
-  onDelete,
-  onClear,
-  onEnter,
-  disabled = false,
-}) => {
-  const handleNumberPress = (number: string) => {
-    if (onNumberPress && !disabled) {
-      onNumberPress(number);
-    }
-  };
+const Keypad: React.FC<KeypadProps> = React.memo(
+  ({ onNumberPress, onDelete, onClear, onEnter, disabled = false }) => {
+    const handleNumberPress = (number: string) => {
+      if (onNumberPress && !disabled) {
+        onNumberPress(number);
+      }
+    };
 
-  const handleClear = () => {
-    if (onClear && !disabled) {
-      onClear();
-    }
-  };
+    const handleClear = () => {
+      if (onClear && !disabled) {
+        onClear();
+      }
+    };
 
-  const handleDelete = () => {
-    if (onDelete && !disabled) {
-      onDelete();
-    }
-  };
+    const handleDelete = () => {
+      if (onDelete && !disabled) {
+        onDelete();
+      }
+    };
 
-  const handleEnter = () => {
-    if (onEnter && !disabled) {
-      onEnter();
-    }
-  };
+    const handleEnter = () => {
+      if (onEnter && !disabled) {
+        onEnter();
+      }
+    };
 
-  return (
-    <View className="bg-white border-t border-gray-200 p-4">
-      {/* Keypad Header */}
-      <View className="mb-3">
-        <Text className="text-sm font-medium text-gray-700 text-center">
-          💰 Quantity Keypad
-        </Text>
+    return (
+      <View className="bg-white border-t border-gray-200 p-4">
+        {/* Keypad Header */}
+        <View className="mb-3">
+          <Text className="text-sm font-medium text-gray-700 text-center">
+            💰 Quantity Keypad
+          </Text>
+        </View>
+
+        {/* Keypad Grid */}
+        <View className="items-center">
+          {/* Row 1: 1, 2, 3 */}
+          <View className="flex-row">
+            <KeypadButton
+              value="1"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+            <KeypadButton
+              value="2"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+            <KeypadButton
+              value="3"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+          </View>
+
+          {/* Row 2: 4, 5, 6 */}
+          <View className="flex-row">
+            <KeypadButton
+              value="4"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+            <KeypadButton
+              value="5"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+            <KeypadButton
+              value="6"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+          </View>
+
+          {/* Row 3: 7, 8, 9 */}
+          <View className="flex-row">
+            <KeypadButton
+              value="7"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+            <KeypadButton
+              value="8"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+            <KeypadButton
+              value="9"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+          </View>
+
+          {/* Row 4: Delete, 0, Enter */}
+          <View className="flex-row justify-center">
+            <KeypadButton
+              value="⌫"
+              variant="function"
+              onPress={handleDelete}
+              disabled={disabled}
+            />
+            <KeypadButton
+              value="0"
+              variant="number"
+              onPress={handleNumberPress}
+              disabled={disabled}
+            />
+            <KeypadButton
+              value="↵"
+              variant="function"
+              onPress={handleEnter}
+              disabled={disabled}
+            />
+          </View>
+
+          {/* Row 5: Clear */}
+          <View className="flex-row justify-center">
+            <KeypadButton
+              value="C"
+              variant="clear"
+              onPress={handleClear}
+              disabled={disabled}
+            />
+          </View>
+        </View>
+
+        {/* Usage Hint */}
+        <View className="mt-3">
+          <Text className="text-xs text-gray-500 text-center">
+            Select product → Type quantity → Auto-adds to cart
+          </Text>
+        </View>
       </View>
-
-      {/* Keypad Grid */}
-      <View className="items-center">
-        {/* Row 1: 1, 2, 3 */}
-        <View className="flex-row">
-          <KeypadButton
-            value="1"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-          <KeypadButton
-            value="2"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-          <KeypadButton
-            value="3"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-        </View>
-
-        {/* Row 2: 4, 5, 6 */}
-        <View className="flex-row">
-          <KeypadButton
-            value="4"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-          <KeypadButton
-            value="5"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-          <KeypadButton
-            value="6"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-        </View>
-
-        {/* Row 3: 7, 8, 9 */}
-        <View className="flex-row">
-          <KeypadButton
-            value="7"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-          <KeypadButton
-            value="8"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-          <KeypadButton
-            value="9"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-        </View>
-
-        {/* Row 4: Delete, 0, Enter */}
-        <View className="flex-row justify-center">
-          <KeypadButton
-            value="⌫"
-            variant="function"
-            onPress={handleDelete}
-            disabled={disabled}
-          />
-          <KeypadButton
-            value="0"
-            variant="number"
-            onPress={handleNumberPress}
-            disabled={disabled}
-          />
-          <KeypadButton
-            value="↵"
-            variant="function"
-            onPress={handleEnter}
-            disabled={disabled}
-          />
-        </View>
-
-        {/* Row 5: Clear */}
-        <View className="flex-row justify-center">
-          <KeypadButton
-            value="C"
-            variant="clear"
-            onPress={handleClear}
-            disabled={disabled}
-          />
-        </View>
-      </View>
-
-      {/* Usage Hint */}
-      <View className="mt-3">
-        <Text className="text-xs text-gray-500 text-center">
-          Select product → Type quantity → Auto-adds to cart
-        </Text>
-      </View>
-    </View>
-  );
-};
+    );
+  }
+);
 
 export default Keypad;
