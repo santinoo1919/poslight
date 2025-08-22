@@ -323,8 +323,15 @@ export const initializeStore = async (): Promise<void> => {
     // Set fresh products
     store.setTable("products", products);
 
+    // 🔒 DATA SAFETY: Validate data after setting
+    const { ensureDataIntegrity } = await import("../utils/dataValidation");
+    const testProducts = db.getProducts();
+    if (!ensureDataIntegrity(testProducts, 'products')) {
+      throw new Error("Generated data failed validation - data structure is corrupted");
+    }
+
     // Categories are already set in store creation
-    console.log("✅ Fresh data loaded into store");
+    console.log("✅ Fresh data loaded into store and validated");
 
     // Start persistence
     await persister.startAutoLoad();

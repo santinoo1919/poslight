@@ -6,6 +6,7 @@ import ProductGridContent from "./ProductGridContent";
 import ErrorDisplay from "./ErrorDisplay";
 import type { ProductGridProps } from "../types/components";
 import type { Product } from "../types/database";
+import { useDataSafety } from "../hooks/useDataSafety";
 
 export default function ProductGrid({
   onProductPress,
@@ -25,6 +26,9 @@ export default function ProductGrid({
   currentCategory?: string | null;
   searchResults?: Product[];
 }) {
+  // 🔒 DATA SAFETY: Validate data before processing
+  const { isDataSafeForRendering } = useDataSafety();
+  
   // Debug logging for troubleshooting
   console.log("🔍 ProductGrid Debug:", {
     productsLength: products?.length || 0,
@@ -35,6 +39,15 @@ export default function ProductGrid({
     currentCategory,
     searchResultsLength: searchResults?.length || 0,
   });
+
+  // 🔒 DATA SAFETY: Check if data is safe for rendering
+  if (!loading && products && !isDataSafeForRendering(products)) {
+    console.error("❌ ProductGrid: Data structure is unsafe for rendering");
+    return <ErrorDisplay 
+      error="Data structure is corrupted. Please refresh the app." 
+      onRetry={onRefresh} 
+    />;
+  }
 
   // SIMPLE: Use search results or filter by category
   const visibleProducts = React.useMemo(() => {
