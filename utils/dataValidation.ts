@@ -1,84 +1,90 @@
 import type { Product, Category } from "../types/database";
+import { 
+  validateProduct, 
+  validateProducts, 
+  validateCategory, 
+  validateCategories,
+  getValidationErrors,
+  safeParseProduct,
+  safeParseProducts,
+  type ValidatedProduct,
+  type ValidatedProducts
+} from "./schemas";
 
-// Type guards to ensure data structure integrity
+// Type guards using Zod validation
 export const isValidProduct = (product: any): product is Product => {
-  return (
-    product &&
-    typeof product === "object" &&
-    typeof product.id === "string" &&
-    typeof product.name === "string" &&
-    typeof product.buyPrice === "number" &&
-    typeof product.sellPrice === "number" &&
-    typeof product.stock === "number" &&
-    typeof product.category === "string" &&
-    typeof product.barcode === "string" &&
-    typeof product.description === "string" &&
-    typeof product.categoryName === "string" &&
-    typeof product.color === "string" &&
-    typeof product.icon === "string" &&
-    typeof product.profit === "number" &&
-    typeof product.profitLevel === "string" &&
-    ["high", "medium", "low"].includes(product.profitLevel)
-  );
+  return validateProduct(product).success;
 };
 
 export const isValidCategory = (category: any): category is Category => {
-  return (
-    category &&
-    typeof category === "object" &&
-    typeof category.name === "string" &&
-    typeof category.color === "string" &&
-    typeof category.icon === "string"
-  );
+  return validateCategory(category).success;
 };
 
-// Data structure validation
-export const validateProductData = (products: any[]): { valid: Product[]; invalid: any[]; errors: string[] } => {
-  const valid: Product[] = [];
-  const invalid: any[] = [];
-  const errors: string[] = [];
-
-  products.forEach((product, index) => {
-    if (isValidProduct(product)) {
-      valid.push(product);
-    } else {
-      invalid.push(product);
-      errors.push(`Product at index ${index} is invalid: ${JSON.stringify(product)}`);
-    }
-  });
-
-  return { valid, invalid, errors };
+// Data structure validation using Zod
+export const validateProductData = (
+  products: any[]
+): { valid: ValidatedProduct[]; invalid: any[]; errors: string[] } => {
+  const result = validateProducts(products);
+  
+  if (result.success) {
+    return { 
+      valid: result.data, 
+      invalid: [], 
+      errors: [] 
+    };
+  } else {
+    return {
+      valid: [],
+      invalid: products,
+      errors: getValidationErrors(result)
+    };
+  }
 };
 
-// Runtime data integrity check
-export const ensureDataIntegrity = (data: any, expectedType: 'products' | 'categories'): boolean => {
+// Runtime data integrity check using Zod
+export const ensureDataIntegrity = (
+  data: any,
+  expectedType: "products" | "categories"
+): boolean => {
   try {
-    if (expectedType === 'products') {
-      if (!Array.isArray(data)) {
-        console.error("❌ Data integrity check failed: products is not an array");
-        return false;
-      }
+    if (expectedType === "products") {
+      const result = validateProducts(data);
       
-      const { valid, invalid, errors } = validateProductData(data);
-      
-      if (invalid.length > 0) {
+      if (!result.success) {
         console.error("❌ Data integrity check failed:", {
-          total: data.length,
-          valid: valid.length,
-          invalid: invalid.length,
-          errors: errors.slice(0, 3) // Show first 3 errors
+          total: data?.length || 0,
+          errors: getValidationErrors(result).slice(0, 3), // Show first 3 errors
         });
         return false;
       }
-      
+
       console.log("✅ Data integrity check passed:", {
-        total: data.length,
-        valid: valid.length,
-        invalid: invalid.length
+        total: result.data.length,
+        valid: result.data.length,
+        invalid: 0,
       });
       return true;
     }
-    
+
+    if (expectedType === "categories") {
+      const result = validateCategories(data);
+      
+      if (!result.success) {
+        console.error("❌ Categories integrity check failed:", {
+          total: data?.length || 0,
+          errors: getValidationErrors(result).slice(0, 3),
+        });
+        return false;
+      }
+
+      console.log("✅ Categories integrity check passed:", {
+        total: result.data.length,
+        valid: result.data.length,
+        invalid: 0,
+      });
+      return true;
+    }
+
     return true;
   } catch (error) {
     console.error("❌ Data integrity check crashed:", error);
@@ -86,31 +92,41 @@ export const ensureDataIntegrity = (data: any, expectedType: 'products' | 'categ
   }
 };
 
-// Safe data access with fallbacks
+// Safe data access using Zod with fallbacks
 export const safeGetProduct = (product: any): Partial<Product> => {
-  if (!product || typeof product !== 'object') {
+  // Try to validate with Zod first
+  const validated = safeParseProduct(product);
+  if (validated) {
+    return validated;
+  }
+
+  // Fallback to safe defaults if validation fails
+  if (!product || typeof product !== "object") {
     return {};
   }
-  
+
   return {
-    id: product.id || 'unknown',
-    name: product.name || 'Unnamed Product',
-    buyPrice: typeof product.buyPrice === 'number' ? product.buyPrice : 0,
-    sellPrice: typeof product.sellPrice === 'number' ? product.sellPrice : 0,
-    stock: typeof product.stock === 'number' ? product.stock : 0,
-    category: product.category || 'unknown',
-    barcode: product.barcode || 'unknown',
-    description: product.description || 'No description',
-    categoryName: product.categoryName || 'Unknown Category',
-    color: product.color || '#3B82F6',
-    icon: product.icon || '📦',
-    profit: typeof product.profit === 'number' ? product.profit : 0,
-    profitLevel: product.profitLevel || 'low'
+    id: product.id || "unknown",
+    name: product.name || "Unnamed Product",
+    buyPrice: typeof product.buyPrice === "number" ? product.buyPrice : 0,
+    sellPrice: typeof product.sellPrice === "number" ? product.sellPrice : 0,
+    stock: typeof product.stock === "number" ? product.stock : 0,
+    category: product.category || "unknown",
+    barcode: product.barcode || "unknown",
+    description: product.description || "No description",
+    categoryName: product.categoryName || "Unknown Category",
+    color: product.color || "#3B82F6",
+    icon: product.icon || "📦",
+    profit: typeof product.profit === "number" ? product.profit : 0,
+    profitLevel: product.profitLevel || "low",
   };
 };
 
 // Data migration safety
-export const safeMigrateData = <T>(oldData: any, migrationFn: (data: any) => T): T => {
+export const safeMigrateData = <T>(
+  oldData: any,
+  migrationFn: (data: any) => T
+): T => {
   try {
     console.log("🔄 Starting safe data migration...");
     const migrated = migrationFn(oldData);

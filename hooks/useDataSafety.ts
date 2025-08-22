@@ -1,16 +1,20 @@
-import { useCallback } from 'react';
-import { ensureDataIntegrity, safeGetProduct } from '../utils/dataValidation';
+import { useCallback } from "react";
+import { ensureDataIntegrity, safeGetProduct } from "../utils/dataValidation";
+import { validateProduct, validateProducts, getValidationErrors } from "../utils/schemas";
 
 export const useDataSafety = () => {
   // Validate data before rendering
-  const validateBeforeRender = useCallback((data: any, type: 'products' | 'categories') => {
-    if (!data || data.length === 0) {
-      console.warn("⚠️ No data to validate");
-      return false;
-    }
-    
-    return ensureDataIntegrity(data, type);
-  }, []);
+  const validateBeforeRender = useCallback(
+    (data: any, type: "products" | "categories") => {
+      if (!data || data.length === 0) {
+        console.warn("⚠️ No data to validate");
+        return false;
+      }
+
+      return ensureDataIntegrity(data, type);
+    },
+    []
+  );
 
   // Safe product access with fallbacks
   const getSafeProduct = useCallback((product: any) => {
@@ -22,20 +26,31 @@ export const useDataSafety = () => {
     if (!data) return false;
     if (!Array.isArray(data)) return false;
     if (data.length === 0) return false;
-    
-    // Check if first item has required fields
-    const firstItem = data[0];
-    if (!firstItem || !firstItem.id) {
-      console.error("❌ Data unsafe: missing ID field");
+
+    // Use Zod validation for comprehensive safety check
+    const result = validateProducts(data);
+    if (!result.success) {
+      console.error("❌ Data unsafe:", getValidationErrors(result).slice(0, 3));
       return false;
     }
-    
+
     return true;
+  }, []);
+
+  // Zod-specific validation methods
+  const validateProductWithZod = useCallback((product: any) => {
+    return validateProduct(product);
+  }, []);
+
+  const validateProductsWithZod = useCallback((products: any[]) => {
+    return validateProducts(products);
   }, []);
 
   return {
     validateBeforeRender,
     getSafeProduct,
     isDataSafeForRendering,
+    validateProductWithZod,
+    validateProductsWithZod,
   };
 };

@@ -27,8 +27,8 @@ export default function ProductGrid({
   searchResults?: Product[];
 }) {
   // 🔒 DATA SAFETY: Validate data before processing
-  const { isDataSafeForRendering } = useDataSafety();
-  
+  const { isDataSafeForRendering, validateProductsWithZod } = useDataSafety();
+
   // Debug logging for troubleshooting
   console.log("🔍 ProductGrid Debug:", {
     productsLength: products?.length || 0,
@@ -40,13 +40,18 @@ export default function ProductGrid({
     searchResultsLength: searchResults?.length || 0,
   });
 
-  // 🔒 DATA SAFETY: Check if data is safe for rendering
-  if (!loading && products && !isDataSafeForRendering(products)) {
-    console.error("❌ ProductGrid: Data structure is unsafe for rendering");
-    return <ErrorDisplay 
-      error="Data structure is corrupted. Please refresh the app." 
-      onRetry={onRefresh} 
-    />;
+  // 🔒 DATA SAFETY: Check if data is safe for rendering with Zod
+  if (!loading && products) {
+    const validationResult = validateProductsWithZod(products);
+    if (!validationResult.success) {
+      console.error("❌ ProductGrid: Zod validation failed:", validationResult.error.issues.slice(0, 3));
+      return (
+        <ErrorDisplay
+          error={`Data validation failed: ${validationResult.error.issues[0]?.message || 'Unknown error'}`}
+          onRetry={onRefresh}
+        />
+      );
+    }
   }
 
   // SIMPLE: Use search results or filter by category

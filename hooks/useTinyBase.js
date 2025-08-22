@@ -34,18 +34,24 @@ export default function useTinyBase() {
           // Use the proper db.getProducts() function to get products with IDs
           const { db } = await import("../services/tinybaseStore");
           const processedProducts = db.getProducts();
-          
+
           // 🔒 DATA SAFETY: Validate data structure before using
-          const { ensureDataIntegrity } = await import("../utils/dataValidation");
-          if (!ensureDataIntegrity(processedProducts, 'products')) {
-            console.error("❌ Data validation failed - regenerating fresh data");
+          const { ensureDataIntegrity } = await import(
+            "../utils/dataValidation"
+          );
+          if (!ensureDataIntegrity(processedProducts, "products")) {
+            console.error(
+              "❌ Data validation failed - regenerating fresh data"
+            );
             // Force regenerate data if validation fails
             await initializeStore();
             const freshProducts = db.getProducts();
-            if (ensureDataIntegrity(freshProducts, 'products')) {
+            if (ensureDataIntegrity(freshProducts, "products")) {
               setProducts(freshProducts);
             } else {
-              throw new Error("Failed to generate valid data after validation failure");
+              throw new Error(
+                "Failed to generate valid data after validation failure"
+              );
             }
           } else {
             setProducts(processedProducts);

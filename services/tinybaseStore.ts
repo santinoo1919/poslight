@@ -326,8 +326,10 @@ export const initializeStore = async (): Promise<void> => {
     // 🔒 DATA SAFETY: Validate data after setting
     const { ensureDataIntegrity } = await import("../utils/dataValidation");
     const testProducts = db.getProducts();
-    if (!ensureDataIntegrity(testProducts, 'products')) {
-      throw new Error("Generated data failed validation - data structure is corrupted");
+    if (!ensureDataIntegrity(testProducts, "products")) {
+      throw new Error(
+        "Generated data failed validation - data structure is corrupted"
+      );
     }
 
     // Categories are already set in store creation
