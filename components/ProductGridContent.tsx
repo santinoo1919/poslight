@@ -39,6 +39,17 @@ export default function ProductGridContent({
     productsSample: products?.slice(0, 3),
   });
 
+  // More explicit debugging
+  console.log("🔍 Products array check:", {
+    isArray: Array.isArray(products),
+    isNull: products === null,
+    isUndefined: products === undefined,
+    type: typeof products,
+    length: products?.length,
+    firstItem: products?.[0],
+    firstItemType: typeof products?.[0],
+  });
+
   // Get most bought products (for now, just take first 4 with good stock)
   const mostBoughtProducts = products
     .filter((product) => product.stock > 50) // Good stock availability
