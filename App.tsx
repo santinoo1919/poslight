@@ -42,6 +42,11 @@ function AppContent() {
     updateProductStock,
   } = useTinyBase();
 
+  // DEBUG: Check what products we're getting
+  console.log("🔍 App.tsx - products from hook:", products);
+  console.log("🔍 App.tsx - products.length:", products?.length || 0);
+  console.log("🔍 App.tsx - loading:", loading);
+
   const { canSell, sellProduct, isLowStock } = useStock();
 
   // SIMPLE: Just use the main products array
