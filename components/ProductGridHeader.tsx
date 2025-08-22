@@ -13,7 +13,7 @@ export default function ProductGridHeader({
   currentCategory,
 }: ProductGridHeaderProps) {
   return (
-    <View className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+    <View className="px-4 py-3 border-b border-gray-200 bg-white">
       <View className="flex-row justify-between items-center">
         <Text className="text-lg font-semibold text-gray-800">
           Products ({visibleProductsCount})

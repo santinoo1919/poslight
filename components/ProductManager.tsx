@@ -18,6 +18,7 @@ interface ProductManagerProps {
     clearSearch: () => void;
     isSearching: boolean;
     resetProducts: () => void;
+    updateProductStock: (productId: string, newStock: number) => void;
   }) => React.ReactNode;
 }
 
@@ -100,6 +101,7 @@ export default function ProductManager({ children }: ProductManagerProps) {
         clearSearch,
         isSearching,
         resetProducts,
+        updateProductStock,
       })}
     </>
   );

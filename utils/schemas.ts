@@ -4,19 +4,32 @@ import { z } from "zod";
 export const ProductSchema = z.object({
   id: z.string().min(1, "ID is required"),
   name: z.string().min(1, "Name is required").max(100, "Name too long"),
-  buyPrice: z.number().positive("Buy price must be positive").max(10000, "Buy price too high"),
-  sellPrice: z.number().positive("Sell price must be positive").max(10000, "Sell price too high"),
+  buyPrice: z
+    .number()
+    .positive("Buy price must be positive")
+    .max(10000, "Buy price too high"),
+  sellPrice: z
+    .number()
+    .positive("Sell price must be positive")
+    .max(10000, "Sell price too high"),
   margin: z.number().min(0, "Margin cannot be negative"),
-  stock: z.number().int().min(0, "Stock must be non-negative").max(10000, "Stock too high"),
+  stock: z
+    .number()
+    .int()
+    .min(0, "Stock must be non-negative")
+    .max(10000, "Stock too high"),
   category: z.string().min(1, "Category is required"),
   barcode: z.string().min(1, "Barcode is required").max(50, "Barcode too long"),
   description: z.string().max(500, "Description too long"),
   categoryName: z.string().min(1, "Category name is required"),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid color format").max(7, "Color code too long"),
+  color: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, "Invalid color format")
+    .max(7, "Color code too long"),
   icon: z.string().min(1, "Icon is required").max(10, "Icon too long"),
   profit: z.number().min(0, "Profit cannot be negative"),
   profitLevel: z.enum(["high", "medium", "low"], {
-    errorMap: () => ({ message: "Profit level must be high, medium, or low" })
+    errorMap: () => ({ message: "Profit level must be high, medium, or low" }),
   }),
 });
 
@@ -74,8 +87,8 @@ export const validateStore = (data: unknown) => {
 
 // Helper function to get validation errors as readable strings
 export const getValidationErrors = (result: z.SafeParseError<any>) => {
-  return result.error.issues.map(issue => {
-    const path = issue.path.join('.');
+  return result.error.issues.map((issue) => {
+    const path = issue.path.join(".");
     return `${path}: ${issue.message}`;
   });
 };

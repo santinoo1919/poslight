@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import Keypad from "../Keypad";
-import DailyMetricsCard from "../DailyMetricsCard";
 import type { Product } from "../../types/database";
 
 interface CartProduct extends Product {
@@ -12,8 +11,6 @@ interface RightPanelProps {
   selectedProducts: CartProduct[];
   selectedProductForQuantity: Product | null;
   keypadInput: string;
-  dailyRevenue: number;
-  dailyProfit: number;
   onRemoveFromCart: (productId: string) => void;
   onUpdateQuantity: (productId: string, newQuantity: number) => void;
   onSetSelectedProductForQuantity: (product: Product | null) => void;
@@ -30,8 +27,6 @@ export default function RightPanel({
   selectedProducts,
   selectedProductForQuantity,
   keypadInput,
-  dailyRevenue,
-  dailyProfit,
   onRemoveFromCart,
   onUpdateQuantity,
   onSetSelectedProductForQuantity,
@@ -46,7 +41,7 @@ export default function RightPanel({
   return (
     <>
       {/* POS Interface - Cart */}
-      <View className="flex-1 p-4">
+      <View className="flex-1 p-4 bg-white">
         <Text className="text-lg font-semibold text-gray-800 mb-4">
           🛒 Cart ({selectedProducts.length} items)
         </Text>
@@ -161,14 +156,6 @@ export default function RightPanel({
             </View>
           </View>
         )}
-      </View>
-
-      {/* Daily Metrics */}
-      <View className="p-4 border-t border-gray-200">
-        <DailyMetricsCard
-          dailyRevenue={dailyRevenue}
-          dailyProfit={dailyProfit}
-        />
       </View>
     </>
   );

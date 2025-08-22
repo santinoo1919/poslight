@@ -5,7 +5,7 @@ import { ProductSchema, validateProduct } from "./schemas";
 const validProduct = {
   id: "test-1",
   name: "Test Product",
-  buyPrice: 10.50,
+  buyPrice: 10.5,
   sellPrice: 15.99,
   margin: 5.49,
   stock: 100,
@@ -45,13 +45,21 @@ export const testZodSchemas = () => {
   if (validResult.success) {
     console.log("✅ Valid product validation passed");
   } else {
-    console.error("❌ Valid product validation failed:", validResult.error.issues);
+    console.error(
+      "❌ Valid product validation failed:",
+      validResult.error.issues
+    );
   }
 
   // Test invalid product
   const invalidResult = validateProduct(invalidProduct);
   if (!invalidResult.success) {
-    console.log("✅ Invalid product correctly caught:", invalidResult.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`));
+    console.log(
+      "✅ Invalid product correctly caught:",
+      invalidResult.error.issues.map(
+        (issue) => `${issue.path.join(".")}: ${issue.message}`
+      )
+    );
   } else {
     console.error("❌ Invalid product should have failed validation");
   }

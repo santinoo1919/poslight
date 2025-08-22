@@ -44,10 +44,13 @@ export default function ProductGrid({
   if (!loading && products) {
     const validationResult = validateProductsWithZod(products);
     if (!validationResult.success) {
-      console.error("❌ ProductGrid: Zod validation failed:", validationResult.error.issues.slice(0, 3));
+      console.error(
+        "❌ ProductGrid: Zod validation failed:",
+        validationResult.error.issues.slice(0, 3)
+      );
       return (
         <ErrorDisplay
-          error={`Data validation failed: ${validationResult.error.issues[0]?.message || 'Unknown error'}`}
+          error={`Data validation failed: ${validationResult.error.issues[0]?.message || "Unknown error"}`}
           onRetry={onRefresh}
         />
       );
@@ -103,7 +106,7 @@ export default function ProductGrid({
   });
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-gray-100">
       <ProductGridHeader
         visibleProductsCount={visibleProducts.length}
         totalProductsCount={products.length}

@@ -19,6 +19,8 @@ interface LeftPanelProps {
   onSearch: (query: string) => void;
   onRefresh: () => void;
   selectedProductForQuantity: Product | null;
+  dailyRevenue: number;
+  dailyProfit: number;
 }
 
 export default function LeftPanel({
@@ -36,33 +38,55 @@ export default function LeftPanel({
   onSearch,
   onRefresh,
   selectedProductForQuantity,
+  dailyRevenue,
+  dailyProfit,
 }: LeftPanelProps) {
   return (
     <>
-      {/* Header */}
-      <View className="bg-white border-b border-gray-200 p-4">
-        <Text className="text-2xl font-bold text-gray-800 mb-2">{title}</Text>
+      {/* Header with Daily Metrics on Right */}
+      <View className="bg-gray-50 border-b border-gray-200 p-4">
+        <View className="flex-row justify-between items-start mb-4">
+          {/* Title */}
+          <Text className="text-2xl font-bold text-gray-800">{title}</Text>
 
-        {/* Search and Categories */}
-        <View className="space-y-3">
-          <SearchBar onSearch={onSearch} />
+          {/* Daily Metrics - Initial UI Style */}
+          <View className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg px-3 py-2">
+            <View className="flex-row items-center space-x-3">
+              <View className="items-center">
+                <Text className="text-xs text-gray-600">Today's Revenue</Text>
+                <Text className="text-sm font-bold text-green-600">
+                  €{dailyRevenue.toFixed(2)}
+                </Text>
+              </View>
+              <View className="w-px h-8 bg-gray-300"></View>
+              <View className="items-center">
+                <Text className="text-xs text-gray-600">Today's Profit</Text>
+                <Text className="text-sm font-bold text-blue-600">
+                  €{dailyProfit.toFixed(2)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
 
-          {/* Categories */}
+        {/* Categories and Search - Same Row */}
+        <View className="flex-row items-center space-x-3 mb-3">
+          {/* Categories - Smaller Size */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            className="flex-row space-x-2"
+            className="flex-1 flex-row space-x-2"
           >
             <TouchableOpacity
               onPress={() => onCategorySelect("Show All")}
-              className={`px-4 py-2 rounded-full border ${
+              className={`px-3 py-1.5 rounded-full border ${
                 !currentCategory
-                  ? "bg-blue-500 border-blue-500"
-                  : "bg-white border-gray-300"
+                  ? "bg-blue-600 border-blue-600"
+                  : "bg-white border-gray-300 hover:bg-gray-50"
               }`}
             >
               <Text
-                className={`font-medium ${
+                className={`font-medium text-xs ${
                   !currentCategory ? "text-white" : "text-gray-700"
                 }`}
               >
@@ -74,14 +98,14 @@ export default function LeftPanel({
               <TouchableOpacity
                 key={category.name}
                 onPress={() => onCategorySelect(category.name)}
-                className={`px-4 py-2 rounded-full border ${
+                className={`px-3 py-1.5 rounded-full border ${
                   currentCategory === category.name
-                    ? "bg-blue-500 border-blue-500"
-                    : "bg-white border-gray-300"
+                    ? "bg-blue-600 border-blue-600"
+                    : "bg-white border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 <Text
-                  className={`font-medium ${
+                  className={`font-medium text-xs ${
                     currentCategory === category.name
                       ? "text-white"
                       : "text-gray-700"
@@ -92,6 +116,11 @@ export default function LeftPanel({
               </TouchableOpacity>
             ))}
           </ScrollView>
+
+          {/* Search Bar - Right Side */}
+          <View className="w-48">
+            <SearchBar onSearch={onSearch} />
+          </View>
         </View>
       </View>
 

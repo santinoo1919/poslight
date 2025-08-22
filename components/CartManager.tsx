@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
 import type { Product } from "../types/database";
+import { store } from "../services/tinybaseStore";
 
 interface CartProduct extends Product {
   quantity: number;
@@ -20,9 +21,15 @@ interface CartManagerProps {
     getTotalAmount: () => number;
     completeSale: () => void;
   }) => React.ReactNode;
+  onStockUpdate?: () => void; // Add callback to trigger refresh
+  onProductStockUpdate?: (productId: string, newStock: number) => void; // Safer direct stock update
 }
 
-export default function CartManager({ children }: CartManagerProps) {
+export default function CartManager({
+  children,
+  onStockUpdate,
+  onProductStockUpdate,
+}: CartManagerProps) {
   // Cart state
   const [selectedProducts, setSelectedProducts] = useState<CartProduct[]>([]);
   const [selectedProductForQuantity, setSelectedProductForQuantity] =
@@ -74,31 +81,64 @@ export default function CartManager({ children }: CartManagerProps) {
   }, [selectedProducts]);
 
   const completeSale = useCallback(() => {
-    if (selectedProducts.length === 0) {
-      // ToastService.order.cartEmpty();
-      return;
+    try {
+      if (selectedProducts.length === 0) {
+        // ToastService.order.cartEmpty();
+        return;
+      }
+
+      // Calculate totals
+      const totalAmount = getTotalAmount();
+      const totalProfit = selectedProducts.reduce((profit, product) => {
+        const buyPrice = product.buyPrice || 0;
+        const sellPrice = product.sellPrice || product.price || 0;
+        return profit + (sellPrice - buyPrice) * product.quantity;
+      }, 0);
+
+      // Update stock levels for all sold products
+      selectedProducts.forEach((product) => {
+        const currentStock =
+          store.getCell("products", product.id, "stock") || 0;
+        const newStock = Math.max(0, currentStock - product.quantity);
+        store.setCell("products", product.id, "stock", newStock);
+        console.log(
+          `📦 Updated stock for ${product.name}: ${currentStock} → ${newStock}`
+        );
+
+        // Use safer direct stock update if available
+        if (onProductStockUpdate) {
+          onProductStockUpdate(product.id, newStock);
+        }
+      });
+
+      // Update daily metrics first
+      setDailyRevenue((prev) => prev + totalAmount);
+      setDailyProfit((prev) => prev + totalProfit);
+
+      // Also update daily metrics in the store (synchronous)
+      try {
+        const { db } = require("../services/tinybaseStore");
+        db.updateDailyMetrics(totalAmount, totalProfit);
+      } catch (error) {
+        console.error("Failed to update store daily metrics:", error);
+      }
+
+      // Clear cart
+      setSelectedProducts([]);
+      setSelectedProductForQuantity(null);
+      setKeypadInput("");
+
+      // Note: Stock updates are now handled directly via onProductStockUpdate
+      // This is much safer than calling resetProducts which can cause crashes
+      console.log("✅ Sale completed successfully - stock updated directly");
+
+      // Success message
+      // ToastService.order.success(totalAmount);
+    } catch (error) {
+      console.error("❌ Error in completeSale:", error);
+      // Don't crash the app, just log the error
     }
-
-    // Calculate totals
-    const totalAmount = getTotalAmount();
-    const totalProfit = selectedProducts.reduce((profit, product) => {
-      const buyPrice = product.buyPrice || 0;
-      const sellPrice = product.sellPrice || product.price || 0;
-      return profit + (sellPrice - buyPrice) * product.quantity;
-    }, 0);
-
-    // Update daily metrics
-    setDailyRevenue((prev) => prev + totalAmount);
-    setDailyProfit((prev) => prev + totalProfit);
-
-    // Clear cart
-    setSelectedProducts([]);
-    setSelectedProductForQuantity(null);
-    setKeypadInput("");
-
-    // Success message
-    // ToastService.order.success(totalAmount);
-  }, [selectedProducts, getTotalAmount]);
+  }, [selectedProducts, getTotalAmount, onStockUpdate]);
 
   return (
     <>

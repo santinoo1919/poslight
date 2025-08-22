@@ -117,8 +117,11 @@ export default function ProductGridContent({
   }
 
   return (
-    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-      <View className="p-4">
+    <ScrollView
+      className="flex-1 bg-gray-100"
+      showsVerticalScrollIndicator={false}
+    >
+      <View className="p-4 bg-gray-100">
         <View className="space-y-6">
           {/* Quick Access Section - Always shows all products */}
           <QuickAccessSection

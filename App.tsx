@@ -27,8 +27,12 @@ function AppContent() {
         clearSearch,
         isSearching,
         resetProducts,
+        updateProductStock,
       }) => (
-        <CartManager>
+        <CartManager
+          onStockUpdate={resetProducts}
+          onProductStockUpdate={updateProductStock}
+        >
           {({
             selectedProducts,
             selectedProductForQuantity,
@@ -95,6 +99,8 @@ function AppContent() {
                       onSearch={handleSearch}
                       onRefresh={resetProducts}
                       selectedProductForQuantity={selectedProductForQuantity}
+                      dailyRevenue={dailyRevenue}
+                      dailyProfit={dailyProfit}
                     />
                   }
                   rightPanel={
@@ -102,8 +108,6 @@ function AppContent() {
                       selectedProducts={selectedProducts}
                       selectedProductForQuantity={selectedProductForQuantity}
                       keypadInput={keypadInput}
-                      dailyRevenue={dailyRevenue}
-                      dailyProfit={dailyProfit}
                       onRemoveFromCart={removeFromCart}
                       onUpdateQuantity={updateQuantity}
                       onSetSelectedProductForQuantity={
