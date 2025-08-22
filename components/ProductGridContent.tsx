@@ -31,29 +31,36 @@ export default function ProductGridContent({
   selectedProductForQuantity,
   currentCategory,
 }: ProductGridContentProps) {
-  // Debug logging
-  console.log("🔍 ProductGridContent Debug:", {
-    productsLength: products?.length || 0,
-    allProductsLength: allProducts?.length || 0,
+  // 🔍 COMPREHENSIVE DEBUGGING - ONE TIME ONLY
+  console.log("🚨 COMPREHENSIVE DEBUG START 🚨");
+  console.log("📊 INPUT DATA:", {
+    products: {
+      type: typeof products,
+      isArray: Array.isArray(products),
+      length: products?.length,
+      isNull: products === null,
+      isUndefined: products === undefined,
+      firstItem: products?.[0],
+      firstItemType: typeof products?.[0],
+    },
+    allProducts: {
+      type: typeof allProducts,
+      isArray: Array.isArray(allProducts),
+      length: allProducts?.length,
+    },
     currentCategory,
-    productsSample: products?.slice(0, 3),
   });
 
-  // More explicit debugging with JSON.stringify to force expansion
-  console.log("🔍 Products array check:", {
-    isArray: Array.isArray(products),
-    isNull: products === null,
-    isUndefined: products === undefined,
-    type: typeof products,
-    length: products?.length,
-    firstItem: products?.[0],
-    firstItemType: typeof products?.[0],
-  });
-
-  // Force expand the first product to see its structure
+  // Show first product structure if exists
   if (products && products.length > 0) {
-    console.log("🔍 First product expanded:", JSON.stringify(products[0], null, 2));
-    console.log("🔍 First product keys:", Object.keys(products[0]));
+    console.log("🔍 FIRST PRODUCT STRUCTURE:", {
+      id: products[0]?.id,
+      name: products[0]?.name,
+      stock: products[0]?.stock,
+      hasId: !!products[0]?.id,
+      allKeys: Object.keys(products[0] || {}),
+      fullProduct: JSON.stringify(products[0], null, 2),
+    });
   }
 
   // Get most bought products (for now, just take first 4 with good stock)
@@ -61,33 +68,37 @@ export default function ProductGridContent({
     .filter((product) => product.stock > 50) // Good stock availability
     .slice(0, 4);
 
-  console.log("🔍 Most bought products:", {
-    count: mostBoughtProducts.length,
-    sample: mostBoughtProducts
-      .slice(0, 2)
-      .map((p) => ({ id: p?.id, name: p?.name, stock: p?.stock })),
-  });
-
   // Filter out most bought products from main grid to avoid duplication
   const mainGridProducts = products.filter(
     (item) => !mostBoughtProducts.some((mb) => mb.id === item.id)
   );
 
-  console.log("🔍 Main grid filtering:", {
+  // 🔍 FILTERING DEBUGGING
+  console.log("🔍 FILTERING PROCESS:", {
     totalProducts: products.length,
     mostBoughtCount: mostBoughtProducts.length,
     mainGridCount: mainGridProducts.length,
+    filterLogic:
+      "products.filter(item => !mostBoughtProducts.some(mb => mb.id === item.id))",
     filterResult:
       products.length - mostBoughtProducts.length === mainGridProducts.length
         ? "✅ Correct"
         : "❌ Wrong",
   });
 
-  console.log("🔍 ProductGridContent Processing:", {
-    mostBoughtCount: mostBoughtProducts.length,
-    mainGridCount: mainGridProducts.length,
-    mainGridSample: mainGridProducts?.slice(0, 3),
-  });
+  // Show sample of filtered products
+  if (mainGridProducts.length > 0) {
+    console.log("🔍 MAIN GRID SAMPLE:", {
+      firstProduct: {
+        id: mainGridProducts[0]?.id,
+        name: mainGridProducts[0]?.name,
+        hasId: !!mainGridProducts[0]?.id,
+      },
+      totalInGrid: mainGridProducts.length,
+    });
+  }
+
+  console.log("🚨 COMPREHENSIVE DEBUG END 🚨");
 
   // Debug the actual product structure
   if (mainGridProducts.length > 0) {
