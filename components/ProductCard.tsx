@@ -51,7 +51,7 @@ export default function ProductCard({
         {/* Top row: Sell Price + Profit */}
         <View className="flex-row justify-between items-center">
           <Text className="text-green-600 font-bold text-base">
-            €{product.sellPrice.toFixed(2)}
+            €{(product.sellPrice || product.price || 0).toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${getProfitTextColor(product.profitLevel || "medium")}`}
@@ -68,6 +68,8 @@ export default function ProductCard({
                 calculatedProfit = product.sellPrice - product.buyPrice;
               } else if (product.profit !== undefined && !isNaN(product.profit)) {
                 calculatedProfit = product.profit;
+              } else if (product.price && !isNaN(product.price)) {
+                calculatedProfit = product.price * 0.4; // 40% profit margin for old data
               }
               
               // Ensure we return a valid number
@@ -79,7 +81,7 @@ export default function ProductCard({
         {/* Bottom row: Buy Price + Stock */}
         <View className="flex-row justify-between items-center">
           <Text className="text-xs text-gray-600">
-            €{product.buyPrice.toFixed(2)}
+            €{(product.buyPrice || (product.price ? product.price * 0.6 : 0)).toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${

@@ -176,7 +176,7 @@ const QuickAccessSection = React.memo(
 
                   {/* Price */}
                   <Text className="text-green-600 font-bold text-sm mb-1">
-                    €{item.sellPrice.toFixed(2)}
+                    €{(item.sellPrice || item.price || 0).toFixed(2)}
                   </Text>
 
                   {/* Stock */}

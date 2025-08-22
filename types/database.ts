@@ -1,6 +1,7 @@
 export interface Product {
   id: string;
   name: string;
+  price?: number; // Legacy price field for backward compatibility
   buyPrice: number; // Cost price (what we paid)
   sellPrice: number; // Selling price (what customer pays)
   margin: number; // Profit margin (sellPrice - buyPrice)
