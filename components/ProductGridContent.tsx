@@ -33,7 +33,9 @@ export default function ProductGridContent({
 }: ProductGridContentProps) {
   // 🔍 COMPREHENSIVE DEBUGGING - ONE TIME ONLY
   console.log("🚨 COMPREHENSIVE DEBUG START 🚨");
-  console.log("📊 INPUT DATA:", {
+
+  // Force console expansion with console.dir
+  console.dir("📊 INPUT DATA:", {
     products: {
       type: typeof products,
       isArray: Array.isArray(products),
@@ -53,14 +55,18 @@ export default function ProductGridContent({
 
   // Show first product structure if exists
   if (products && products.length > 0) {
-    console.log("🔍 FIRST PRODUCT STRUCTURE:", {
+    console.log("🔍 FIRST PRODUCT STRUCTURE:");
+    console.table({
       id: products[0]?.id,
       name: products[0]?.name,
       stock: products[0]?.stock,
       hasId: !!products[0]?.id,
       allKeys: Object.keys(products[0] || {}),
-      fullProduct: JSON.stringify(products[0], null, 2),
     });
+
+    // Also show full product as JSON
+    console.log("🔍 FULL PRODUCT JSON:");
+    console.log(JSON.stringify(products[0], null, 2));
   }
 
   // Get most bought products (for now, just take first 4 with good stock)
@@ -137,8 +143,8 @@ export default function ProductGridContent({
             )}
 
             <View className="flex-row flex-wrap justify-start">
-              {mainGridProducts.map((item) => (
-                <View key={item.id} className="w-1/4 p-1">
+              {mainGridProducts.map((item, index) => (
+                <View key={item.id || `product-${index}`} className="w-1/4 p-1">
                   <MemoizedProductCard
                     product={item}
                     onPress={onProductPress}
