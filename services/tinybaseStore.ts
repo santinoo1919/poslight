@@ -303,31 +303,30 @@ export const store = createStore()
 // Create persister for localStorage
 export const persister = createLocalPersister(store, "poslight-cache");
 
-
-
 // Initialize store with data and persistence
 export const initializeStore = async (): Promise<void> => {
   try {
     console.log("🚀 Starting fresh data generation...");
-    
+
     // Always generate fresh, clean data
     const startTime = Date.now();
     const products = generateBulkProducts();
     const endTime = Date.now();
-    
-    console.log(`⏱️ Generated ${Object.keys(products).length} products in ${endTime - startTime}ms`);
-    
+
+    console.log(
+      `⏱️ Generated ${Object.keys(products).length} products in ${endTime - startTime}ms`
+    );
+
     // Set fresh products
     store.setTable("products", products);
-    
+
     // Categories are already set in store creation
     console.log("✅ Fresh data loaded into store");
-    
+
     // Start persistence
     await persister.startAutoLoad();
     await persister.startAutoSave();
     console.log("💾 Persistence started");
-    
   } catch (error) {
     console.error("Error initializing store:", error);
     // Fallback: generate in-memory data
@@ -363,13 +362,19 @@ export const db: {
     const products = store.getTable("products");
     const categories = store.getTable("categories");
 
-    return Object.entries(products).map(([productId, product]) => ({
-      id: productId,
-      ...product,
-      categoryName: (categories[product.category as string] as any)?.name || product.category,
-      color: (categories[product.category as string] as any)?.color || "#3B82F6",
-      icon: (categories[product.category as string] as any)?.icon || "📦",
-    } as Product));
+    return Object.entries(products).map(
+      ([productId, product]) =>
+        ({
+          id: productId,
+          ...product,
+          categoryName:
+            (categories[product.category as string] as any)?.name ||
+            product.category,
+          color:
+            (categories[product.category as string] as any)?.color || "#3B82F6",
+          icon: (categories[product.category as string] as any)?.icon || "📦",
+        }) as Product
+    );
   },
 
   // Get all categories
@@ -390,13 +395,20 @@ export const db: {
           (product.category as string).toLowerCase().includes(queryLower) ||
           (product.barcode && (product.barcode as string).includes(query))
       )
-      .map(([productId, product]) => ({
-        id: productId,
-        ...product,
-        categoryName: (categories[product.category as string] as any)?.name || product.category,
-        color: (categories[product.category as string] as any)?.color || "#3B82F6",
-        icon: (categories[product.category as string] as any)?.icon || "📦",
-      } as Product));
+      .map(
+        ([productId, product]) =>
+          ({
+            id: productId,
+            ...product,
+            categoryName:
+              (categories[product.category as string] as any)?.name ||
+              product.category,
+            color:
+              (categories[product.category as string] as any)?.color ||
+              "#3B82F6",
+            icon: (categories[product.category as string] as any)?.icon || "📦",
+          }) as Product
+      );
   },
 
   // Get products by category
@@ -406,13 +418,20 @@ export const db: {
 
     return Object.entries(products)
       .filter(([productId, product]) => product.category === category)
-      .map(([productId, product]) => ({
-        id: productId,
-        ...product,
-        categoryName: (categories[product.category as string] as any)?.name || product.category,
-        color: (categories[product.category as string] as any)?.color || "#3B82F6",
-        icon: (categories[product.category as string] as any)?.icon || "📦",
-      } as Product));
+      .map(
+        ([productId, product]) =>
+          ({
+            id: productId,
+            ...product,
+            categoryName:
+              (categories[product.category as string] as any)?.name ||
+              product.category,
+            color:
+              (categories[product.category as string] as any)?.color ||
+              "#3B82F6",
+            icon: (categories[product.category as string] as any)?.icon || "📦",
+          }) as Product
+      );
   },
 
   // Update stock (instant update)
@@ -466,7 +485,8 @@ export const db: {
       return {
         revenue: (metrics[today].revenue as number) || 0,
         profit: (metrics[today].profit as number) || 0,
-        lastUpdated: (metrics[today].lastUpdated as string) || new Date().toISOString(),
+        lastUpdated:
+          (metrics[today].lastUpdated as string) || new Date().toISOString(),
       };
     }
 

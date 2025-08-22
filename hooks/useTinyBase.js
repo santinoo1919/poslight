@@ -24,27 +24,19 @@ export default function useTinyBase() {
         const productsData = store.getTable("products");
         const categoriesData = store.getTable("categories");
 
-        // Check if we have cached data first
-        if (
-          productsData &&
-          Object.keys(productsData).length > 0 &&
-          categoriesData &&
-          Object.keys(categoriesData).length > 0
-        ) {
-          console.log("⚡ Cached data found, processing...");
+        // Simple approach: Use whatever data is in the store
+        if (productsData && Object.keys(productsData).length > 0) {
+          console.log("✅ Data found in store, loading...");
 
-          // Set loading to false early for cached data
+          // Set loading to false
           setLoading(false);
 
-          // Process products to add category info and profit levels
+          // Data is already in correct format, just convert to array
           const processedProducts = Object.values(productsData).map(
             (product) => ({
               ...product,
-              categoryName:
-                categoriesData[product.category]?.name || product.category,
-              color: categoriesData[product.category]?.color || "#3B82F6",
-              icon: categoriesData[product.category]?.icon || "📦",
-              // Pre-calculate profit and profit level
+              // Data already has categoryName, color, icon from generateBulkProducts
+              // Just ensure profit calculation is correct
               profit: product.sellPrice - product.buyPrice,
               profitLevel: calculateProfitLevel(
                 product.buyPrice,
@@ -53,44 +45,11 @@ export default function useTinyBase() {
             })
           );
 
-          console.log("Products processed:", processedProducts.length, "items");
+          console.log("Products loaded:", processedProducts.length, "items");
           setProducts(processedProducts);
 
-          // Convert TinyBase object to array format for easier use
-          const categoriesArray = Object.entries(categoriesData).map(
-            ([key, category]) => ({
-              key,
-              ...category,
-            })
-          );
-          console.log("Categories loaded:", categoriesArray);
-          setCategories(categoriesArray);
-        } else {
-          // No cached data, keep loading until generation is complete
-          console.log("🚀 No cached data, generating products...");
-
-          // Process products to add category info and profit levels
-          const processedProducts = Object.values(productsData).map(
-            (product) => ({
-              ...product,
-              categoryName:
-                categoriesData[product.category]?.name || product.category,
-              color: categoriesData[product.category]?.color || "#3B82F6",
-              icon: categoriesData[product.category]?.icon || "📦",
-              // Pre-calculate profit and profit level
-              profit: product.sellPrice - product.buyPrice,
-              profitLevel: calculateProfitLevel(
-                product.buyPrice,
-                product.sellPrice
-              ),
-            })
-          );
-
-          console.log("Products processed:", processedProducts.length, "items");
-          setProducts(processedProducts);
-
+          // Categories are already in correct format
           if (categoriesData && Object.keys(categoriesData).length > 0) {
-            // Convert TinyBase object to array format for easier use
             const categoriesArray = Object.entries(categoriesData).map(
               ([key, category]) => ({
                 key,
@@ -100,8 +59,9 @@ export default function useTinyBase() {
             console.log("Categories loaded:", categoriesArray);
             setCategories(categoriesArray);
           }
-
-          setLoading(false);
+        } else {
+          // No data yet, keep loading
+          console.log("⏳ Waiting for data to be generated...");
         }
       } catch (err) {
         console.error("Failed to initialize store:", err);
