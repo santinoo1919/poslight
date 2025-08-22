@@ -126,7 +126,8 @@ function AppContent() {
 
   const getTotalAmount = (): number => {
     return selectedProducts.reduce((total, product) => {
-      return total + product.sellPrice * product.quantity;
+      const price = product.sellPrice || product.price || 0;
+      return total + price * product.quantity;
     }, 0);
   };
 

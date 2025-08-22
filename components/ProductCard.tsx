@@ -57,9 +57,13 @@ export default function ProductCard({
             className={`text-xs font-medium ${getProfitTextColor(product.profitLevel || "medium")}`}
           >
             +€
-            {(product.profit || (product.sellPrice && product.buyPrice ? product.sellPrice - product.buyPrice : 0)).toFixed(
-              2
-            )}
+            {(() => {
+              // Calculate profit with proper fallbacks
+              if (product.profit !== undefined) return product.profit;
+              if (product.sellPrice && product.buyPrice) return product.sellPrice - product.buyPrice;
+              if (product.price) return product.price * 0.4; // 40% profit margin for old data
+              return 0;
+            })().toFixed(2)}
           </Text>
         </View>
 
