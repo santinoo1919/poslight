@@ -1,4 +1,4 @@
-import * as SQLite from "expo-sqlite";
+// import * as SQLite from "expo-sqlite"; // Commented out - using TinyBase instead
 import type {
   Product,
   Category,
@@ -44,18 +44,18 @@ interface DatabaseTransactionItem {
 }
 
 class DatabaseService {
-  private db: SQLite.SQLiteDatabase | null = null;
+  private db: any = null; // Changed from SQLite.SQLiteDatabase
 
   constructor() {
-    this.init();
+    // this.init(); // Commented out - using TinyBase instead
   }
 
   async init(): Promise<void> {
     try {
-      this.db = await SQLite.openDatabaseAsync("poslight.db");
-      await this.createTables();
-      await this.seedFMCGData();
-      console.log("Database initialized successfully! 🎉");
+      // this.db = await SQLite.openDatabaseAsync("poslight.db"); // Commented out
+      // await this.createTables(); // Commented out
+      // await this.seedFMCGData(); // Commented out
+      console.log("Database service disabled - using TinyBase instead! 🎉");
     } catch (error) {
       console.error("Database initialization failed:", error);
     }

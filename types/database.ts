@@ -1,3 +1,16 @@
+// Profit level types for product categorization
+export type ProfitLevel = "high" | "medium" | "low";
+
+export interface ProfitLevelConfig {
+  level: ProfitLevel;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  textColor: string;
+  label: string;
+  threshold: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -14,7 +27,7 @@ export interface Product {
   icon: string;
   // Pre-calculated profit fields
   profit?: number; // sellPrice - buyPrice
-  profitLevel?: "high" | "medium" | "low"; // Profit level for color coding
+  profitLevel?: ProfitLevel; // Profit level for color coding
 }
 
 export interface Category {
@@ -73,7 +86,14 @@ export interface DatabaseOperations {
   updateDailyMetrics: (revenue: number, profit: number) => void;
 }
 
-// New interfaces for profit tracking
+// Zod validation types (inferred from schemas)
+export type ValidatedProduct = Product;
+export type ValidatedCategory = Category;
+export type ValidatedProducts = Product[];
+export type ValidatedCategories = Category[];
+export type ValidatedStore = Store;
+
+// Profit analytics types
 export interface ProfitAnalytics {
   totalRevenue: number;
   totalCost: number;

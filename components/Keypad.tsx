@@ -1,15 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import type { KeypadProps } from "../types/components";
-
-type ButtonVariant = "default" | "number" | "function" | "clear";
-
-interface KeypadButtonProps {
-  value: string;
-  onPress: (value: string) => void;
-  variant?: ButtonVariant;
-  disabled?: boolean;
-}
+import type { KeypadProps, ButtonVariant, KeypadButtonProps } from "../types/components";
 
 // Keypad button component - single responsibility
 const KeypadButton: React.FC<KeypadButtonProps> = ({

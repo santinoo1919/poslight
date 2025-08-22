@@ -1,10 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-
-interface ErrorDisplayProps {
-  error: string;
-  onRetry: () => void;
-}
+import type { ErrorDisplayProps } from "../types/components";
 
 export default function ErrorDisplay({ error, onRetry }: ErrorDisplayProps) {
   return (

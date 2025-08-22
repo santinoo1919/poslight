@@ -2,26 +2,7 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import SearchBar from "../SearchBar";
 import ProductGrid from "../ProductGrid";
-import type { Product, Category } from "../../types/database";
-
-interface LeftPanelProps {
-  title: string;
-  products: Product[];
-  allProducts: Product[];
-  categories: Category[];
-  loading: boolean;
-  error: string | null;
-  currentCategory: string | null;
-  searchResults: Product[];
-  isFiltering: boolean;
-  onProductPress: (product: Product) => void;
-  onCategorySelect: (categoryName: string) => void;
-  onSearch: (query: string) => void;
-  onRefresh: () => void;
-  selectedProductForQuantity: Product | null;
-  dailyRevenue: number;
-  dailyProfit: number;
-}
+import type { Product, Category, LeftPanelProps } from "../../types/components";
 
 export default function LeftPanel({
   title,

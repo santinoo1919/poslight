@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import ProductCard from "./ProductCard";
 import QuickAccessSection from "./QuickAccessSection";
-import type { Product } from "../types/database";
+import type { Product, ProductGridContentProps } from "../types/components";
 import {
   getMostBoughtProducts,
   getMainGridProducts,
@@ -19,14 +19,6 @@ const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
     prevProps.product.buyPrice === nextProps.product.buyPrice
   );
 });
-
-interface ProductGridContentProps {
-  products: Product[];
-  allProducts: Product[];
-  onProductPress: (product: Product) => void;
-  selectedProductForQuantity: Product | null;
-  currentCategory: string | null;
-}
 
 export default function ProductGridContent({
   products,

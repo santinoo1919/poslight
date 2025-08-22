@@ -1,6 +1,10 @@
 import { useCallback } from "react";
 import { ensureDataIntegrity, safeGetProduct } from "../utils/dataValidation";
-import { validateProduct, validateProducts, getValidationErrors } from "../utils/schemas";
+import {
+  validateProduct,
+  validateProducts,
+  getValidationErrors,
+} from "../utils/schemas";
 
 export const useDataSafety = () => {
   // Validate data before rendering
@@ -30,7 +34,12 @@ export const useDataSafety = () => {
     // Use Zod validation for comprehensive safety check
     const result = validateProducts(data);
     if (!result.success) {
-      console.error("❌ Data unsafe:", getValidationErrors(result).slice(0, 3));
+      console.error(
+        "❌ Data unsafe:",
+        result.error.issues
+          .slice(0, 3)
+          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      );
       return false;
     }
 

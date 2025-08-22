@@ -1,30 +1,12 @@
 import React, { useState, useMemo, useCallback } from "react";
 import type { Product, Category } from "../types/database";
+import type { ProductManagerProps } from "../types/components";
 import useTinyBase from "../hooks/useTinyBase";
 import useSearch from "../hooks/useSearch";
 import {
   filterProductsByCategory,
   searchProductsByName,
 } from "../utils/productHelpers";
-
-interface ProductManagerProps {
-  children: (props: {
-    products: Product[];
-    categories: Category[];
-    loading: boolean;
-    error: string | null;
-    currentCategory: string | null;
-    searchResults: Product[];
-    isFiltering: boolean;
-    visibleProducts: Product[];
-    handleCategorySelect: (categoryName: string) => void;
-    handleSearch: (query: string) => void;
-    clearSearch: () => void;
-    isSearching: boolean;
-    resetProducts: () => void;
-    updateProductStock: (productId: string, newStock: number) => void;
-  }) => React.ReactNode;
-}
 
 export default function ProductManager({ children }: ProductManagerProps) {
   const {

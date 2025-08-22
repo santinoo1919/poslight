@@ -1,5 +1,18 @@
 // Re-export types from other files to maintain backward compatibility
-export type { Product, Category } from "./database";
+export type {
+  Product,
+  Category,
+  ProfitLevel,
+  ProfitLevelConfig,
+  ProfitAnalytics,
+  DailySalesSummary,
+  ValidatedProduct,
+  ValidatedCategory,
+  ValidatedProducts,
+  ValidatedCategories,
+  ValidatedStore,
+} from "./database";
+
 export type {
   ProductCardProps,
   ProductGridProps,
@@ -8,12 +21,18 @@ export type {
   SuccessScreenProps,
   ProductGridSkeletonProps,
   QuickAccessSectionProps,
+  ButtonVariant,
+  KeypadButtonProps,
+  CartProduct,
+  EventHandlerProps,
+  MainLayoutProps,
+  LeftPanelProps,
+  RightPanelProps,
+  ProductManagerProps,
+  CartManagerProps,
+  ProductGridHeaderProps,
+  ProductGridContentProps,
+  ErrorDisplayProps,
+  DailyMetricsCardProps,
+  SkeletonItemProps,
 } from "./components";
-
-export interface QuickAccessView {
-  id: "most-bought" | "low-stock" | "coming-in" | "trending";
-  title: string;
-  icon: string;
-  color: string;
-  backgroundColor: string;
-}

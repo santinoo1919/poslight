@@ -21,6 +21,11 @@ const mockProduct = {
   stock: 100,
   category: "beverages",
   barcode: "123456",
+  margin: 7,
+  description: "A test product for testing",
+  categoryName: "Beverages",
+  color: "#FF0000",
+  icon: "🧪",
 };
 
 const mockProducts = [
@@ -97,9 +102,9 @@ export const testProductHelpers = () => {
 };
 
 // Run tests if this file is executed directly
-if (typeof window !== "undefined") {
+if (typeof globalThis !== "undefined" && "window" in globalThis) {
   // Browser environment
-  (window as any).testProductHelpers = testProductHelpers;
+  (globalThis as any).testProductHelpers = testProductHelpers;
 } else {
   // Node environment
   testProductHelpers();

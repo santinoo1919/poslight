@@ -1,10 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-
-interface MainLayoutProps {
-  leftPanel: React.ReactNode;
-  rightPanel: React.ReactNode;
-}
+import type { MainLayoutProps } from "../../types/components";
 
 export default function MainLayout({ leftPanel, rightPanel }: MainLayoutProps) {
   return (

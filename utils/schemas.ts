@@ -28,9 +28,7 @@ export const ProductSchema = z.object({
     .max(7, "Color code too long"),
   icon: z.string().min(1, "Icon is required").max(10, "Icon too long"),
   profit: z.number().min(0, "Profit cannot be negative"),
-  profitLevel: z.enum(["high", "medium", "low"], {
-    errorMap: () => ({ message: "Profit level must be high, medium, or low" }),
-  }),
+  profitLevel: z.enum(["high", "medium", "low"]),
 });
 
 // Category schema
@@ -58,11 +56,13 @@ export const StoreSchema = z.object({
 });
 
 // Type inference - automatic TypeScript types!
-export type ValidatedProduct = z.infer<typeof ProductSchema>;
-export type ValidatedCategory = z.infer<typeof CategorySchema>;
-export type ValidatedProducts = z.infer<typeof ProductsArraySchema>;
-export type ValidatedCategories = z.infer<typeof CategoriesArraySchema>;
-export type ValidatedStore = z.infer<typeof StoreSchema>;
+import type {
+  ValidatedProduct,
+  ValidatedCategory,
+  ValidatedProducts,
+  ValidatedCategories,
+  ValidatedStore,
+} from "../types/database";
 
 // Validation functions with detailed error reporting
 export const validateProduct = (data: unknown) => {
@@ -86,7 +86,7 @@ export const validateStore = (data: unknown) => {
 };
 
 // Helper function to get validation errors as readable strings
-export const getValidationErrors = (result: z.SafeParseError<any>) => {
+export const getValidationErrors = (result: z.ZodSafeParseError<any>) => {
   return result.error.issues.map((issue) => {
     const path = issue.path.join(".");
     return `${path}: ${issue.message}`;
@@ -99,7 +99,12 @@ export const safeParseProduct = (data: unknown): ValidatedProduct | null => {
   if (result.success) {
     return result.data;
   }
-  console.error("Product validation failed:", getValidationErrors(result));
+  console.error(
+    "Product validation failed:",
+    result.error.issues.map(
+      (issue) => `${issue.path.join(".")}: ${issue.message}`
+    )
+  );
   return null;
 };
 
@@ -108,6 +113,11 @@ export const safeParseProducts = (data: unknown): ValidatedProducts | null => {
   if (result.success) {
     return result.data;
   }
-  console.error("Products validation failed:", getValidationErrors(result));
+  console.error(
+    "Products validation failed:",
+    result.error.issues.map(
+      (issue) => `${issue.path.join(".")}: ${issue.message}`
+    )
+  );
   return null;
 };

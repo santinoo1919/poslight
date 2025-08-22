@@ -1,30 +1,11 @@
 import React, { useState, useCallback } from "react";
-import type { Product } from "../types/database";
+import type {
+  Product,
+  CartProduct,
+  CartManagerProps,
+} from "../types/components";
 import { store } from "../services/tinybaseStore";
 import { calculateSaleTotals } from "../utils/productHelpers";
-
-interface CartProduct extends Product {
-  quantity: number;
-}
-
-interface CartManagerProps {
-  children: (props: {
-    selectedProducts: CartProduct[];
-    selectedProductForQuantity: Product | null;
-    keypadInput: string;
-    dailyRevenue: number;
-    dailyProfit: number;
-    addToCart: (product: Product, quantity: number) => void;
-    removeFromCart: (productId: string) => void;
-    updateQuantity: (productId: string, newQuantity: number) => void;
-    setSelectedProductForQuantity: (product: Product | null) => void;
-    setKeypadInput: React.Dispatch<React.SetStateAction<string>>;
-    getTotalAmount: () => number;
-    completeSale: () => void;
-  }) => React.ReactNode;
-  onStockUpdate?: () => void; // Add callback to trigger refresh
-  onProductStockUpdate?: (productId: string, newStock: number) => void; // Safer direct stock update
-}
 
 export default function CartManager({
   children,

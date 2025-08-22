@@ -1,12 +1,9 @@
 import React from "react";
 import { View } from "react-native";
-import type { ProductGridSkeletonProps } from "../types/components";
-
-interface SkeletonItemProps {
-  width: number | string;
-  height: number;
-  marginBottom?: number;
-}
+import type {
+  ProductGridSkeletonProps,
+  SkeletonItemProps,
+} from "../types/components";
 
 export default function ProductGridSkeleton({
   count = 20,

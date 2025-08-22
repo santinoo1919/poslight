@@ -1,14 +1,4 @@
-export type ProfitLevel = "high" | "medium" | "low";
-
-export interface ProfitLevelConfig {
-  level: ProfitLevel;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  textColor: string;
-  label: string;
-  threshold: number;
-}
+import type { ProfitLevel, ProfitLevelConfig } from "../types/database";
 
 export const PROFIT_LEVELS: Record<ProfitLevel, ProfitLevelConfig> = {
   high: {

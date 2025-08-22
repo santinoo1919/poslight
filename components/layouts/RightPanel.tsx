@@ -1,11 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import Keypad from "../Keypad";
-import type { Product } from "../../types/database";
-
-interface CartProduct extends Product {
-  quantity: number;
-}
+import type { Product, CartProduct } from "../../types/components";
 
 interface RightPanelProps {
   selectedProducts: CartProduct[];

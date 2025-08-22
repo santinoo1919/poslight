@@ -10,7 +10,7 @@ interface EventHandlersProps {
   keypadInput: string;
   selectedProducts: CartProduct[];
   onSetSelectedProductForQuantity: (product: Product | null) => void;
-  onSetKeypadInput: (input: string) => void;
+  onSetKeypadInput: React.Dispatch<React.SetStateAction<string>>;
   onAddToCart: (product: Product, quantity: number) => void;
   onRemoveFromCart: (productId: string) => void;
   onUpdateQuantity: (productId: string, newQuantity: number) => void;

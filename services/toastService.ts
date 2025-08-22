@@ -11,12 +11,12 @@ const toastStyles = {
     },
     text1Style: {
       fontSize: 16,
-      fontWeight: "500", // medium weight instead of bold
+      fontWeight: "500" as const, // medium weight instead of bold
       color: "#6B7280", // neutral gray-500
     },
     text2Style: {
       fontSize: 14,
-      fontWeight: "400", // normal weight instead of semibold
+      fontWeight: "400" as const, // normal weight instead of semibold
       color: "#9CA3AF", // neutral gray-400
     },
   },
@@ -29,12 +29,12 @@ const toastStyles = {
     },
     text1Style: {
       fontSize: 16,
-      fontWeight: "500", // medium weight instead of bold
+      fontWeight: "500" as const, // medium weight instead of bold
       color: "#6B7280", // neutral gray-500
     },
     text2Style: {
       fontSize: 14,
-      fontWeight: "400", // normal weight instead of semibold
+      fontWeight: "400" as const, // normal weight instead of semibold
       color: "#9CA3AF", // neutral gray-400
     },
   },
@@ -47,12 +47,12 @@ const toastStyles = {
     },
     text1Style: {
       fontSize: 16,
-      fontWeight: "500", // medium weight instead of bold
+      fontWeight: "500" as const, // medium weight instead of bold
       color: "#6B7280", // neutral gray-500
     },
     text2Style: {
       fontSize: 14,
-      fontWeight: "400", // normal weight instead of semibold
+      fontWeight: "400" as const, // normal weight instead of semibold
       color: "#9CA3AF", // neutral gray-400
     },
   },
@@ -65,12 +65,12 @@ const toastStyles = {
     },
     text1Style: {
       fontSize: 16,
-      fontWeight: "500", // medium weight instead of bold
+      fontWeight: "500" as const, // medium weight instead of bold
       color: "#6B7280", // neutral gray-500
     },
     text2Style: {
       fontSize: 14,
-      fontWeight: "400", // normal weight instead of semibold
+      fontWeight: "400" as const, // normal weight instead of semibold
       color: "#9CA3AF", // neutral gray-400
     },
   },

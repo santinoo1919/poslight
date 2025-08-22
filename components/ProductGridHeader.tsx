@@ -1,11 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-
-interface ProductGridHeaderProps {
-  visibleProductsCount: number;
-  totalProductsCount: number;
-  currentCategory: string | null;
-}
+import type { ProductGridHeaderProps } from "../types/components";
 
 export default function ProductGridHeader({
   visibleProductsCount,

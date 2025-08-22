@@ -1,14 +1,16 @@
-import type { Product, Category } from "../types/database";
-import { 
-  validateProduct, 
-  validateProducts, 
-  validateCategory, 
+import type {
+  Product,
+  Category,
+  ValidatedProduct,
+  ValidatedProducts,
+} from "../types/database";
+import {
+  validateProduct,
+  validateProducts,
+  validateCategory,
   validateCategories,
-  getValidationErrors,
   safeParseProduct,
   safeParseProducts,
-  type ValidatedProduct,
-  type ValidatedProducts
 } from "./schemas";
 
 // Type guards using Zod validation
@@ -25,18 +27,20 @@ export const validateProductData = (
   products: any[]
 ): { valid: ValidatedProduct[]; invalid: any[]; errors: string[] } => {
   const result = validateProducts(products);
-  
+
   if (result.success) {
-    return { 
-      valid: result.data, 
-      invalid: [], 
-      errors: [] 
+    return {
+      valid: result.data,
+      invalid: [],
+      errors: [],
     };
   } else {
     return {
       valid: [],
       invalid: products,
-      errors: getValidationErrors(result)
+      errors: result.error.issues.map(
+        (issue) => `${issue.path.join(".")}: ${issue.message}`
+      ),
     };
   }
 };
@@ -49,11 +53,13 @@ export const ensureDataIntegrity = (
   try {
     if (expectedType === "products") {
       const result = validateProducts(data);
-      
+
       if (!result.success) {
         console.error("❌ Data integrity check failed:", {
           total: data?.length || 0,
-          errors: getValidationErrors(result).slice(0, 3), // Show first 3 errors
+          errors: result.error.issues
+            .slice(0, 3)
+            .map((issue) => `${issue.path.join(".")}: ${issue.message}`),
         });
         return false;
       }
@@ -68,11 +74,13 @@ export const ensureDataIntegrity = (
 
     if (expectedType === "categories") {
       const result = validateCategories(data);
-      
+
       if (!result.success) {
         console.error("❌ Categories integrity check failed:", {
           total: data?.length || 0,
-          errors: getValidationErrors(result).slice(0, 3),
+          errors: result.error.issues
+            .slice(0, 3)
+            .map((issue) => `${issue.path.join(".")}: ${issue.message}`),
         });
         return false;
       }

@@ -1,10 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-
-interface DailyMetricsCardProps {
-  dailyRevenue: number;
-  dailyProfit: number;
-}
+import type { DailyMetricsCardProps } from "../types/components";
 
 const DailyMetricsCard: React.FC<DailyMetricsCardProps> = React.memo(
   ({ dailyRevenue, dailyProfit }) => {
