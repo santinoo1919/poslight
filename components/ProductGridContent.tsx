@@ -31,6 +31,14 @@ export default function ProductGridContent({
   selectedProductForQuantity,
   currentCategory,
 }: ProductGridContentProps) {
+  // Debug logging
+  console.log("🔍 ProductGridContent Debug:", {
+    productsLength: products?.length || 0,
+    allProductsLength: allProducts?.length || 0,
+    currentCategory,
+    productsSample: products?.slice(0, 3),
+  });
+
   // Get most bought products (for now, just take first 4 with good stock)
   const mostBoughtProducts = products
     .filter((product) => product.stock > 50) // Good stock availability
@@ -40,6 +48,12 @@ export default function ProductGridContent({
   const mainGridProducts = products.filter(
     (item) => !mostBoughtProducts.some((mb) => mb.id === item.id)
   );
+
+  console.log("🔍 ProductGridContent Processing:", {
+    mostBoughtCount: mostBoughtProducts.length,
+    mainGridCount: mainGridProducts.length,
+    mainGridSample: mainGridProducts?.slice(0, 3),
+  });
 
   return (
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
