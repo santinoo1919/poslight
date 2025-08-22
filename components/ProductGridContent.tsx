@@ -39,7 +39,7 @@ export default function ProductGridContent({
     productsSample: products?.slice(0, 3),
   });
 
-  // More explicit debugging
+  // More explicit debugging with JSON.stringify to force expansion
   console.log("🔍 Products array check:", {
     isArray: Array.isArray(products),
     isNull: products === null,
@@ -50,6 +50,12 @@ export default function ProductGridContent({
     firstItemType: typeof products?.[0],
   });
 
+  // Force expand the first product to see its structure
+  if (products && products.length > 0) {
+    console.log("🔍 First product expanded:", JSON.stringify(products[0], null, 2));
+    console.log("🔍 First product keys:", Object.keys(products[0]));
+  }
+
   // Get most bought products (for now, just take first 4 with good stock)
   const mostBoughtProducts = products
     .filter((product) => product.stock > 50) // Good stock availability
@@ -57,7 +63,9 @@ export default function ProductGridContent({
 
   console.log("🔍 Most bought products:", {
     count: mostBoughtProducts.length,
-    sample: mostBoughtProducts.slice(0, 2).map(p => ({ id: p?.id, name: p?.name, stock: p?.stock })),
+    sample: mostBoughtProducts
+      .slice(0, 2)
+      .map((p) => ({ id: p?.id, name: p?.name, stock: p?.stock })),
   });
 
   // Filter out most bought products from main grid to avoid duplication
@@ -69,7 +77,10 @@ export default function ProductGridContent({
     totalProducts: products.length,
     mostBoughtCount: mostBoughtProducts.length,
     mainGridCount: mainGridProducts.length,
-    filterResult: products.length - mostBoughtProducts.length === mainGridProducts.length ? "✅ Correct" : "❌ Wrong",
+    filterResult:
+      products.length - mostBoughtProducts.length === mainGridProducts.length
+        ? "✅ Correct"
+        : "❌ Wrong",
   });
 
   console.log("🔍 ProductGridContent Processing:", {
