@@ -44,10 +44,22 @@ export default function ProductGridContent({
     .filter((product) => product.stock > 50) // Good stock availability
     .slice(0, 4);
 
+  console.log("🔍 Most bought products:", {
+    count: mostBoughtProducts.length,
+    sample: mostBoughtProducts.slice(0, 2).map(p => ({ id: p?.id, name: p?.name, stock: p?.stock })),
+  });
+
   // Filter out most bought products from main grid to avoid duplication
   const mainGridProducts = products.filter(
     (item) => !mostBoughtProducts.some((mb) => mb.id === item.id)
   );
+
+  console.log("🔍 Main grid filtering:", {
+    totalProducts: products.length,
+    mostBoughtCount: mostBoughtProducts.length,
+    mainGridCount: mainGridProducts.length,
+    filterResult: products.length - mostBoughtProducts.length === mainGridProducts.length ? "✅ Correct" : "❌ Wrong",
+  });
 
   console.log("🔍 ProductGridContent Processing:", {
     mostBoughtCount: mostBoughtProducts.length,
