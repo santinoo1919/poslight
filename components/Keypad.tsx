@@ -1,6 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import type { KeypadProps, ButtonVariant, KeypadButtonProps } from "../types/components";
+import type {
+  KeypadProps,
+  ButtonVariant,
+  KeypadButtonProps,
+} from "../types/components";
 
 // Keypad button component - single responsibility
 const KeypadButton: React.FC<KeypadButtonProps> = ({
