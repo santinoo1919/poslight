@@ -83,8 +83,8 @@ export default function ProductGrid({
     return products;
   }, [products, currentCategory, searchResults]);
 
-  // Show skeleton during loading, filtering, or when no products are loaded yet
-  if (loading || isFiltering || !products || products.length === 0) {
+  // Show skeleton only during actual loading states, not when products are filtered out
+  if (loading || isFiltering || !products) {
     console.log("🔍 Showing skeleton:", {
       loading,
       isFiltering,
@@ -106,7 +106,7 @@ export default function ProductGrid({
   });
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-50">
       <ProductGridHeader
         visibleProductsCount={visibleProducts.length}
         totalProductsCount={products.length}

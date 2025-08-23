@@ -5,7 +5,6 @@ import ProductGrid from "../ProductGrid";
 import type { Product, Category, LeftPanelProps } from "../../types/components";
 
 export default function LeftPanel({
-  title,
   products,
   allProducts,
   categories,
@@ -24,82 +23,67 @@ export default function LeftPanel({
 }: LeftPanelProps) {
   return (
     <>
-      {/* Header with Daily Metrics on Right */}
-      <View className="bg-gray-50 border-b border-gray-200 p-4">
-        <View className="flex-row justify-between items-start mb-4">
-          {/* Title */}
-          <Text className="text-2xl font-bold text-gray-800">{title}</Text>
-
-          {/* Daily Metrics - Initial UI Style */}
-          <View className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg px-3 py-2">
-            <View className="flex-row items-center space-x-3">
-              <View className="items-center">
-                <Text className="text-xs text-gray-600">Today's Revenue</Text>
-                <Text className="text-sm font-bold text-green-600">
-                  €{dailyRevenue.toFixed(2)}
-                </Text>
-              </View>
-              <View className="w-px h-8 bg-gray-300"></View>
-              <View className="items-center">
-                <Text className="text-xs text-gray-600">Today's Profit</Text>
-                <Text className="text-sm font-bold text-blue-600">
-                  €{dailyProfit.toFixed(2)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Categories and Search - Same Row */}
-        <View className="flex-row items-center space-x-3 mb-3">
-          {/* Categories - Smaller Size */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="flex-1 flex-row space-x-2"
-          >
+      {/* Categories */}
+      <View className="px-4 py-3 border-b border-gray-200">
+        <Text className="text-sm font-medium text-gray-700 mb-2">
+          Categories
+        </Text>
+        <View className="flex-row items-center justify-between">
+          {/* Categories on the left */}
+          <View className="flex-row flex-wrap items-center flex-1">
+            {/* Show All option */}
             <TouchableOpacity
-              onPress={() => onCategorySelect("Show All")}
-              className={`px-3 py-1.5 rounded-full border ${
-                !currentCategory
-                  ? "bg-blue-600 border-blue-600"
-                  : "bg-white border-gray-300 hover:bg-gray-50"
+              className={`mr-2 px-3 py-2 rounded-full border ${
+                currentCategory === null
+                  ? "border-blue-500 bg-blue-100"
+                  : "border-gray-200 bg-white"
               }`}
+              onPress={() => onCategorySelect("Show All")}
             >
               <Text
-                className={`font-medium text-xs ${
-                  !currentCategory ? "text-white" : "text-gray-700"
+                className={`text-xs font-medium ${
+                  currentCategory === null ? "text-blue-600" : "text-gray-600"
                 }`}
               >
-                Show All
+                📦 Show All
               </Text>
             </TouchableOpacity>
 
-            {categories?.map((category) => (
-              <TouchableOpacity
-                key={category.name}
-                onPress={() => onCategorySelect(category.name)}
-                className={`px-3 py-1.5 rounded-full border ${
-                  currentCategory === category.name
-                    ? "bg-blue-600 border-blue-600"
-                    : "bg-white border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                <Text
-                  className={`font-medium text-xs ${
-                    currentCategory === category.name
-                      ? "text-white"
-                      : "text-gray-700"
-                  }`}
-                >
-                  {category.icon} {category.name}
+            {!categories ||
+            !Array.isArray(categories) ||
+            categories.length === 0 ? (
+              <View className="mr-2 px-3 py-2 rounded-full border border-gray-200 bg-gray-100">
+                <Text className="text-xs text-gray-500">
+                  Loading categories...
                 </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+              </View>
+            ) : (
+              categories.map((category) => (
+                <TouchableOpacity
+                  key={category.name}
+                  className={`mr-2 px-3 py-2 rounded-full border ${
+                    currentCategory === category.name
+                      ? "border-blue-500 bg-blue-100"
+                      : "border-gray-200 bg-white"
+                  }`}
+                  onPress={() => onCategorySelect(category.name)}
+                >
+                  <Text
+                    className={`text-xs ${
+                      currentCategory === category.name
+                        ? "text-blue-600"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    {category.icon} {category.name}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
 
-          {/* Search Bar - Right Side */}
-          <View className="w-48">
+          {/* Search Bar - On the right, using remaining space */}
+          <View className="ml-4 flex-shrink-0">
             <SearchBar onSearch={onSearch} />
           </View>
         </View>

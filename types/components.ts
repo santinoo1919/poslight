@@ -89,7 +89,7 @@ export interface MainLayoutProps {
 }
 
 export interface LeftPanelProps {
-  title: string;
+  title?: string;
   products: Product[];
   allProducts: Product[];
   categories: Category[];
