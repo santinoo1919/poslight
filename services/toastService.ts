@@ -92,12 +92,12 @@ export const ToastService = {
 
     lowStock: (productName: string, stock: number) => {
       Toast.show({
-        type: "warning",
+        type: "info",
         text1: "Low Stock Warning ⚠️",
         text2: `${productName}: Only ${stock} units left`,
         position: "bottom",
         visibilityTime: 4000,
-        ...toastStyles.warning,
+        ...toastStyles.info,
       });
     },
 

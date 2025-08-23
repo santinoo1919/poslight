@@ -12,14 +12,20 @@ export default function ProductCard({
   // Use stock from product prop (simpler and more reliable)
   const stock = product.stock || 0;
   const isLowStock = stock <= 10;
+  const isOutOfStock = stock === 0;
 
   return (
     <TouchableOpacity
       className={`rounded-lg border p-3 flex-1 ${
-        isSelected ? "bg-blue-50 border-blue-300" : "bg-white border-gray-200"
+        isOutOfStock
+          ? "bg-gray-100 border-gray-300 opacity-50"
+          : isSelected
+            ? "bg-blue-50 border-blue-300"
+            : "bg-white border-gray-200"
       }`}
-      onPress={() => onPress?.(product)}
-      activeOpacity={Platform.OS === "ios" ? 0.7 : 1}
+      onPress={isOutOfStock ? undefined : () => onPress?.(product)}
+      activeOpacity={isOutOfStock ? 1 : Platform.OS === "ios" ? 0.7 : 1}
+      disabled={isOutOfStock}
     >
       {/* Category Badge */}
       <View className="flex-row items-center justify-between mb-2">
@@ -41,7 +47,9 @@ export default function ProductCard({
 
       {/* Product Name */}
       <Text
-        className="font-semibold text-gray-800 text-sm mb-1"
+        className={`font-semibold text-sm mb-1 ${
+          isOutOfStock ? "text-gray-500" : "text-gray-800"
+        }`}
         numberOfLines={2}
       >
         {product.name}
@@ -51,11 +59,19 @@ export default function ProductCard({
       <View className="mb-1 space-y-1">
         {/* Top row: Sell Price + Profit */}
         <View className="flex-row justify-between items-center">
-          <Text className="text-green-600 font-bold text-base">
+          <Text
+            className={`font-bold text-base ${
+              isOutOfStock ? "text-gray-500" : "text-green-600"
+            }`}
+          >
             €{(product.sellPrice || product.price || 0).toFixed(2)}
           </Text>
           <Text
-            className={`text-xs font-medium ${getProfitTextColor(product.profitLevel || "medium")}`}
+            className={`text-xs font-medium ${
+              isOutOfStock
+                ? "text-gray-400"
+                : getProfitTextColor(product.profitLevel || "medium")
+            }`}
           >
             +€
             {(() => {
@@ -91,7 +107,11 @@ export default function ProductCard({
 
         {/* Bottom row: Buy Price + Stock */}
         <View className="flex-row justify-between items-center">
-          <Text className="text-xs text-gray-600">
+          <Text
+            className={`text-xs ${
+              isOutOfStock ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
             €
             {(
               product.buyPrice || (product.price ? product.price * 0.6 : 0)
@@ -99,18 +119,17 @@ export default function ProductCard({
           </Text>
           <Text
             className={`text-xs font-medium ${
-              isLowStock ? "text-red-600" : "text-gray-500"
+              isOutOfStock
+                ? "text-red-500"
+                : isLowStock
+                  ? "text-red-600"
+                  : "text-gray-500"
             }`}
           >
-            Stock: {stock}
+            {isLowStock && !isOutOfStock && "⚠️ "}Stock: {stock}
           </Text>
         </View>
       </View>
-
-      {/* Low Stock Warning */}
-      {isLowStock && (
-        <Text className="text-xs text-red-500 mt-1">⚠️ Low Stock</Text>
-      )}
     </TouchableOpacity>
   );
 }

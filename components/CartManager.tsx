@@ -6,6 +6,7 @@ import type {
 } from "../types/components";
 import { store } from "../services/tinybaseStore";
 import { calculateSaleTotals } from "../utils/productHelpers";
+import { ToastService } from "../services/toastService";
 
 export default function CartManager({
   children,
@@ -22,8 +23,15 @@ export default function CartManager({
   const [dailyRevenue, setDailyRevenue] = useState<number>(0);
   const [dailyProfit, setDailyProfit] = useState<number>(0);
 
-  // Cart operations
+  // Cart operations with low stock warning
   const addToCart = useCallback((product: Product, quantity: number) => {
+    // Check for low stock warning (but still allow adding to cart)
+    const currentStock =
+      (store.getCell("products", product.id, "stock") as number) || 0;
+    if (currentStock <= 10 && currentStock > 0) {
+      ToastService.stock.lowStock(product.name, currentStock);
+    }
+
     setSelectedProducts((prev) => {
       const existing = prev.find((p) => p.id === product.id);
       if (existing) {
@@ -72,7 +80,11 @@ export default function CartManager({
   const completeSale = useCallback(() => {
     try {
       if (selectedProducts.length === 0) {
-        // ToastService.order.cartEmpty();
+        ToastService.show(
+          "error",
+          "Cart is Empty",
+          "Please add products to cart"
+        );
         return;
       }
 
@@ -126,7 +138,7 @@ export default function CartManager({
       console.log("✅ Sale completed successfully - stock updated directly");
 
       // Success message
-      // ToastService.order.success(totalAmount);
+      ToastService.sale.complete(totalAmount, selectedProducts.length);
     } catch (error) {
       console.error("❌ Error in completeSale:", error);
       // Don't crash the app, just log the error
