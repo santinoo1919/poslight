@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Platform } from "react-native";
 import type { ProductCardProps } from "../types/components";
 import { getProfitTextColor } from "../utils/profitLevels";
 import { calculateProductProfit } from "../utils/productHelpers";
+import type { ProfitLevel } from "../types/database";
 
 export default function ProductCard({
   product,
@@ -13,6 +14,19 @@ export default function ProductCard({
   const stock = product.stock || 0;
   const isLowStock = stock <= 10;
   const isOutOfStock = stock === 0;
+
+  // Calculate actual profit amount and use it for color coding
+  const buyPrice = product.buyPrice || 0;
+  const sellPrice = product.sellPrice || product.price || 0;
+  const actualProfit = sellPrice - buyPrice;
+
+  // Use profit amount instead of percentage for more meaningful colors
+  let profitLevel: ProfitLevel = "medium"; // default
+  if (actualProfit >= 10)
+    profitLevel = "high"; // €10+ profit = Green
+  else if (actualProfit >= 3)
+    profitLevel = "medium"; // €3-9 profit = Amber
+  else profitLevel = "low"; // <€3 profit = Red
 
   return (
     <TouchableOpacity
@@ -68,9 +82,7 @@ export default function ProductCard({
           </Text>
           <Text
             className={`text-xs font-medium ${
-              isOutOfStock
-                ? "text-gray-400"
-                : getProfitTextColor(product.profitLevel || "medium")
+              isOutOfStock ? "text-gray-400" : getProfitTextColor(profitLevel)
             }`}
           >
             +€
