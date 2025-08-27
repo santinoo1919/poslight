@@ -65,15 +65,15 @@ export default function LeftPanel() {
                 <TouchableOpacity
                   key={category.name}
                   className={`mr-2 px-3 py-2 rounded-full border ${
-                    currentCategory === category.name
+                    currentCategory === category.key
                       ? "border-blue-500 bg-blue-100"
                       : "border-gray-200 bg-white"
                   }`}
-                  onPress={() => handleCategorySelect(category.name)}
+                  onPress={() => handleCategorySelect(category.key)}
                 >
                   <Text
                     className={`text-xs ${
-                      currentCategory === category.name
+                      currentCategory === category.key
                         ? "text-blue-600"
                         : "text-gray-600"
                     }`}

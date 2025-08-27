@@ -362,8 +362,10 @@ export const db: {
   },
 
   // Get all categories
-  getCategories: (): Category[] => {
-    return Object.values(store.getTable("categories")) as unknown as Category[];
+  getCategories: (): Array<Category & { key: string }> => {
+    return Object.entries(store.getTable("categories")).map(
+      ([key, category]) => ({ ...category, key })
+    ) as Array<Category & { key: string }>;
   },
 
   // Search products (super fast in-memory search)

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View } from "react-native";
 import ProductGridSkeleton from "./ProductGridSkeleton";
 import ProductGridHeader from "./ProductGridHeader";
@@ -14,40 +14,41 @@ export default function ProductGrid() {
     products,
     loading,
     error,
-    isFiltering,
     currentCategory,
     searchResults,
-    getVisibleProducts,
     resetProducts,
   } = useProductStore();
 
   // Get cart state from Zustand store
   const { selectedProductForQuantity, handleProductPress } = useCartStore();
 
-  // Get computed visible products
-  const visibleProducts = getVisibleProducts();
+  // Memoize visible products - only recompute when dependencies change
+  const visibleProducts = useMemo(() => {
+    if (loading || !products) return [];
 
-  // Show skeleton only during actual loading states, not when products are filtered out
-  if (loading || isFiltering || !products) {
-    console.log("🔍 Showing skeleton:", {
-      loading,
-      isFiltering,
-      productsLength: products?.length || 0,
-    });
+    // If searching, use search results
+    if (searchResults.length > 0) {
+      return searchResults;
+    }
+
+    // If category selected, filter by category key
+    if (currentCategory) {
+      return products.filter((product) => product.category === currentCategory);
+    }
+
+    // No search, no category = show all products
+    return products;
+  }, [loading, products, searchResults, currentCategory]);
+
+  // Show skeleton only during actual loading states
+  if (loading || !products) {
     return <ProductGridSkeleton />;
   }
 
   // Show error if there is one
   if (error) {
-    console.log("🔍 Showing error:", error);
     return <ErrorDisplay error={error} onRetry={resetProducts} />;
   }
-
-  // Show products
-  console.log("🔍 Rendering products:", {
-    visible: visibleProducts.length,
-    total: products?.length || 0,
-  });
 
   return (
     <View className="flex-1 bg-gray-50">

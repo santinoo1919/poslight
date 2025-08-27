@@ -6,7 +6,7 @@ import MainLayout from "./components/layouts/MainLayout";
 import LeftPanel from "./components/layouts/LeftPanel";
 import RightPanel from "./components/layouts/RightPanel";
 import Toast from "react-native-toast-message";
-import type { Product } from "./types/database";
+
 import { View, Text } from "react-native";
 import { useProductStore } from "./stores/productStore";
 import { useCartStore } from "./stores/cartStore";
@@ -14,47 +14,14 @@ import useTinyBase from "./hooks/useTinyBase";
 
 function AppContent() {
   // Get data from TinyBase hook
-  const {
-    searchProducts,
-    products,
-    categories,
-    loading,
-    error,
-    resetProducts,
-    updateProductStock,
-  } = useTinyBase();
+  const { products, categories, loading, error, resetProducts } = useTinyBase();
 
   // Get product state from Zustand store
-  const {
-    setProducts,
-    setCategories,
-    setLoading,
-    setError,
-    currentCategory,
-    searchResults,
-    isFiltering,
-    visibleProducts,
-    handleCategorySelect,
-    handleSearch,
-    clearSearch,
-    getVisibleProducts,
-  } = useProductStore();
+  const { setProducts, setCategories, setLoading, setError } =
+    useProductStore();
 
-  // Get cart state from Zustand store
-  const {
-    selectedProducts,
-    selectedProductForQuantity,
-    keypadInput,
-    dailyRevenue,
-    dailyProfit,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    setSelectedProductForQuantity,
-    setKeypadInput,
-    getTotalAmount,
-    completeSale,
-  } = useCartStore();
+  // Get cart state from Zustand store (only what we need for header)
+  const { dailyRevenue, dailyProfit } = useCartStore();
 
   // Sync TinyBase data to Zustand store
   React.useEffect(() => {
@@ -84,58 +51,6 @@ function AppContent() {
     setLoading,
     setError,
   ]);
-
-  // Event handlers
-  const handleProductPress = (product: Product) => {
-    React.startTransition(() => {
-      setSelectedProductForQuantity(product);
-      setKeypadInput("");
-    });
-  };
-
-  const handleKeypadNumber = (num: string) => {
-    setKeypadInput((prev: string) => prev + num);
-  };
-
-  const handleKeypadDelete = () => {
-    setKeypadInput(keypadInput.slice(0, -1));
-  };
-
-  const handleKeypadClear = () => {
-    setKeypadInput("");
-  };
-
-  const handleKeypadEnter = () => {
-    if (keypadInput && selectedProductForQuantity) {
-      const quantity = parseInt(keypadInput);
-      if (quantity > 0) {
-        addToCart(selectedProductForQuantity, quantity);
-        setSelectedProductForQuantity(null);
-        setKeypadInput("");
-      }
-    }
-  };
-
-  // Enhanced completeSale that calls parent callbacks
-  const handleCompleteSale = () => {
-    completeSale();
-
-    // Update stock in both TinyBase and Zustand stores
-    if (updateProductStock) {
-      selectedProducts.forEach((product) => {
-        const currentStock = product.stock || 0;
-        const newStock = Math.max(0, currentStock - product.quantity);
-
-        // Update TinyBase store (for persistence)
-        updateProductStock(product.id, newStock);
-
-        // Update Zustand store (for UI updates)
-        const { updateProductStock: updateZustandStock } =
-          useProductStore.getState();
-        updateZustandStock(product.id, newStock);
-      });
-    }
-  };
 
   return (
     <SafeAreaWrapper className="flex-1 bg-gray-50">
@@ -180,31 +95,7 @@ function AppContent() {
         </View>
       </View>
 
-      <MainLayout
-        leftPanel={
-          <LeftPanel
-            onProductPress={handleProductPress}
-            onRefresh={resetProducts}
-          />
-        }
-        rightPanel={
-          <RightPanel
-            selectedProducts={selectedProducts}
-            selectedProductForQuantity={selectedProductForQuantity}
-            keypadInput={keypadInput}
-            onRemoveFromCart={removeFromCart}
-            onUpdateQuantity={updateQuantity}
-            onSetSelectedProductForQuantity={setSelectedProductForQuantity}
-            onSetKeypadInput={setKeypadInput}
-            onKeypadNumber={handleKeypadNumber}
-            onKeypadDelete={handleKeypadDelete}
-            onKeypadClear={handleKeypadClear}
-            onKeypadEnter={handleKeypadEnter}
-            onCompleteSale={handleCompleteSale}
-            getTotalAmount={getTotalAmount}
-          />
-        }
-      />
+      <MainLayout leftPanel={<LeftPanel />} rightPanel={<RightPanel />} />
 
       <Toast />
     </SafeAreaWrapper>

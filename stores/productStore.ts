@@ -39,7 +39,6 @@ interface ProductState {
   ) => void;
 
   // Computed
-  getVisibleProducts: () => Product[];
   getProductsByCategory: (categoryName: string) => Product[];
 }
 
@@ -143,47 +142,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
   },
 
   // Computed values
-  getVisibleProducts: () => {
-    const state = get();
-
-    // Don't compute if still loading or no products
-    if (state.loading || !state.products) {
-      console.log(
-        "⏳ Product Store: getVisibleProducts - still loading or no products"
-      );
-      return [];
-    }
-
-    // If searching, use search results
-    if (state.searchResults.length > 0) {
-      console.log(
-        "🔍 Product Store: getVisibleProducts - using search results:",
-        state.searchResults.length
-      );
-      return state.searchResults;
-    }
-
-    // If not searching, apply category filter
-    if (state.currentCategory) {
-      const filtered = filterProductsByCategory(
-        state.products,
-        state.currentCategory
-      );
-      console.log(
-        "🏷️ Product Store: getVisibleProducts - category filtered:",
-        filtered.length
-      );
-      return filtered;
-    }
-
-    // No search, no category = show all products
-    console.log(
-      "📦 Product Store: getVisibleProducts - showing all products:",
-      state.products.length
-    );
-    return state.products;
-  },
-
   getProductsByCategory: (categoryName: string) => {
     const state = get();
     if (!state.products) return [];
