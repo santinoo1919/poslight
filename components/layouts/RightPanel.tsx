@@ -2,38 +2,26 @@ import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import Keypad from "../Keypad";
 import type { Product, CartProduct } from "../../types/components";
+import { useCartStore } from "../../stores/cartStore";
 
-interface RightPanelProps {
-  selectedProducts: CartProduct[];
-  selectedProductForQuantity: Product | null;
-  keypadInput: string;
-  onRemoveFromCart: (productId: string) => void;
-  onUpdateQuantity: (productId: string, newQuantity: number) => void;
-  onSetSelectedProductForQuantity: (product: Product | null) => void;
-  onSetKeypadInput: React.Dispatch<React.SetStateAction<string>>;
-  onKeypadNumber: (num: string) => void;
-  onKeypadDelete: () => void;
-  onKeypadClear: () => void;
-  onKeypadEnter: () => void;
-  onCompleteSale: () => void;
-  getTotalAmount: () => number;
-}
+export default function RightPanel() {
+  // Get cart state from Zustand store
+  const {
+    selectedProducts,
+    selectedProductForQuantity,
+    keypadInput,
+    removeFromCart,
+    updateQuantity,
+    setSelectedProductForQuantity,
+    setKeypadInput,
+    handleKeypadNumber,
+    handleKeypadDelete,
+    handleKeypadClear,
+    handleKeypadEnter,
+    completeSale,
+    getTotalAmount,
+  } = useCartStore();
 
-export default function RightPanel({
-  selectedProducts,
-  selectedProductForQuantity,
-  keypadInput,
-  onRemoveFromCart,
-  onUpdateQuantity,
-  onSetSelectedProductForQuantity,
-  onSetKeypadInput,
-  onKeypadNumber,
-  onKeypadDelete,
-  onKeypadClear,
-  onKeypadEnter,
-  onCompleteSale,
-  getTotalAmount,
-}: RightPanelProps) {
   return (
     <>
       {/* POS Interface - Cart */}
@@ -59,10 +47,10 @@ export default function RightPanel({
           )}
 
           <Keypad
-            onNumberPress={onKeypadNumber}
-            onDelete={onKeypadDelete}
-            onClear={onKeypadClear}
-            onEnter={onKeypadEnter}
+            onNumberPress={handleKeypadNumber}
+            onDelete={handleKeypadDelete}
+            onClear={handleKeypadClear}
+            onEnter={handleKeypadEnter}
             disabled={!selectedProductForQuantity}
           />
         </View>
@@ -98,7 +86,7 @@ export default function RightPanel({
                         {product.name}
                       </Text>
                       <TouchableOpacity
-                        onPress={() => onRemoveFromCart(product.id)}
+                        onPress={() => removeFromCart(product.id)}
                         className="p-1"
                       >
                         <Text className="text-red-500 text-lg">×</Text>
@@ -119,7 +107,7 @@ export default function RightPanel({
                         Stock: {product.stock}
                       </Text>
                       <TouchableOpacity
-                        onPress={() => onSetSelectedProductForQuantity(product)}
+                        onPress={() => setSelectedProductForQuantity(product)}
                         className="bg-blue-100 px-2 py-1 rounded"
                       >
                         <Text className="text-blue-600 text-xs">Edit Qty</Text>
@@ -142,7 +130,7 @@ export default function RightPanel({
               </View>
 
               <TouchableOpacity
-                onPress={onCompleteSale}
+                onPress={completeSale}
                 className="bg-green-500 py-3 rounded-lg"
               >
                 <Text className="text-white text-center font-semibold text-lg">

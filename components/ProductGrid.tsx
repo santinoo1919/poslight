@@ -4,84 +4,28 @@ import ProductGridSkeleton from "./ProductGridSkeleton";
 import ProductGridHeader from "./ProductGridHeader";
 import ProductGridContent from "./ProductGridContent";
 import ErrorDisplay from "./ErrorDisplay";
-import type { ProductGridProps } from "../types/components";
 import type { Product } from "../types/database";
-import { useDataSafety } from "../hooks/useDataSafety";
+import { useProductStore } from "../stores/productStore";
+import { useCartStore } from "../stores/cartStore";
 
-export default function ProductGrid({
-  onProductPress,
-  products,
-  allProducts,
-  loading,
-  error,
-  onRefresh,
-  selectedProductForQuantity,
-  isFiltering = false,
-  currentCategory = null,
-  searchResults = [],
-}: ProductGridProps & {
-  allProducts: Product[];
-  selectedProductForQuantity?: Product | null;
-  isFiltering?: boolean;
-  currentCategory?: string | null;
-  searchResults?: Product[];
-}) {
-  // 🔒 DATA SAFETY: Validate data before processing
-  const { isDataSafeForRendering, validateProductsWithZod } = useDataSafety();
-
-  // Debug logging for troubleshooting
-  console.log("🔍 ProductGrid Debug:", {
-    productsLength: products?.length || 0,
-    allProductsLength: allProducts?.length || 0,
+export default function ProductGrid() {
+  // Get product state from Zustand store
+  const {
+    products,
     loading,
     error,
     isFiltering,
     currentCategory,
-    searchResultsLength: searchResults?.length || 0,
-  });
+    searchResults,
+    getVisibleProducts,
+    resetProducts,
+  } = useProductStore();
 
-  // 🔒 DATA SAFETY: Check if data is safe for rendering with Zod
-  if (!loading && products) {
-    const validationResult = validateProductsWithZod(products);
-    if (!validationResult.success) {
-      console.error(
-        "❌ ProductGrid: Zod validation failed:",
-        validationResult.error.issues.slice(0, 3)
-      );
-      return (
-        <ErrorDisplay
-          error={`Data validation failed: ${validationResult.error.issues[0]?.message || "Unknown error"}`}
-          onRetry={onRefresh}
-        />
-      );
-    }
-  }
+  // Get cart state from Zustand store
+  const { selectedProductForQuantity, handleProductPress } = useCartStore();
 
-  // SIMPLE: Use search results or filter by category
-  const visibleProducts = React.useMemo(() => {
-    // If searching, use search results
-    if (searchResults.length > 0) {
-      console.log("🔍 Using search results:", searchResults.length);
-      return searchResults;
-    }
-
-    // If not searching, apply category filter
-    if (currentCategory) {
-      const categoryKey = currentCategory.toLowerCase();
-      const filtered = products.filter(
-        (product) => product.category === categoryKey
-      );
-      console.log("🔍 Category filter applied:", {
-        category: currentCategory,
-        filtered: filtered.length,
-      });
-      return filtered;
-    }
-
-    // No search, no category = show all products
-    console.log("🔍 Showing all products:", products.length);
-    return products;
-  }, [products, currentCategory, searchResults]);
+  // Get computed visible products
+  const visibleProducts = getVisibleProducts();
 
   // Show skeleton only during actual loading states, not when products are filtered out
   if (loading || isFiltering || !products) {
@@ -96,29 +40,30 @@ export default function ProductGrid({
   // Show error if there is one
   if (error) {
     console.log("🔍 Showing error:", error);
-    return <ErrorDisplay error={error} onRetry={onRefresh} />;
+    return <ErrorDisplay error={error} onRetry={resetProducts} />;
   }
 
   // Show products
   console.log("🔍 Rendering products:", {
     visible: visibleProducts.length,
-    total: products.length,
+    total: products?.length || 0,
   });
 
   return (
     <View className="flex-1 bg-gray-50">
       <ProductGridHeader
         visibleProductsCount={visibleProducts.length}
-        totalProductsCount={products.length}
+        totalProductsCount={products?.length || 0}
         currentCategory={currentCategory}
       />
 
       <ProductGridContent
         products={visibleProducts}
-        allProducts={allProducts}
-        onProductPress={onProductPress}
+        allProducts={products || []}
+        onProductPress={handleProductPress}
         selectedProductForQuantity={selectedProductForQuantity}
         currentCategory={currentCategory}
+        loading={loading}
       />
     </View>
   );

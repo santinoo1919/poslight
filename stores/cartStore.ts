@@ -22,6 +22,16 @@ interface CartState {
   getTotalAmount: () => number;
   completeSale: () => void;
   clearCart: () => void;
+
+  // Event Handlers (moved from App.tsx)
+  handleProductPress: (product: Product) => void;
+  handleKeypadNumber: (num: string) => void;
+  handleKeypadDelete: () => void;
+  handleKeypadClear: () => void;
+  handleKeypadEnter: () => void;
+
+  // Stock update function
+  updateStockAfterSale: () => void;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -155,8 +165,22 @@ export const useCartStore = create<CartState>((set, get) => ({
       // Store cart length before clearing
       const itemsSold = state.selectedProducts.length;
 
-      // NOTE: Stock updates are now handled by the parent callback
-      // to avoid duplicate updates. We don't update stock here anymore.
+      // Update stock in TinyBase store before clearing cart
+      state.selectedProducts.forEach((product) => {
+        const currentStock = product.stock || 0;
+        const newStock = Math.max(0, currentStock - product.quantity);
+
+        // Update TinyBase store (for persistence)
+        const { store } = require("../services/tinybaseStore");
+        store.setCell("products", product.id, "stock", newStock);
+
+        // Also update Zustand store for UI updates
+        const { useProductStore } = require("../stores/productStore");
+        const { updateProductStock } = useProductStore.getState();
+        if (updateProductStock) {
+          updateProductStock(product.id, newStock);
+        }
+      });
 
       // Update daily metrics
       set((state) => ({
@@ -180,4 +204,46 @@ export const useCartStore = create<CartState>((set, get) => ({
       selectedProductForQuantity: null,
       keypadInput: "",
     }),
+
+  // Event Handlers (moved from App.tsx)
+  handleProductPress: (product: Product) => {
+    console.log("🛒 Cart Store: Product pressed:", product.name);
+    set({ selectedProductForQuantity: product, keypadInput: "" });
+  },
+
+  handleKeypadNumber: (num: string) => {
+    set((state) => ({ keypadInput: state.keypadInput + num }));
+  },
+
+  handleKeypadDelete: () => {
+    set((state) => ({ keypadInput: state.keypadInput.slice(0, -1) }));
+  },
+
+  handleKeypadClear: () => {
+    set({ keypadInput: "" });
+  },
+
+  handleKeypadEnter: () => {
+    const state = get();
+    if (state.keypadInput && state.selectedProductForQuantity) {
+      const quantity = parseInt(state.keypadInput);
+      if (quantity > 0) {
+        state.addToCart(state.selectedProductForQuantity, quantity);
+        set({ selectedProductForQuantity: null, keypadInput: "" });
+      }
+    }
+  },
+
+  // Stock update function
+  updateStockAfterSale: () => {
+    const state = get();
+    state.selectedProducts.forEach((product) => {
+      const currentStock = product.stock || 0;
+      const newStock = Math.max(0, currentStock - product.quantity);
+
+      // Update TinyBase store (for persistence)
+      const { store } = require("../services/tinybaseStore");
+      store.setCell("products", product.id, "stock", newStock);
+    });
+  },
 }));

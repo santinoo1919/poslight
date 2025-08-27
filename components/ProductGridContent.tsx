@@ -26,12 +26,18 @@ export default function ProductGridContent({
   onProductPress,
   selectedProductForQuantity,
   currentCategory,
-}: ProductGridContentProps) {
+  loading = false, // Add loading prop
+}: ProductGridContentProps & { loading?: boolean }) {
   // Component logic starts here
 
   // Use our clean helpers for product filtering
   const mostBoughtProducts = getMostBoughtProducts(products, 4, 50);
   const mainGridProducts = getMainGridProducts(products, mostBoughtProducts);
+
+  // Don't show "no products" message while loading
+  if (loading) {
+    return null; // Let parent handle loading state
+  }
 
   return (
     <ScrollView

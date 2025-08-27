@@ -2,25 +2,28 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import SearchBar from "../SearchBar";
 import ProductGrid from "../ProductGrid";
-import type { Product, Category, LeftPanelProps } from "../../types/components";
+import type { Product } from "../../types/components";
+import { useProductStore } from "../../stores/productStore";
+import { useCartStore } from "../../stores/cartStore";
 
-export default function LeftPanel({
-  products,
-  allProducts,
-  categories,
-  loading,
-  error,
-  currentCategory,
-  searchResults,
-  isFiltering,
-  onProductPress,
-  onCategorySelect,
-  onSearch,
-  onRefresh,
-  selectedProductForQuantity,
-  dailyRevenue,
-  dailyProfit,
-}: LeftPanelProps) {
+export default function LeftPanel() {
+  // Get product state from Zustand store
+  const {
+    products,
+    categories,
+    loading,
+    error,
+    currentCategory,
+    searchResults,
+    isFiltering,
+    handleCategorySelect,
+    handleSearch,
+  } = useProductStore();
+
+  // Get cart state from Zustand store
+  const { selectedProductForQuantity, dailyRevenue, dailyProfit } =
+    useCartStore();
+
   return (
     <>
       {/* Categories */}
@@ -38,7 +41,7 @@ export default function LeftPanel({
                   ? "border-blue-500 bg-blue-100"
                   : "border-gray-200 bg-white"
               }`}
-              onPress={() => onCategorySelect("Show All")}
+              onPress={() => handleCategorySelect("Show All")}
             >
               <Text
                 className={`text-xs font-medium ${
@@ -66,7 +69,7 @@ export default function LeftPanel({
                       ? "border-blue-500 bg-blue-100"
                       : "border-gray-200 bg-white"
                   }`}
-                  onPress={() => onCategorySelect(category.name)}
+                  onPress={() => handleCategorySelect(category.name)}
                 >
                   <Text
                     className={`text-xs ${
@@ -84,25 +87,14 @@ export default function LeftPanel({
 
           {/* Search Bar - On the right, using remaining space */}
           <View className="ml-4 flex-shrink-0">
-            <SearchBar onSearch={onSearch} />
+            <SearchBar onSearch={handleSearch} />
           </View>
         </View>
       </View>
 
       {/* Product Grid */}
       <View className="flex-1">
-        <ProductGrid
-          onProductPress={onProductPress}
-          products={products}
-          allProducts={allProducts}
-          loading={loading}
-          error={error}
-          onRefresh={onRefresh}
-          selectedProductForQuantity={selectedProductForQuantity}
-          isFiltering={isFiltering}
-          currentCategory={currentCategory}
-          searchResults={searchResults}
-        />
+        <ProductGrid />
       </View>
     </>
   );

@@ -123,45 +123,6 @@ export interface RightPanelProps {
   getTotalAmount: () => number;
 }
 
-// Product management types
-export interface ProductManagerProps {
-  children: (props: {
-    products: Product[];
-    categories: Category[];
-    loading: boolean;
-    error: string | null;
-    currentCategory: string | null;
-    searchResults: Product[];
-    isFiltering: boolean;
-    visibleProducts: Product[];
-    handleCategorySelect: (categoryName: string) => void;
-    handleSearch: (query: string) => void;
-    clearSearch: () => void;
-    isSearching: boolean;
-    resetProducts: () => void;
-    updateProductStock: (productId: string, newStock: number) => void;
-  }) => React.ReactNode;
-}
-
-export interface CartManagerProps {
-  children: (props: {
-    selectedProducts: CartProduct[];
-    selectedProductForQuantity: Product | null;
-    keypadInput: string;
-    dailyRevenue: number;
-    dailyProfit: number;
-    addToCart: (product: Product, quantity: number) => void;
-    removeFromCart: (productId: string) => void;
-    updateQuantity: (productId: string, newQuantity: number) => void;
-    setSelectedProductForQuantity: (product: Product | null) => void;
-    setKeypadInput: React.Dispatch<React.SetStateAction<string>>;
-    getTotalAmount: () => number;
-    completeSale: () => void;
-  }) => React.ReactNode;
-  onStockUpdate?: () => void;
-  onProductStockUpdate?: (productId: string, newStock: number) => void;
-}
-
 // Additional component types
 export interface ProductGridHeaderProps {
   visibleProductsCount: number;

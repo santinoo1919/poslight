@@ -20,8 +20,7 @@ export default function useTinyBase() {
       try {
         setLoading(true);
 
-        // Initialize store with persistence
-        await initializeStore();
+        // Store is already initialized, just get the data
 
         // Get data from store using the proper db.getProducts() function
         const productsData = store.getTable("products");
@@ -31,34 +30,11 @@ export default function useTinyBase() {
         if (productsData && Object.keys(productsData).length > 0) {
           console.log("✅ Data found in store, loading...");
 
-          // Set loading to false
-          setLoading(false);
-
           // Use the proper db.getProducts() function to get products with IDs
           const { db } = await import("../services/tinybaseStore");
           const processedProducts = db.getProducts();
 
-          // 🔒 DATA SAFETY: Validate data structure before using
-          const { ensureDataIntegrity } = await import(
-            "../utils/dataValidation"
-          );
-          if (!ensureDataIntegrity(processedProducts, "products")) {
-            console.error(
-              "❌ Data validation failed - regenerating fresh data"
-            );
-            // Force regenerate data if validation fails
-            await initializeStore();
-            const freshProducts = db.getProducts();
-            if (ensureDataIntegrity(freshProducts, "products")) {
-              setProducts(freshProducts);
-            } else {
-              throw new Error(
-                "Failed to generate valid data after validation failure"
-              );
-            }
-          } else {
-            setProducts(processedProducts);
-          }
+          setProducts(processedProducts);
 
           console.log("Products loaded:", processedProducts.length, "items");
 
@@ -73,9 +49,13 @@ export default function useTinyBase() {
             console.log("Categories loaded:", categoriesArray);
             setCategories(categoriesArray);
           }
+
+          // Only set loading to false after everything is loaded
+          setLoading(false);
         } else {
           // No data yet, keep loading
           console.log("⏳ Waiting for data to be generated...");
+          setLoading(false);
         }
       } catch (err) {
         console.error("Failed to initialize store:", err);
@@ -113,12 +93,10 @@ export default function useTinyBase() {
       const categoriesData = store.getTable("categories");
 
       if (productsData && Object.keys(productsData).length > 0) {
-        // Use our clean helper functions instead of complex inline logic
-        const enrichedProducts = enrichProductsWithCategories(
-          productsData,
-          categoriesData
-        ).map((product) => enrichProductWithProfit(product));
-        setProducts(enrichedProducts);
+        // Use the db.getProducts() function for clean data
+        const { db } = require("../services/tinybaseStore");
+        const processedProducts = db.getProducts();
+        setProducts(processedProducts);
       }
 
       if (categoriesData && Object.keys(categoriesData).length > 0) {

@@ -1,5 +1,4 @@
 import { createStore } from "tinybase";
-import { createLocalPersister } from "tinybase/persisters/persister-browser";
 import { getProfitLevel } from "../utils/profitLevels";
 import type {
   Product,
@@ -299,52 +298,25 @@ export const store = createStore()
     books: { name: "Books", color: "#059669", icon: "📚" },
     toys: { name: "Toys", color: "#DC2626", icon: "🧸" },
   })
-  .setTable("products", {}) // ← Start empty for true persistence!
+  .setTable("products", generateBulkProducts()) // Generate products immediately
   .setTable("transactions", {})
   .setTable("transaction_items", {});
 
-// Create persister for localStorage
-export const persister = createLocalPersister(store, "poslight-cache");
-
-// Initialize store with data and persistence
+// Initialize store with data (no persistence for now)
 export const initializeStore = async (): Promise<void> => {
   try {
-    console.log("🚀 Starting fresh data generation...");
+    console.log("🚀 Initializing TinyBase store...");
 
-    // Always generate fresh, clean data
-    const startTime = Date.now();
-    const products = generateBulkProducts();
-    const endTime = Date.now();
+    // Store is already initialized with data above
+    const products = store.getTable("products");
+    const categories = store.getTable("categories");
 
-    console.log(
-      `⏱️ Generated ${Object.keys(products).length} products in ${endTime - startTime}ms`
-    );
-
-    // Set fresh products
-    store.setTable("products", products);
-
-    // 🔒 DATA SAFETY: Validate data after setting
-    const { ensureDataIntegrity } = await import("../utils/dataValidation");
-    const testProducts = db.getProducts();
-    if (!ensureDataIntegrity(testProducts, "products")) {
-      throw new Error(
-        "Generated data failed validation - data structure is corrupted"
-      );
-    }
-
-    // Categories are already set in store creation
-    console.log("✅ Fresh data loaded into store and validated");
-
-    // Start persistence
-    await persister.startAutoLoad();
-    await persister.startAutoSave();
-    console.log("💾 Persistence started");
+    console.log("✅ Store initialized with generated data");
+    console.log(`📦 Products: ${Object.keys(products).length}`);
+    console.log(`🏷️ Categories: ${Object.keys(categories).length}`);
   } catch (error) {
     console.error("Error initializing store:", error);
-    // Fallback: generate in-memory data
-    const products = generateBulkProducts();
-    store.setTable("products", products);
-    console.log("🔄 Fallback: Generated in-memory data");
+    console.log("🔄 Using fallback data");
   }
 };
 

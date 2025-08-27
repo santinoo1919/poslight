@@ -28,8 +28,6 @@ export type {
   MainLayoutProps,
   LeftPanelProps,
   RightPanelProps,
-  ProductManagerProps,
-  CartManagerProps,
   ProductGridHeaderProps,
   ProductGridContentProps,
   ErrorDisplayProps,
