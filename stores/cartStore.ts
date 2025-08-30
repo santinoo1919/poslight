@@ -64,6 +64,20 @@ export const useCartStore = create<CartState>((set, get) => ({
     const currentStock =
       (store.getCell("products", product.id, "stock") as number) || 0;
 
+    // Check if we have enough stock before adding to cart
+    const existing = get().selectedProducts.find((p) => p.id === product.id);
+    const currentCartQuantity = existing ? existing.quantity : 0;
+    const totalRequested = currentCartQuantity + quantity;
+
+    if (totalRequested > currentStock) {
+      ToastService.stock.insufficient(
+        product.name,
+        totalRequested,
+        currentStock
+      );
+      return; // Don't add to cart if insufficient stock
+    }
+
     // Low stock warning
     if (currentStock <= 10 && currentStock > 0) {
       ToastService.stock.lowStock(product.name, currentStock);
