@@ -87,9 +87,10 @@ export const useCartStore = create<CartState>((set, get) => ({
       const existing = state.selectedProducts.find((p) => p.id === product.id);
       if (existing) {
         console.log("🛒 Zustand Store: Updating existing product quantity");
+        // FIXED: Replace quantity instead of adding to it
         const newState = {
           selectedProducts: state.selectedProducts.map((p) =>
-            p.id === product.id ? { ...p, quantity: p.quantity + quantity } : p
+            p.id === product.id ? { ...p, quantity: quantity } : p
           ),
         };
         console.log("🛒 Zustand Store: New state after update:", newState);
@@ -159,6 +160,20 @@ export const useCartStore = create<CartState>((set, get) => ({
         "Please add products to cart"
       );
       return;
+    }
+
+    // Final stock validation before completing sale
+    for (const product of state.selectedProducts) {
+      const currentStock =
+        (store.getCell("products", product.id, "stock") as number) || 0;
+      if (product.quantity > currentStock) {
+        ToastService.stock.insufficient(
+          product.name,
+          product.quantity,
+          currentStock
+        );
+        return; // Don't complete sale if insufficient stock
+      }
     }
 
     try {
