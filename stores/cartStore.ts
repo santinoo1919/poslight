@@ -1,19 +1,18 @@
 import { create } from "zustand";
-import { store } from "../services/tinybaseStore";
 import { calculateSaleTotals } from "../utils/productHelpers";
 import { ToastService } from "../services/toastService";
 import type { Product } from "../types/database";
 import type { CartProduct } from "../types/components";
 
 interface CartState {
-  // State
+  // Cart State
   selectedProducts: CartProduct[];
+
+  // UI State (kept for compatibility)
   selectedProductForQuantity: Product | null;
   keypadInput: string;
-  dailyRevenue: number;
-  dailyProfit: number;
 
-  // Actions
+  // Cart Actions
   setSelectedProductForQuantity: (product: Product | null) => void;
   setKeypadInput: (input: string | ((prev: string) => string)) => void;
   addToCart: (product: Product, quantity: number) => void;
@@ -23,15 +22,12 @@ interface CartState {
   completeSale: () => void;
   clearCart: () => void;
 
-  // Event Handlers (moved from App.tsx)
+  // Event Handlers (kept for compatibility)
   handleProductPress: (product: Product) => void;
   handleKeypadNumber: (num: string) => void;
   handleKeypadDelete: () => void;
   handleKeypadClear: () => void;
   handleKeypadEnter: () => void;
-
-  // Stock update function
-  updateStockAfterSale: () => void;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -39,8 +35,6 @@ export const useCartStore = create<CartState>((set, get) => ({
   selectedProducts: [],
   selectedProductForQuantity: null,
   keypadInput: "",
-  dailyRevenue: 0,
-  dailyProfit: 0,
 
   // Actions
   setSelectedProductForQuantity: (product) =>
@@ -55,32 +49,29 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   addToCart: (product, quantity) => {
-    const currentStock =
-      (store.getCell("products", product.id, "stock") as number) || 0;
-
-    // Check if we have enough stock before adding to cart
+    // Simple stock validation (like other stores do simple validation)
     const existing = get().selectedProducts.find((p) => p.id === product.id);
     const currentCartQuantity = existing ? existing.quantity : 0;
     const totalRequested = currentCartQuantity + quantity;
 
-    if (totalRequested > currentStock) {
+    if (totalRequested > product.stock) {
       ToastService.stock.insufficient(
         product.name,
         totalRequested,
-        currentStock
+        product.stock
       );
-      return; // Don't add to cart if insufficient stock
+      return;
     }
 
     // Low stock warning
-    if (currentStock <= 10 && currentStock > 0) {
-      ToastService.stock.lowStock(product.name, currentStock);
+    if (product.stock <= 10 && product.stock > 0) {
+      ToastService.stock.lowStock(product.name, product.stock);
     }
 
     set((state) => {
       const existing = state.selectedProducts.find((p) => p.id === product.id);
       if (existing) {
-        // FIXED: Replace quantity instead of adding to it
+        // Replace quantity instead of adding to it
         return {
           selectedProducts: state.selectedProducts.map((p) =>
             p.id === product.id ? { ...p, quantity: quantity } : p
@@ -134,17 +125,15 @@ export const useCartStore = create<CartState>((set, get) => ({
       return;
     }
 
-    // Final stock validation before completing sale
+    // Final stock validation
     for (const product of state.selectedProducts) {
-      const currentStock =
-        (store.getCell("products", product.id, "stock") as number) || 0;
-      if (product.quantity > currentStock) {
+      if (product.quantity > product.stock) {
         ToastService.stock.insufficient(
           product.name,
           product.quantity,
-          currentStock
+          product.stock
         );
-        return; // Don't complete sale if insufficient stock
+        return;
       }
     }
 
@@ -160,19 +149,13 @@ export const useCartStore = create<CartState>((set, get) => ({
         quantities
       );
 
-      // Store cart length before clearing
-      const itemsSold = state.selectedProducts.length;
-
-      // Update stock in TinyBase store before clearing cart
+      // Update stock in TinyBase store
+      const { store } = require("../services/tinybaseStore");
       state.selectedProducts.forEach((product) => {
-        const currentStock = product.stock || 0;
-        const newStock = Math.max(0, currentStock - product.quantity);
-
-        // Update TinyBase store (for persistence)
-        const { store } = require("../services/tinybaseStore");
+        const newStock = Math.max(0, product.stock - product.quantity);
         store.setCell("products", product.id, "stock", newStock);
 
-        // Also update Zustand store for UI updates
+        // Update Zustand store for UI updates
         const { useProductStore } = require("../stores/productStore");
         const { updateProductStock } = useProductStore.getState();
         if (updateProductStock) {
@@ -180,17 +163,20 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
       });
 
-      // Update daily metrics
-      set((state) => ({
-        dailyRevenue: state.dailyRevenue + totalAmount,
-        dailyProfit: state.dailyProfit + totalProfit,
+      // Record sale in metrics store
+      const { useMetricsStore } = require("../stores/metricsStore");
+      const { recordSale } = useMetricsStore.getState();
+      recordSale(totalAmount, totalProfit);
+
+      // Clear cart on successful sale
+      set({
         selectedProducts: [],
         selectedProductForQuantity: null,
         keypadInput: "",
-      }));
+      });
 
-      // Use the stored cart length for the toast
-      ToastService.sale.complete(totalAmount, itemsSold);
+      // Show success message
+      ToastService.sale.complete(totalAmount, state.selectedProducts.length);
     } catch (error) {
       ToastService.show("error", "Sale Error", "Failed to complete sale");
     }
@@ -229,11 +215,5 @@ export const useCartStore = create<CartState>((set, get) => ({
         set({ selectedProductForQuantity: null, keypadInput: "" });
       }
     }
-  },
-
-  // Stock update function (unused - stock is updated in completeSale)
-  updateStockAfterSale: () => {
-    // This function is redundant as stock is already updated in completeSale
-    // Keeping for potential future use
   },
 }));

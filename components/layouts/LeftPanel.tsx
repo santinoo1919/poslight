@@ -6,6 +6,7 @@ import AnimatedCategorySelector from "../AnimatedCategorySelector";
 import type { Product } from "../../types/components";
 import { useProductStore } from "../../stores/productStore";
 import { useCartStore } from "../../stores/cartStore";
+import { useMetricsStore } from "../../stores/metricsStore";
 
 export default function LeftPanel() {
   // Get product state from Zustand store
@@ -22,8 +23,7 @@ export default function LeftPanel() {
   } = useProductStore();
 
   // Get cart state from Zustand store
-  const { selectedProductForQuantity, dailyRevenue, dailyProfit } =
-    useCartStore();
+  const { selectedProductForQuantity } = useCartStore();
 
   return (
     <>

@@ -10,6 +10,7 @@ import Toast from "react-native-toast-message";
 import { View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useProductStore } from "./stores/productStore";
 import { useCartStore } from "./stores/cartStore";
+import { useMetricsStore } from "./stores/metricsStore";
 import useTinyBase from "./hooks/useTinyBase";
 import { useAuthStore } from "./stores/authStore";
 import LoginScreen from "./components/LoginScreen";
@@ -22,8 +23,8 @@ function AppContent() {
   const { setProducts, setCategories, setLoading, setError } =
     useProductStore();
 
-  // Get cart state from Zustand store (only what we need for header)
-  const { dailyRevenue, dailyProfit } = useCartStore();
+  // Get metrics from metrics store
+  const { dailyRevenue, dailyProfit } = useMetricsStore();
 
   // Get auth state for logout functionality
   const { signOut } = useAuthStore();
