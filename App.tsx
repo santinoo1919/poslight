@@ -7,7 +7,7 @@ import LeftPanel from "./components/layouts/LeftPanel";
 import RightPanel from "./components/layouts/RightPanel";
 import Toast from "react-native-toast-message";
 
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useProductStore } from "./stores/productStore";
 import { useCartStore } from "./stores/cartStore";
 import useTinyBase from "./hooks/useTinyBase";
@@ -24,6 +24,9 @@ function AppContent() {
 
   // Get cart state from Zustand store (only what we need for header)
   const { dailyRevenue, dailyProfit } = useCartStore();
+
+  // Get auth state for logout functionality
+  const { signOut } = useAuthStore();
 
   // Sync TinyBase data to Zustand store
   React.useEffect(() => {
@@ -74,8 +77,8 @@ function AppContent() {
             </Text>
           </View>
 
-          {/* Right side - Daily metrics */}
-          <View className="flex-shrink-0">
+          {/* Right side - Daily metrics and logout button */}
+          <View className="flex-shrink-0 flex-row items-center space-x-3">
             <View className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg px-3 py-2">
               <View className="flex-row items-center space-x-3">
                 <View className="items-center">
@@ -93,6 +96,14 @@ function AppContent() {
                 </View>
               </View>
             </View>
+
+            {/* Logout Button */}
+            <TouchableOpacity
+              onPress={signOut}
+              className="bg-gray-400 px-4 py-2 rounded-lg"
+            >
+              <Text className="text-white text-sm font-semibold">Logout</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
