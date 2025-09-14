@@ -41,10 +41,10 @@ export default function ProductGridContent({
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50"
+      className="flex-1 bg-background-light dark:bg-background-dark"
       showsVerticalScrollIndicator={false}
     >
-      <View className="p-4 bg-gray-50">
+      <View className="p-4 bg-background-light dark:bg-background-dark">
         <View className="space-y-6">
           {/* Quick Access Section - Always shows all products */}
           <QuickAccessSection
@@ -55,7 +55,7 @@ export default function ProductGridContent({
 
           {/* Main Products Grid - 4 columns */}
           <View>
-            <Text className="text-sm font-semibold text-gray-700 mb-3">
+            <Text className="text-sm font-semibold text-text-primary dark:text-text-inverse mb-3">
               {currentCategory ? `${currentCategory} Products` : "All Products"}{" "}
               ({mainGridProducts.length})
             </Text>
@@ -75,7 +75,7 @@ export default function ProductGridContent({
             {/* Show message if no products in main grid */}
             {mainGridProducts.length === 0 && (
               <View className="py-8 items-center">
-                <Text className="text-gray-500 text-center text-sm">
+                <Text className="text-text-secondary dark:text-text-muted text-center text-sm">
                   {currentCategory
                     ? `No products found in ${currentCategory}`
                     : "No products available"}

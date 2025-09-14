@@ -19,28 +19,28 @@ const QUICK_ACCESS_VIEWS: QuickAccessView[] = [
     title: "🚀 Most Bought - Quick Access",
     icon: "🚀",
     color: "#1E40AF",
-    backgroundColor: "#EFF6FF", // Lighter blue (one tone up)
+    backgroundColor: "transparent", // Will use CSS classes instead
   },
   {
     id: "low-stock",
     title: "⚠️ Low in Stock",
     icon: "⚠️",
     color: "#DC2626",
-    backgroundColor: "#FEF2F2", // Lighter red (one tone up)
+    backgroundColor: "transparent", // Will use CSS classes instead
   },
   {
     id: "coming-in",
     title: "📦 Coming In (Orders)",
     icon: "📦",
     color: "#059669",
-    backgroundColor: "#ECFDF5", // Lighter green (one tone up)
+    backgroundColor: "transparent", // Will use CSS classes instead
   },
   {
     id: "trending",
     title: "📈 Trending in Area",
     icon: "📈",
     color: "#7C3AED",
-    backgroundColor: "#F5F3FF", // Lighter purple (one tone up)
+    backgroundColor: "transparent", // Will use CSS classes instead
   },
 ];
 
@@ -100,7 +100,7 @@ const QuickAccessSection = React.memo(
         <View className="flex-row items-center justify-between mb-3">
           {/* Title - Normal Color */}
           <View className="flex-1">
-            <Text className="text-sm font-semibold text-gray-700">
+            <Text className="text-sm font-semibold text-text-primary dark:text-text-inverse">
               {currentView.title}
             </Text>
           </View>
@@ -109,25 +109,28 @@ const QuickAccessSection = React.memo(
           <View className="flex-row items-center space-x-2">
             <TouchableOpacity
               onPress={() => navigateView("prev")}
-              className="w-8 h-8 items-center justify-center rounded-full bg-gray-100"
+              className="w-8 h-8 items-center justify-center rounded-full bg-background-light dark:bg-background-dark"
             >
-              <Text className="text-lg">‹</Text>
+              <Text className="text-lg text-text-primary dark:text-text-inverse">
+                ‹
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => navigateView("next")}
-              className="w-8 h-8 items-center justify-center rounded-full bg-gray-100"
+              className="w-8 h-8 items-center justify-center rounded-full bg-background-light dark:bg-background-dark"
             >
-              <Text className="text-lg">›</Text>
+              <Text className="text-lg text-text-primary dark:text-text-inverse">
+                ›
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Products Grid with Background - Fixed Height */}
         <View
-          className="rounded-lg p-3"
+          className="rounded-lg p-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark"
           style={{
-            backgroundColor: currentView.backgroundColor,
             minHeight: 200, // Ensure consistent height
           }}
         >
@@ -142,8 +145,8 @@ const QuickAccessSection = React.memo(
                 <TouchableOpacity
                   className={`rounded-lg border p-3 h-full ${
                     selectedProductForQuantity?.id === item.id
-                      ? "bg-blue-50 border-blue-300 shadow-sm"
-                      : "bg-white border-gray-200"
+                      ? "bg-interactive-selected dark:bg-interactive-selectedDark border-brand-primary dark:border-brand-primaryDark shadow-sm"
+                      : "bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark"
                   }`}
                   onPress={() => onProductPress(item)}
                   activeOpacity={0.7}
@@ -158,31 +161,37 @@ const QuickAccessSection = React.memo(
                         {item.icon || "📦"}
                       </Text>
                     </View>
-                    <Text className="text-xs text-gray-400">#{item.id}</Text>
+                    <Text className="text-xs text-text-muted dark:text-text-secondary">
+                      #{item.id}
+                    </Text>
                   </View>
 
                   {/* Product Image Placeholder */}
-                  <View className="h-12 bg-gray-100 rounded-md mb-2 items-center justify-center">
-                    <Text className="text-gray-500 text-lg">📦</Text>
+                  <View className="h-12 bg-background-light dark:bg-background-dark rounded-md mb-2 items-center justify-center">
+                    <Text className="text-text-secondary dark:text-text-muted text-lg">
+                      📦
+                    </Text>
                   </View>
 
                   {/* Product Name */}
                   <Text
-                    className="font-semibold text-gray-800 text-xs mb-1"
+                    className="font-semibold text-text-primary dark:text-text-inverse text-xs mb-1"
                     numberOfLines={2}
                   >
                     {item.name}
                   </Text>
 
                   {/* Price */}
-                  <Text className="text-green-600 font-bold text-sm mb-1">
+                  <Text className="text-state-success dark:text-state-successDark font-bold text-sm mb-1">
                     €{(item.sellPrice || item.price || 0).toFixed(2)}
                   </Text>
 
                   {/* Stock */}
                   <Text
                     className={`text-xs font-medium ${
-                      item.stock <= 10 ? "text-red-600" : "text-gray-500"
+                      item.stock <= 10
+                        ? "text-state-error dark:text-state-errorDark"
+                        : "text-text-secondary dark:text-text-muted"
                     }`}
                   >
                     Stock: {item.stock}
@@ -195,7 +204,7 @@ const QuickAccessSection = React.memo(
           {/* Empty State - Maintains height */}
           {viewProducts.length === 0 && (
             <View className="h-32 items-center justify-center">
-              <Text className="text-gray-500 text-sm">
+              <Text className="text-text-secondary dark:text-text-muted text-sm">
                 No products in this category
               </Text>
             </View>

@@ -11,17 +11,19 @@ export default function ProductGridHeader({
   const title = currentCategory ? currentCategory : "Show All";
 
   return (
-    <View className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+    <View className="px-4 py-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
       <View className="flex-row justify-between items-center">
-        <Text className="text-lg font-semibold text-gray-800">
+        <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse">
           {title} ({visibleProductsCount})
         </Text>
         <View className="flex-row items-center space-x-2">
-          <Text className="text-sm text-gray-500">
+          <Text className="text-sm text-text-secondary dark:text-text-muted">
             {visibleProductsCount} items
           </Text>
           {currentCategory && (
-            <Text className="text-xs text-gray-400">• {currentCategory}</Text>
+            <Text className="text-xs text-text-muted dark:text-text-secondary">
+              • {currentCategory}
+            </Text>
           )}
         </View>
       </View>

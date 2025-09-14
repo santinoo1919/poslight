@@ -27,11 +27,13 @@ const SearchBar = React.memo(
     const displayValue = value !== undefined ? value : searchText;
 
     return (
-      <View className="bg-white border border-gray-200 rounded-lg px-3 py-2 w-full">
+      <View className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 w-full">
         <View className="flex-row items-center">
-          <Text className="text-gray-500 mr-2">🔍</Text>
+          <Text className="text-text-secondary dark:text-text-muted mr-2">
+            🔍
+          </Text>
           <TextInput
-            className="flex-1 text-gray-800 text-sm focus:outline-none"
+            className="flex-1 text-text-primary dark:text-text-inverse text-sm focus:outline-none"
             placeholder={placeholder}
             placeholderTextColor="#9CA3AF"
             value={displayValue}
@@ -43,7 +45,9 @@ const SearchBar = React.memo(
           <View className="ml-2 w-6 h-6 justify-center items-center">
             {displayValue.length > 0 && (
               <TouchableOpacity onPress={clearSearch}>
-                <Text className="text-gray-500 text-lg">✕</Text>
+                <Text className="text-text-secondary dark:text-text-muted text-lg">
+                  ✕
+                </Text>
               </TouchableOpacity>
             )}
           </View>

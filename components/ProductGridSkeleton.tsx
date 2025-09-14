@@ -16,7 +16,7 @@ export default function ProductGridSkeleton({
     marginBottom = 8,
   }) => (
     <View
-      className="bg-gray-200 rounded-lg"
+      className="bg-border-light dark:bg-border-dark rounded-lg"
       style={{
         width: width as any,
         height,
@@ -29,7 +29,7 @@ export default function ProductGridSkeleton({
   return (
     <View className="flex-1">
       {/* Products Header with Count Skeleton */}
-      <View className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <View className="px-4 py-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
         <View className="flex-row justify-between items-center">
           <SkeletonItem width={120} height={24} />
           <SkeletonItem width={60} height={16} />

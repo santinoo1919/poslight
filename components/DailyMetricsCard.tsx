@@ -5,18 +5,22 @@ import type { DailyMetricsCardProps } from "../types/components";
 const DailyMetricsCard: React.FC<DailyMetricsCardProps> = React.memo(
   ({ dailyRevenue, dailyProfit }) => {
     return (
-      <View className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg px-3 py-2 ml-4">
+      <View className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 ml-4">
         <View className="flex-row items-center space-x-3">
           <View className="items-center">
-            <Text className="text-xs text-gray-600">Today's Revenue</Text>
-            <Text className="text-sm font-bold text-green-600">
+            <Text className="text-xs text-text-secondary dark:text-text-muted">
+              Today's Revenue
+            </Text>
+            <Text className="text-sm font-bold text-state-success dark:text-state-successDark">
               €{dailyRevenue.toFixed(2)}
             </Text>
           </View>
-          <View className="w-px h-8 bg-gray-300"></View>
+          <View className="w-px h-8 bg-border-light dark:bg-border-dark"></View>
           <View className="items-center">
-            <Text className="text-xs text-gray-600">Today's Profit</Text>
-            <Text className="text-sm font-bold text-blue-600">
+            <Text className="text-xs text-text-secondary dark:text-text-muted">
+              Today's Profit
+            </Text>
+            <Text className="text-sm font-bold text-brand-primary dark:text-brand-primaryDark">
               €{dailyProfit.toFixed(2)}
             </Text>
           </View>

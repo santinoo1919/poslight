@@ -25,22 +25,22 @@ export default function RightPanel() {
   return (
     <>
       {/* POS Interface - Cart */}
-      <View className="flex-1 p-4 bg-white">
-        <Text className="text-lg font-semibold text-gray-800 mb-4">
+      <View className="flex-1 p-4 bg-surface-light dark:bg-surface-dark">
+        <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse mb-4">
           🛒 Cart ({selectedProducts.length} items)
         </Text>
 
         {/* Keypad Section */}
         <View className="mb-4">
           {selectedProductForQuantity && (
-            <View className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-              <Text className="text-sm font-medium text-blue-800 text-center">
+            <View className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 mb-3">
+              <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
                 Setting quantity for: {selectedProductForQuantity.name}
               </Text>
-              <Text className="text-lg font-bold text-blue-900 text-center mt-1">
+              <Text className="text-lg font-bold text-text-primary dark:text-text-inverse text-center mt-1">
                 {keypadInput || "0"}
               </Text>
-              <Text className="text-xs text-blue-700 text-center mt-1">
+              <Text className="text-xs text-text-secondary dark:text-text-muted text-center mt-1">
                 Available Stock: {selectedProductForQuantity.stock}
               </Text>
             </View>
@@ -56,11 +56,11 @@ export default function RightPanel() {
         </View>
 
         {selectedProducts.length === 0 ? (
-          <View className="bg-gray-50 rounded-lg p-4">
-            <Text className="text-gray-600 text-center">
+          <View className="bg-background-light dark:bg-background-dark rounded-lg p-4">
+            <Text className="text-text-secondary dark:text-text-muted text-center">
               No products selected
             </Text>
-            <Text className="text-gray-500 text-xs text-center mt-2">
+            <Text className="text-text-muted dark:text-text-secondary text-xs text-center mt-2">
               Tap products to add to cart
             </Text>
           </View>
@@ -76,11 +76,11 @@ export default function RightPanel() {
                 {selectedProducts.map((product) => (
                   <View
                     key={product.id}
-                    className="bg-gray-50 rounded-lg p-3 border border-gray-200"
+                    className="bg-background-light dark:bg-background-dark rounded-lg p-3 border border-border-light dark:border-border-dark"
                   >
                     <View className="flex-row items-center justify-between mb-2">
                       <Text
-                        className="font-medium text-gray-800 text-sm"
+                        className="font-medium text-text-primary dark:text-text-inverse text-sm"
                         numberOfLines={1}
                       >
                         {product.name}
@@ -89,28 +89,32 @@ export default function RightPanel() {
                         onPress={() => removeFromCart(product.id)}
                         className="p-1"
                       >
-                        <Text className="text-red-500 text-lg">×</Text>
+                        <Text className="text-state-error dark:text-state-errorDark text-lg">
+                          ×
+                        </Text>
                       </TouchableOpacity>
                     </View>
 
                     <View className="flex-row items-center justify-between">
-                      <Text className="text-gray-600 text-sm">
+                      <Text className="text-text-secondary dark:text-text-muted text-sm">
                         €{product.sellPrice.toFixed(2)} × {product.quantity}
                       </Text>
-                      <Text className="font-semibold text-gray-800">
+                      <Text className="font-semibold text-text-primary dark:text-text-inverse">
                         €{(product.sellPrice * product.quantity).toFixed(2)}
                       </Text>
                     </View>
 
                     <View className="flex-row items-center justify-between mt-2">
-                      <Text className="text-xs text-gray-500">
+                      <Text className="text-xs text-text-secondary dark:text-text-muted">
                         Stock: {product.stock}
                       </Text>
                       <TouchableOpacity
                         onPress={() => setSelectedProductForQuantity(product)}
-                        className="bg-blue-100 px-2 py-1 rounded"
+                        className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark px-2 py-1 rounded"
                       >
-                        <Text className="text-blue-600 text-xs">Edit Qty</Text>
+                        <Text className="text-text-primary dark:text-text-inverse text-xs">
+                          Edit Qty
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -119,19 +123,19 @@ export default function RightPanel() {
             </ScrollView>
 
             {/* Cart Total and Actions */}
-            <View className="border-t border-gray-200 pt-4 mt-4">
+            <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
               <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-lg font-semibold text-gray-800">
+                <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse">
                   Total:
                 </Text>
-                <Text className="text-xl font-bold text-gray-800">
+                <Text className="text-xl font-bold text-text-primary dark:text-text-inverse">
                   €{getTotalAmount().toFixed(2)}
                 </Text>
               </View>
 
               <TouchableOpacity
                 onPress={completeSale}
-                className="bg-green-500 py-3 rounded-lg"
+                className="bg-state-success dark:bg-state-successDark py-3 rounded-lg"
               >
                 <Text className="text-white text-center font-semibold text-lg">
                   Complete Sale

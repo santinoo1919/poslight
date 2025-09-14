@@ -51,7 +51,7 @@ export default function ProductGrid() {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-background-light dark:bg-background-dark">
       <ProductGridHeader
         visibleProductsCount={visibleProducts.length}
         totalProductsCount={products?.length || 0}

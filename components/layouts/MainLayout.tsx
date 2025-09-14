@@ -4,12 +4,14 @@ import type { MainLayoutProps } from "../../types/components";
 
 export default function MainLayout({ leftPanel, rightPanel }: MainLayoutProps) {
   return (
-    <View className="flex-1 flex-row bg-gray-100">
+    <View className="flex-1 flex-row bg-background-light dark:bg-background-dark">
       {/* Left Panel - Product Management */}
-      <View className="flex-1 flex-col bg-gray-100">{leftPanel}</View>
+      <View className="flex-1 flex-col bg-background-light dark:bg-background-dark">
+        {leftPanel}
+      </View>
 
       {/* Right Panel - POS Interface (Not Full Height) */}
-      <View className="w-80 bg-white border-l border-gray-200 h-auto">
+      <View className="w-80 bg-surface-light dark:bg-surface-dark border-l border-border-light dark:border-border-dark h-auto">
         {rightPanel}
       </View>
     </View>

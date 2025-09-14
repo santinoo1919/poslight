@@ -11,13 +11,24 @@ import { View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useProductStore } from "./stores/productStore";
 import { useCartStore } from "./stores/cartStore";
 import { useMetricsStore } from "./stores/metricsStore";
+import { useTheme } from "./stores/themeStore";
 import useTinyBase from "./hooks/useTinyBase";
 import { useAuthStore } from "./stores/authStore";
 import LoginScreen from "./components/LoginScreen";
+import ThemeToggle from "./components/ThemeToggle";
+import { toastConfig } from "./config/toastConfig";
 
 function AppContent() {
+  // Get theme
+  const { isDark, loadTheme } = useTheme();
+
   // Get data from TinyBase hook
   const { products, categories, loading, error, resetProducts } = useTinyBase();
+
+  // Load saved theme on app start
+  React.useEffect(() => {
+    loadTheme();
+  }, [loadTheme]);
 
   // Get product state from Zustand store
   const { setProducts, setCategories, setLoading, setError } =
@@ -59,39 +70,48 @@ function AppContent() {
   ]);
 
   return (
-    <SafeAreaWrapper className="flex-1 bg-gray-50">
-      <StatusBar style="auto" />
+    <SafeAreaWrapper
+      className={`flex-1 bg-background-light dark:bg-background-dark ${isDark ? "dark" : ""}`}
+    >
+      <StatusBar style={isDark ? "light" : "dark"} />
 
       {/* Header - Sticky and Reduced Height */}
-      <View className="bg-gray-50 pt-4 pb-3 px-4 border-b border-gray-200 sticky top-0 z-10">
+      <View className="bg-surface-light dark:bg-surface-dark pt-4 pb-3 px-4 border-b border-border-light dark:border-border-dark sticky top-0 z-10">
         <View className="flex-row items-center justify-between">
           {/* Left side - Empty space to balance layout */}
           <View className="w-40" />
 
           {/* Centered title and subtitle */}
           <View className="items-center flex-1">
-            <Text className="text-xl font-bold text-gray-800 text-center">
+            <Text className="text-xl font-bold text-text-primary dark:text-text-inverse text-center">
               POS Light
             </Text>
-            <Text className="text-gray-500 mt-1 text-sm text-center">
+            <Text className="text-text-secondary dark:text-text-muted mt-1 text-sm text-center">
               Simple • Fast • Offline
             </Text>
           </View>
 
-          {/* Right side - Daily metrics and logout button */}
+          {/* Right side - Daily metrics, theme toggle and logout button */}
           <View className="flex-shrink-0 flex-row items-center space-x-3">
-            <View className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg px-3 py-2">
+            {/* Theme Toggle */}
+            <ThemeToggle size="small" showIcon={false} />
+
+            <View className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2">
               <View className="flex-row items-center space-x-3">
                 <View className="items-center">
-                  <Text className="text-xs text-gray-600">Today's Revenue</Text>
-                  <Text className="text-sm font-bold text-green-600">
+                  <Text className="text-xs text-text-secondary dark:text-text-muted">
+                    Today's Revenue
+                  </Text>
+                  <Text className="text-sm font-bold text-state-success dark:text-state-successDark">
                     €{dailyRevenue.toFixed(2)}
                   </Text>
                 </View>
-                <View className="w-px h-8 bg-gray-300"></View>
+                <View className="w-px h-8 bg-border-muted dark:bg-border-dark"></View>
                 <View className="items-center">
-                  <Text className="text-xs text-gray-600">Today's Profit</Text>
-                  <Text className="text-sm font-bold text-blue-600">
+                  <Text className="text-xs text-text-secondary dark:text-text-muted">
+                    Today's Profit
+                  </Text>
+                  <Text className="text-sm font-bold text-brand-primary dark:text-brand-primaryDark">
                     €{dailyProfit.toFixed(2)}
                   </Text>
                 </View>
@@ -101,7 +121,7 @@ function AppContent() {
             {/* Logout Button */}
             <TouchableOpacity
               onPress={signOut}
-              className="bg-gray-400 px-4 py-2 rounded-lg"
+              className="bg-interactive-disabled dark:bg-interactive-disabledDark px-4 py-2 rounded-lg"
             >
               <Text className="text-white text-sm font-semibold">Logout</Text>
             </TouchableOpacity>
@@ -111,7 +131,7 @@ function AppContent() {
 
       <MainLayout leftPanel={<LeftPanel />} rightPanel={<RightPanel />} />
 
-      <Toast />
+      <Toast config={toastConfig} />
     </SafeAreaWrapper>
   );
 }

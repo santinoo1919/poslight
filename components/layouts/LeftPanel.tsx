@@ -28,8 +28,8 @@ export default function LeftPanel() {
   return (
     <>
       {/* Categories */}
-      <View className="px-4 py-3 border-b border-gray-200">
-        <Text className="text-sm font-medium text-slate-500 mb-2">
+      <View className="px-4 py-3 border-b border-border-light dark:border-border-dark">
+        <Text className="text-sm font-medium text-text-secondary dark:text-text-muted mb-2">
           Categories
         </Text>
         <View className="flex-row items-center justify-between">

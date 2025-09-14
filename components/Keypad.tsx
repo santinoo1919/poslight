@@ -17,30 +17,32 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
     const baseStyle =
       "w-16 h-16 rounded-lg items-center justify-center mx-2 mb-3";
 
+    // Keep subtle tints for action buttons, neutral for numbers
     switch (variant) {
       case "number":
-        return `${baseStyle} bg-gray-100 border border-gray-200`;
+        return `${baseStyle} bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark`;
       case "function":
-        return `${baseStyle} bg-blue-100 border border-blue-200`;
+        return `${baseStyle} bg-blue-50 dark:bg-blue-900 bg-opacity-30 dark:bg-opacity-30 border border-blue-200 dark:border-blue-700`;
       case "clear":
-        return `${baseStyle} bg-red-100 border border-red-200`;
+        return `${baseStyle} bg-red-50 dark:bg-red-900 bg-opacity-30 dark:bg-opacity-30 border border-red-200 dark:border-red-700`;
       default:
-        return `${baseStyle} bg-gray-100 border border-gray-200`;
+        return `${baseStyle} bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark`;
     }
   };
 
   const getTextStyle = (): string => {
     const baseStyle = "font-bold text-xl";
 
+    // Match text colors to button tints
     switch (variant) {
       case "number":
-        return `${baseStyle} text-gray-800`;
+        return `${baseStyle} text-text-primary dark:text-text-inverse`;
       case "function":
-        return `${baseStyle} text-blue-700`;
+        return `${baseStyle} text-blue-700 dark:text-blue-300`;
       case "clear":
-        return `${baseStyle} text-red-600`;
+        return `${baseStyle} text-red-700 dark:text-red-300`;
       default:
-        return `${baseStyle} text-gray-800`;
+        return `${baseStyle} text-text-primary dark:text-text-inverse`;
     }
   };
 
@@ -84,14 +86,14 @@ const Keypad: React.FC<KeypadProps> = React.memo(
     };
 
     return (
-      <View className="bg-white border-t border-gray-200 p-4">
+      <View className="bg-surface-light dark:bg-surface-dark border-t border-border-light dark:border-border-dark p-4">
         {/* Keypad Header */}
         <View className="mb-3">
-          <Text className="text-sm font-medium text-gray-700 text-center">
+          <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
             💰 Quantity Keypad
           </Text>
           <View className="mt-3">
-            <Text className="text-xs text-gray-500 text-center">
+            <Text className="text-xs text-text-secondary dark:text-text-muted text-center">
               Select product → Type quantity → Auto-adds to cart
             </Text>
           </View>

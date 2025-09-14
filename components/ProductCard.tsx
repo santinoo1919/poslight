@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
+import { useTheme } from "../stores/themeStore";
 import type { ProductCardProps } from "../types/components";
 import { getProfitTextColor } from "../utils/profitLevels";
 import { calculateProductProfit } from "../utils/productHelpers";
@@ -32,10 +33,10 @@ export default function ProductCard({
     <TouchableOpacity
       className={`rounded-lg border p-3 flex-1 ${
         isOutOfStock
-          ? "bg-gray-100 border-gray-300 opacity-50"
+          ? "bg-interactive-disabled dark:bg-interactive-disabledDark border-border-muted dark:border-border-dark opacity-50"
           : isSelected
-            ? "bg-blue-50 border-blue-300"
-            : "bg-white border-gray-200"
+            ? "bg-interactive-selected dark:bg-interactive-selectedDark border-brand-primary dark:border-brand-primaryDark"
+            : "bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark"
       }`}
       onPress={isOutOfStock ? undefined : () => onPress?.(product)}
       activeOpacity={isOutOfStock ? 1 : Platform.OS === "ios" ? 0.7 : 1}
@@ -51,18 +52,24 @@ export default function ProductCard({
             {product.icon || "📦"}
           </Text>
         </View>
-        <Text className="text-xs text-gray-400">#{product.id}</Text>
+        <Text className="text-xs text-text-muted dark:text-text-secondary">
+          #{product.id}
+        </Text>
       </View>
 
       {/* Product Image Placeholder */}
-      <View className="h-16 bg-gray-100 rounded-md mb-2 items-center justify-center">
-        <Text className="text-gray-500 text-xl">📦</Text>
+      <View className="h-16 bg-background-light dark:bg-background-dark rounded-md mb-2 items-center justify-center">
+        <Text className="text-text-secondary dark:text-text-muted text-xl">
+          📦
+        </Text>
       </View>
 
       {/* Product Name */}
       <Text
         className={`font-semibold text-sm mb-1 ${
-          isOutOfStock ? "text-gray-500" : "text-gray-800"
+          isOutOfStock
+            ? "text-text-secondary dark:text-text-muted"
+            : "text-text-primary dark:text-text-inverse"
         }`}
         numberOfLines={2}
       >
@@ -75,14 +82,18 @@ export default function ProductCard({
         <View className="flex-row justify-between items-center">
           <Text
             className={`font-bold text-base ${
-              isOutOfStock ? "text-gray-500" : "text-green-600"
+              isOutOfStock
+                ? "text-gray-500 dark:text-gray-400"
+                : "text-green-600 dark:text-green-400"
             }`}
           >
             €{(product.sellPrice || product.price || 0).toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${
-              isOutOfStock ? "text-gray-400" : getProfitTextColor(profitLevel)
+              isOutOfStock
+                ? "text-gray-500 dark:text-gray-400"
+                : getProfitTextColor(profitLevel)
             }`}
           >
             +€
@@ -119,11 +130,7 @@ export default function ProductCard({
 
         {/* Bottom row: Buy Price + Stock */}
         <View className="flex-row justify-between items-center">
-          <Text
-            className={`text-xs ${
-              isOutOfStock ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <Text className="text-xs text-gray-600 dark:text-gray-400">
             €
             {(
               product.buyPrice || (product.price ? product.price * 0.6 : 0)
@@ -132,10 +139,10 @@ export default function ProductCard({
           <Text
             className={`text-xs font-medium ${
               isOutOfStock
-                ? "text-red-500"
+                ? "text-red-500 dark:text-red-400"
                 : isLowStock
-                  ? "text-red-600"
-                  : "text-gray-500"
+                  ? "text-red-600 dark:text-red-400"
+                  : "text-gray-500 dark:text-gray-400"
             }`}
           >
             {isLowStock && !isOutOfStock && "⚠️ "}Stock: {stock}
