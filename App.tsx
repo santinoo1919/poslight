@@ -7,10 +7,12 @@ import LeftPanel from "./components/layouts/LeftPanel";
 import RightPanel from "./components/layouts/RightPanel";
 import Toast from "react-native-toast-message";
 
-import { View, Text } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { useProductStore } from "./stores/productStore";
 import { useCartStore } from "./stores/cartStore";
 import useTinyBase from "./hooks/useTinyBase";
+import { useAuthStore } from "./stores/authStore";
+import LoginScreen from "./components/LoginScreen";
 
 function AppContent() {
   // Get data from TinyBase hook
@@ -103,5 +105,17 @@ function AppContent() {
 }
 
 export default function App() {
+  const { user, loading, checkSession } = useAuthStore();
+
+  React.useEffect(() => {
+    checkSession();
+  }, []);
+
+  if (loading) {
+    return <ActivityIndicator />;
+  }
+  if (!user) {
+    return <LoginScreen />;
+  }
   return <AppContent />;
 }

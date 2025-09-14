@@ -33,11 +33,6 @@ interface ProductState {
   resetProducts: () => void;
   updateProductStock: (productId: string, newStock: number) => void;
 
-  // Stock Update Callback (for cart integration)
-  setStockUpdateCallback: (
-    callback: (productId: string, newStock: number) => void
-  ) => void;
-
   // Computed
   getProductsByCategory: (categoryName: string) => Product[];
 }
@@ -54,21 +49,9 @@ export const useProductStore = create<ProductState>((set, get) => ({
   visibleProducts: [],
 
   // Basic setters
-  setProducts: (products) => {
-    console.log("📦 Product Store: Setting products:", products?.length || 0);
-    set({ products });
-  },
-  setCategories: (categories) => {
-    console.log(
-      "🏷️ Product Store: Setting categories:",
-      categories?.length || 0
-    );
-    set({ categories });
-  },
-  setLoading: (loading) => {
-    console.log("⏳ Product Store: Setting loading:", loading);
-    set({ loading });
-  },
+  setProducts: (products) => set({ products }),
+  setCategories: (categories) => set({ categories }),
+  setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   setCurrentCategory: (category) => set({ currentCategory: category }),
   setSearchResults: (results) => set({ searchResults: results }),
@@ -76,51 +59,23 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
   // Business Logic
   handleCategorySelect: (categoryName: string) => {
-    console.log("🏷️ Product Store: Category selected:", categoryName);
-
-    if (categoryName === "Show All") {
-      set({ currentCategory: null });
-      return;
-    }
-
-    set({ currentCategory: categoryName });
+    set({ currentCategory: categoryName === "Show All" ? null : categoryName });
   },
 
   handleSearch: (query: string) => {
-    console.log("🔍 Product Store: Search query:", query);
-
-    if (!query.trim()) {
+    const state = get();
+    if (!query.trim() || !state.products) {
       set({ searchResults: [] });
       return;
     }
-
-    const state = get();
-    if (!state.products) return;
-
-    const results = searchProductsByName(state.products, query);
-    set({ searchResults: results });
+    set({ searchResults: searchProductsByName(state.products, query) });
   },
 
-  clearSearch: () => {
-    console.log("🧹 Product Store: Clearing search");
-    set({ searchResults: [] });
-  },
+  clearSearch: () => set({ searchResults: [] }),
 
-  resetProducts: () => {
-    console.log("🔄 Product Store: Resetting products");
-    // This would typically reload products from the source
-    // For now, just clear any errors
-    set({ error: null });
-  },
+  resetProducts: () => set({ error: null }),
 
   updateProductStock: (productId: string, newStock: number) => {
-    console.log(
-      "📦 Product Store: Updating stock for",
-      productId,
-      "to",
-      newStock
-    );
-
     set((state) => ({
       products:
         state.products?.map((product) =>
@@ -129,22 +84,9 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }));
   },
 
-  // Stock Update Callback (for cart integration)
-  setStockUpdateCallback: (
-    callback: (productId: string, newStock: number) => void
-  ) => {
-    // This is a placeholder. In a real app, you'd manage subscriptions here
-    // For now, we'll just store the callback.
-    // In a more robust solution, you might have a global subscription manager
-    // that handles multiple callbacks for different parts of the app.
-    // For this example, we'll just store it.
-    // set({ stockUpdateCallback: callback }); // This would require a new state variable
-  },
-
   // Computed values
   getProductsByCategory: (categoryName: string) => {
-    const state = get();
-    if (!state.products) return [];
-    return filterProductsByCategory(state.products, categoryName);
+    const { products } = get();
+    return products ? filterProductsByCategory(products, categoryName) : [];
   },
 }));

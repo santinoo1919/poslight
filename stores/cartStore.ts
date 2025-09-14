@@ -55,12 +55,6 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   addToCart: (product, quantity) => {
-    console.log("🛒 Zustand Store: addToCart called with:", {
-      product: product.name,
-      quantity,
-      currentCartLength: get().selectedProducts.length,
-    });
-
     const currentStock =
       (store.getCell("products", product.id, "stock") as number) || 0;
 
@@ -86,31 +80,17 @@ export const useCartStore = create<CartState>((set, get) => ({
     set((state) => {
       const existing = state.selectedProducts.find((p) => p.id === product.id);
       if (existing) {
-        console.log("🛒 Zustand Store: Updating existing product quantity");
         // FIXED: Replace quantity instead of adding to it
-        const newState = {
+        return {
           selectedProducts: state.selectedProducts.map((p) =>
             p.id === product.id ? { ...p, quantity: quantity } : p
           ),
         };
-        console.log("🛒 Zustand Store: New state after update:", newState);
-        return newState;
       }
-      console.log("🛒 Zustand Store: Adding new product to cart");
-      const newState = {
+      return {
         selectedProducts: [...state.selectedProducts, { ...product, quantity }],
       };
-      console.log("🛒 Zustand Store: New state after add:", newState);
-      return newState;
     });
-
-    // Debug: Log the new state after a brief delay
-    setTimeout(() => {
-      console.log(
-        "🛒 Zustand Store: Final cart state after set:",
-        get().selectedProducts
-      );
-    }, 0);
   },
 
   removeFromCart: (productId) =>
@@ -134,20 +114,12 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   getTotalAmount: () => {
-    const state = get();
-    const quantities = state.selectedProducts.reduce(
-      (acc, product) => {
-        acc[product.id] = product.quantity;
-        return acc;
-      },
+    const { selectedProducts } = get();
+    const quantities = selectedProducts.reduce(
+      (acc, product) => ({ ...acc, [product.id]: product.quantity }),
       {} as Record<string, number>
     );
-
-    const { totalAmount } = calculateSaleTotals(
-      state.selectedProducts,
-      quantities
-    );
-    return totalAmount;
+    return calculateSaleTotals(selectedProducts, quantities).totalAmount;
   },
 
   completeSale: () => {
@@ -179,10 +151,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     try {
       const totalAmount = state.getTotalAmount();
       const quantities = state.selectedProducts.reduce(
-        (acc, product) => {
-          acc[product.id] = product.quantity;
-          return acc;
-        },
+        (acc, product) => ({ ...acc, [product.id]: product.quantity }),
         {} as Record<string, number>
       );
 
@@ -223,7 +192,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       // Use the stored cart length for the toast
       ToastService.sale.complete(totalAmount, itemsSold);
     } catch (error) {
-      console.error("❌ Error in completeSale:", error);
+      ToastService.show("error", "Sale Error", "Failed to complete sale");
     }
   },
 
@@ -236,7 +205,6 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   // Event Handlers (moved from App.tsx)
   handleProductPress: (product: Product) => {
-    console.log("🛒 Cart Store: Product pressed:", product.name);
     set({ selectedProductForQuantity: product, keypadInput: "" });
   },
 
@@ -263,16 +231,9 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  // Stock update function
+  // Stock update function (unused - stock is updated in completeSale)
   updateStockAfterSale: () => {
-    const state = get();
-    state.selectedProducts.forEach((product) => {
-      const currentStock = product.stock || 0;
-      const newStock = Math.max(0, currentStock - product.quantity);
-
-      // Update TinyBase store (for persistence)
-      const { store } = require("../services/tinybaseStore");
-      store.setCell("products", product.id, "stock", newStock);
-    });
+    // This function is redundant as stock is already updated in completeSale
+    // Keeping for potential future use
   },
 }));
