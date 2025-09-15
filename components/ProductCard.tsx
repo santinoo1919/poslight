@@ -6,6 +6,7 @@ import { useProductCardData } from "../hooks/useProductCardData";
 
 export default function ProductCard({
   product,
+  inventory,
   onPress,
   isSelected = false,
 }: ProductCardProps & { isSelected?: boolean }) {
@@ -17,7 +18,7 @@ export default function ProductCard({
     sellPrice,
     profit,
     profitLevel,
-  } = useProductCardData(product);
+  } = useProductCardData(product, inventory);
 
   return (
     <TouchableOpacity

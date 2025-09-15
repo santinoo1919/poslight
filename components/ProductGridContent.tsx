@@ -23,11 +23,12 @@ const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
 export default function ProductGridContent({
   products,
   allProducts,
+  inventoryMap,
   onProductPress,
   selectedProductForQuantity,
   currentCategory,
   loading = false, // Add loading prop
-}: ProductGridContentProps & { loading?: boolean }) {
+}: ProductGridContentProps) {
   // Component logic starts here
 
   // Use our clean helpers for product filtering
@@ -61,15 +62,22 @@ export default function ProductGridContent({
             </Text>
 
             <View className="flex-row flex-wrap justify-start">
-              {mainGridProducts.map((item, index) => (
-                <View key={item.id || `product-${index}`} className="w-1/4 p-1">
-                  <MemoizedProductCard
-                    product={item}
-                    onPress={onProductPress}
-                    isSelected={selectedProductForQuantity?.id === item.id}
-                  />
-                </View>
-              ))}
+              {mainGridProducts.map((item, index) => {
+                const inventory = inventoryMap?.get(item.id);
+                return (
+                  <View
+                    key={item.id || `product-${index}`}
+                    className="w-1/4 p-1"
+                  >
+                    <MemoizedProductCard
+                      product={item}
+                      inventory={inventory}
+                      onPress={onProductPress}
+                      isSelected={selectedProductForQuantity?.id === item.id}
+                    />
+                  </View>
+                );
+              })}
             </View>
 
             {/* Show message if no products in main grid */}

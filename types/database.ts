@@ -22,21 +22,11 @@ export interface Product {
   images: any | null;
   created_at: string;
 
-  // Local business data (user sets these)
-  buy_price: number;
-  sell_price: number;
-  stock: number;
-  is_active: boolean;
-
   // UI-related fields (computed from category or set locally)
   color?: string;
   icon?: string;
   categoryName?: string;
   price?: number; // Legacy field for backward compatibility
-
-  // Computed fields (calculated from buy_price/sell_price)
-  profit?: number; // sell_price - buy_price
-  profitLevel?: ProfitLevel;
 }
 
 export interface Category {

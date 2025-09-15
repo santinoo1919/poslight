@@ -3,14 +3,34 @@ import type { Product, Category } from "./database";
 // Re-export core types for convenience
 export type { Product, Category };
 
+// Inventory type for business data (separate from Product)
+export interface Inventory {
+  id: string; // inventory id
+  product_id: string; // reference to product
+  user_id: string;
+  buy_price: number;
+  sell_price: number;
+  stock: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Combined type for UI convenience
+export interface ProductWithInventory extends Product {
+  inventory?: Inventory;
+}
+
 export interface ProductCardProps {
-  product: Product;
+  product: Product; // Catalog data (immutable)
+  inventory?: Inventory; // Business data (user-specific, optional)
   onPress?: (product: Product) => void;
   onLongPress?: () => void;
 }
 
 export interface ProductGridProps {
-  products: Product[];
+  products: Product[]; // Catalog data
+  inventory?: Inventory[]; // Business data (optional)
   loading?: boolean;
   error?: string | null;
   onProductPress?: (product: Product) => void;
@@ -133,9 +153,11 @@ export interface ProductGridHeaderProps {
 export interface ProductGridContentProps {
   products: Product[];
   allProducts: Product[];
+  inventoryMap?: Map<string, Inventory>; // Map for fast inventory lookup
   onProductPress: (product: Product) => void;
   selectedProductForQuantity: Product | null;
   currentCategory: string | null;
+  loading?: boolean;
 }
 
 export interface ErrorDisplayProps {

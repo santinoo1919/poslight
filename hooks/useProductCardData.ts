@@ -1,16 +1,26 @@
 // hooks/useProductCardData.ts
 import { useMemo } from "react";
 import { Product, ProfitLevel } from "../types/database";
+import { Inventory } from "../types/components";
 
-export const useProductCardData = (product: Product) => {
+export const useProductCardData = (product: Product, inventory?: Inventory) => {
   return useMemo(() => {
-    const stock = product.stock || 0;
+    // Debug: Log the data being received
+    console.log("🔍 useProductCardData:", {
+      productId: product.id,
+      productName: product.name,
+      inventory: inventory,
+      hasInventory: !!inventory,
+    });
+
+    // Use inventory data only (products no longer have business data)
+    const stock = inventory?.stock ?? 0;
     const isLowStock = stock <= 10;
     const isOutOfStock = stock === 0;
 
     const buyPrice =
-      product.buy_price || (product.price ? product.price * 0.6 : 0);
-    const sellPrice = product.sell_price || product.price || 0;
+      inventory?.buy_price ?? (product.price ? product.price * 0.6 : 0);
+    const sellPrice = inventory?.sell_price ?? product.price ?? 0;
     const profit = sellPrice - buyPrice;
 
     const profitLevel: ProfitLevel =
@@ -25,5 +35,5 @@ export const useProductCardData = (product: Product) => {
       profit,
       profitLevel,
     };
-  }, [product]);
+  }, [product, inventory]);
 };

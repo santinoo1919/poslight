@@ -7,6 +7,8 @@ import ErrorDisplay from "./ErrorDisplay";
 import type { Product } from "../types/database";
 import { useProductStore } from "../stores/productStore";
 import { useCartStore } from "../stores/cartStore";
+import { useAuthStore } from "../stores/authStore";
+import { useInventoryQuery } from "../hooks/useInventoryQuery";
 
 export default function ProductGrid() {
   // Get product state from Zustand store
@@ -21,6 +23,27 @@ export default function ProductGrid() {
 
   // Get cart state from Zustand store
   const { selectedProductForQuantity, handleProductPress } = useCartStore();
+
+  // Get current user for inventory query
+  const { user } = useAuthStore();
+
+  // Fetch inventory data
+  const {
+    data: inventoryData,
+    isLoading: inventoryLoading,
+    error: inventoryError,
+  } = useInventoryQuery(user?.id || "");
+
+  // Create inventory lookup map
+  const inventoryMap = useMemo(() => {
+    if (!inventoryData) return new Map();
+
+    const map = new Map();
+    inventoryData.forEach((inventory) => {
+      map.set(inventory.product_id, inventory);
+    });
+    return map;
+  }, [inventoryData]);
 
   // Memoize visible products - only recompute when dependencies change
   const visibleProducts = useMemo(() => {
@@ -61,10 +84,11 @@ export default function ProductGrid() {
       <ProductGridContent
         products={visibleProducts}
         allProducts={products || []}
+        inventoryMap={inventoryMap}
         onProductPress={handleProductPress}
         selectedProductForQuantity={selectedProductForQuantity}
         currentCategory={currentCategory}
-        loading={loading}
+        loading={loading || inventoryLoading}
       />
     </View>
   );
