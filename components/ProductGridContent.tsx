@@ -15,8 +15,8 @@ const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
     prevProps.product.id === nextProps.product.id &&
     prevProps.isSelected === nextProps.isSelected &&
     prevProps.product.stock === nextProps.product.stock &&
-    prevProps.product.sellPrice === nextProps.product.sellPrice &&
-    prevProps.product.buyPrice === nextProps.product.buyPrice
+    prevProps.product.sell_price === nextProps.product.sell_price &&
+    prevProps.product.buy_price === nextProps.product.buy_price
   );
 });
 

@@ -38,11 +38,11 @@ export const getProfitLevel = (profitMarginPercentage: number): ProfitLevel => {
 
 // Fallback function for products without profitLevel
 export const calculateProfitLevel = (
-  buyPrice: number,
-  sellPrice: number
+  buy_price: number,
+  sell_price: number
 ): ProfitLevel => {
-  const margin = sellPrice - buyPrice;
-  const profitMarginPercentage = (margin / sellPrice) * 100;
+  const margin = sell_price - buy_price;
+  const profitMarginPercentage = (margin / sell_price) * 100;
   return getProfitLevel(profitMarginPercentage);
 };
 

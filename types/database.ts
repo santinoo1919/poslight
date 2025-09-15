@@ -13,21 +13,30 @@ export interface ProfitLevelConfig {
 
 export interface Product {
   id: string;
+  sku: string;
+  barcode: string | null;
   name: string;
-  price?: number; // Legacy price field for backward compatibility
-  buyPrice: number; // Cost price (what we paid)
-  sellPrice: number; // Selling price (what customer pays)
-  margin: number; // Profit margin (sellPrice - buyPrice)
-  stock: number;
+  description: string | null;
   category: string;
-  barcode: string;
-  description: string;
-  categoryName: string;
-  color: string;
-  icon: string;
-  // Pre-calculated profit fields
-  profit?: number; // sellPrice - buyPrice
-  profitLevel?: ProfitLevel; // Profit level for color coding
+  brand: string | null;
+  images: any | null;
+  created_at: string;
+
+  // Local business data (user sets these)
+  buy_price: number;
+  sell_price: number;
+  stock: number;
+  is_active: boolean;
+
+  // UI-related fields (computed from category or set locally)
+  color?: string;
+  icon?: string;
+  categoryName?: string;
+  price?: number; // Legacy field for backward compatibility
+
+  // Computed fields (calculated from buy_price/sell_price)
+  profit?: number; // sell_price - buy_price
+  profitLevel?: ProfitLevel;
 }
 
 export interface Category {

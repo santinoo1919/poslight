@@ -12,7 +12,9 @@ import { useProductStore } from "./stores/productStore";
 import { useCartStore } from "./stores/cartStore";
 import { useMetricsStore } from "./stores/metricsStore";
 import { useTheme } from "./stores/themeStore";
-import useTinyBase from "./hooks/useTinyBase";
+import { useProductsQuery } from "./hooks/useProductsQuery";
+import { useCategoriesQuery } from "./hooks/useCategoriesQuery";
+import { QueryProvider } from "./providers/QueryProvider";
 import { useAuthStore } from "./stores/authStore";
 import LoginScreen from "./components/LoginScreen";
 import ThemeToggle from "./components/ThemeToggle";
@@ -22,8 +24,8 @@ function AppContent() {
   // Get theme
   const { isDark, loadTheme } = useTheme();
 
-  // Get data from TinyBase hook
-  const { products, categories, loading, error, resetProducts } = useTinyBase();
+  const { data: products, isLoading: loading, error } = useProductsQuery();
+  const { data: categories } = useCategoriesQuery();
 
   // Load saved theme on app start
   React.useEffect(() => {
@@ -40,9 +42,9 @@ function AppContent() {
   // Get auth state for logout functionality
   const { signOut } = useAuthStore();
 
-  // Sync TinyBase data to Zustand store
+  // Sync Supabase data to Zustand store
   React.useEffect(() => {
-    console.log("🔄 App: Syncing TinyBase data to Zustand", {
+    console.log("🔄 App: Syncing Supabase data to Zustand", {
       productsLength: products?.length || 0,
       categoriesLength: categories?.length || 0,
       loading,
@@ -57,7 +59,7 @@ function AppContent() {
       setCategories(categories);
     }
     setLoading(loading);
-    setError(error);
+    setError(error?.message || null);
   }, [
     products,
     categories,
@@ -149,5 +151,10 @@ export default function App() {
   if (!user) {
     return <LoginScreen />;
   }
-  return <AppContent />;
+
+  return (
+    <QueryProvider>
+      <AppContent />
+    </QueryProvider>
+  );
 }

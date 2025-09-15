@@ -26,21 +26,21 @@ export const enrichProductsWithCategories = (
 
 // 🎯 PROFIT CALCULATIONS
 export const calculateProductProfit = (
-  buyPrice: number,
-  sellPrice: number
+  buy_price: number,
+  sell_price: number
 ): number => {
-  return sellPrice - buyPrice;
+  return sell_price - buy_price;
 };
 
 export const enrichProductWithProfit = (product: Product): Product => ({
   ...product,
   profit: calculateProductProfit(
-    product.buyPrice || 0,
-    product.sellPrice || product.price || 0
+    product.buy_price || 0,
+    product.sell_price || product.price || 0
   ),
   profitLevel: calculateProfitLevel(
-    product.buyPrice || 0,
-    product.sellPrice || product.price || 0
+    product.buy_price || 0,
+    product.sell_price || product.price || 0
   ),
 });
 
@@ -109,8 +109,8 @@ export const calculateSaleTotals = (
   Object.entries(quantities).forEach(([productId, quantity]) => {
     const product = products.find((p) => p.id === productId);
     if (product) {
-      const price = product.sellPrice || product.price || 0;
-      const buyPrice = product.buyPrice || 0;
+      const price = product.sell_price || product.price || 0;
+      const buyPrice = product.buy_price || 0;
 
       totalAmount += price * quantity;
       totalProfit += (price - buyPrice) * quantity;

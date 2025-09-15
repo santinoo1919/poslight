@@ -116,8 +116,8 @@ export const safeGetProduct = (product: any): Partial<Product> => {
   return {
     id: product.id || "unknown",
     name: product.name || "Unnamed Product",
-    buyPrice: typeof product.buyPrice === "number" ? product.buyPrice : 0,
-    sellPrice: typeof product.sellPrice === "number" ? product.sellPrice : 0,
+    buy_price: typeof product.buy_price === "number" ? product.buy_price : 0,
+    sell_price: typeof product.sell_price === "number" ? product.sell_price : 0,
     stock: typeof product.stock === "number" ? product.stock : 0,
     category: product.category || "unknown",
     barcode: product.barcode || "unknown",

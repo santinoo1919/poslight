@@ -97,10 +97,10 @@ export default function RightPanel() {
 
                     <View className="flex-row items-center justify-between">
                       <Text className="text-text-secondary dark:text-text-muted text-sm">
-                        €{product.sellPrice.toFixed(2)} × {product.quantity}
+                        €{product.sell_price.toFixed(2)} × {product.quantity}
                       </Text>
                       <Text className="font-semibold text-text-primary dark:text-text-inverse">
-                        €{(product.sellPrice * product.quantity).toFixed(2)}
+                        €{(product.sell_price * product.quantity).toFixed(2)}
                       </Text>
                     </View>
 

@@ -4,11 +4,11 @@ import { z } from "zod";
 export const ProductSchema = z.object({
   id: z.string().min(1, "ID is required"),
   name: z.string().min(1, "Name is required").max(100, "Name too long"),
-  buyPrice: z
+  buy_price: z
     .number()
     .positive("Buy price must be positive")
     .max(10000, "Buy price too high"),
-  sellPrice: z
+  sell_price: z
     .number()
     .positive("Sell price must be positive")
     .max(10000, "Sell price too high"),

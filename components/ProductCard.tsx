@@ -1,33 +1,23 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
-import { useTheme } from "../stores/themeStore";
 import type { ProductCardProps } from "../types/components";
 import { getProfitTextColor } from "../utils/profitLevels";
-import { calculateProductProfit } from "../utils/productHelpers";
-import type { ProfitLevel } from "../types/database";
+import { useProductCardData } from "../hooks/useProductCardData";
 
 export default function ProductCard({
   product,
   onPress,
   isSelected = false,
 }: ProductCardProps & { isSelected?: boolean }) {
-  // Use stock from product prop (simpler and more reliable)
-  const stock = product.stock || 0;
-  const isLowStock = stock <= 10;
-  const isOutOfStock = stock === 0;
-
-  // Calculate actual profit amount and use it for color coding
-  const buyPrice = product.buyPrice || 0;
-  const sellPrice = product.sellPrice || product.price || 0;
-  const actualProfit = sellPrice - buyPrice;
-
-  // Use profit amount instead of percentage for more meaningful colors
-  let profitLevel: ProfitLevel = "medium"; // default
-  if (actualProfit >= 10)
-    profitLevel = "high"; // €10+ profit = Green
-  else if (actualProfit >= 3)
-    profitLevel = "medium"; // €3-9 profit = Amber
-  else profitLevel = "low"; // <€3 profit = Red
+  const {
+    stock,
+    isLowStock,
+    isOutOfStock,
+    buyPrice,
+    sellPrice,
+    profit,
+    profitLevel,
+  } = useProductCardData(product);
 
   return (
     <TouchableOpacity
@@ -53,7 +43,7 @@ export default function ProductCard({
           </Text>
         </View>
         <Text className="text-xs text-text-muted dark:text-text-secondary">
-          #{product.id}
+          #{product.sku}
         </Text>
       </View>
 
@@ -83,66 +73,35 @@ export default function ProductCard({
           <Text
             className={`font-bold text-base ${
               isOutOfStock
-                ? "text-gray-500 dark:text-gray-400"
-                : "text-green-600 dark:text-green-400"
+                ? "text-text-secondary dark:text-text-muted"
+                : "text-state-success dark:text-state-successDark"
             }`}
           >
-            €{(product.sellPrice || product.price || 0).toFixed(2)}
+            €{sellPrice.toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${
               isOutOfStock
-                ? "text-gray-500 dark:text-gray-400"
+                ? "text-text-secondary dark:text-text-muted"
                 : getProfitTextColor(profitLevel)
             }`}
           >
-            +€
-            {(() => {
-              // Calculate profit with proper fallbacks
-              let calculatedProfit = 0;
-
-              if (product.profit !== undefined && !isNaN(product.profit)) {
-                calculatedProfit = product.profit;
-              } else if (
-                product.sellPrice &&
-                product.buyPrice &&
-                !isNaN(product.sellPrice) &&
-                !isNaN(product.buyPrice)
-              ) {
-                calculatedProfit = calculateProductProfit(
-                  product.buyPrice || 0,
-                  product.sellPrice || product.price || 0
-                );
-              } else if (
-                product.profit !== undefined &&
-                !isNaN(product.profit)
-              ) {
-                calculatedProfit = product.profit;
-              } else if (product.price && !isNaN(product.price)) {
-                calculatedProfit = product.price * 0.4; // 40% profit margin for old data
-              }
-
-              // Ensure we return a valid number
-              return isNaN(calculatedProfit) ? 0 : calculatedProfit;
-            })().toFixed(2)}
+            +€{profit.toFixed(2)}
           </Text>
         </View>
 
         {/* Bottom row: Buy Price + Stock */}
         <View className="flex-row justify-between items-center">
-          <Text className="text-xs text-gray-600 dark:text-gray-400">
-            €
-            {(
-              product.buyPrice || (product.price ? product.price * 0.6 : 0)
-            ).toFixed(2)}
+          <Text className="text-xs text-text-secondary dark:text-text-muted">
+            €{buyPrice.toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${
               isOutOfStock
-                ? "text-red-500 dark:text-red-400"
+                ? "text-state-error dark:text-state-errorDark"
                 : isLowStock
-                  ? "text-red-600 dark:text-red-400"
-                  : "text-gray-500 dark:text-gray-400"
+                  ? "text-state-error dark:text-state-errorDark"
+                  : "text-text-secondary dark:text-text-muted"
             }`}
           >
             {isLowStock && !isOutOfStock && "⚠️ "}Stock: {stock}
