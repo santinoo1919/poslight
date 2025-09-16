@@ -14,6 +14,7 @@ import LoginScreen from "./components/LoginScreen";
 import { toastConfig } from "./config/toastConfig";
 import Header from "./components/Header";
 import { useDataSync } from "./hooks/useDataSync";
+import { useSyncQueueProcessor } from "./hooks/useSyncMutations";
 
 function AppContent() {
   // Get theme
@@ -30,6 +31,7 @@ function AppContent() {
   const { user } = useAuthStore();
 
   useDataSync(user?.id);
+  useSyncQueueProcessor(); // Start background sync processing
 
   return (
     <SafeAreaWrapper

@@ -15,7 +15,8 @@ export const store = createStore()
   .setTable("products", {})
   .setTable("inventory", {})
   .setTable("transactions", {})
-  .setTable("transaction_items", {});
+  .setTable("transaction_items", {})
+  .setTable("sync_queue", {}); // For persistent sync operations
 
 // Initialize store with data (no persistence for now)
 export const initializeStore = async (): Promise<void> => {
@@ -205,5 +206,75 @@ export const db: {
       profit: ((currentMetrics.profit as number) || 0) + profit,
       lastUpdated: new Date().toISOString(),
     });
+  },
+};
+
+// Sync Queue Utilities
+export const syncQueue = {
+  // Add operation to sync queue
+  add: (operation: {
+    type: "sale" | "sale_items" | "inventory";
+    data: any;
+    retryCount?: number;
+  }) => {
+    const id = crypto.randomUUID();
+    store.setRow("sync_queue", id, {
+      id,
+      type: operation.type,
+      data: JSON.stringify(operation.data),
+      status: "pending",
+      retryCount: operation.retryCount || 0,
+      createdAt: new Date().toISOString(),
+    });
+    return id;
+  },
+
+  // Get all pending operations
+  getPending: () => {
+    const queue = store.getTable("sync_queue");
+    return Object.values(queue).filter((item) => item.status === "pending");
+  },
+
+  // Mark operation as completed
+  markCompleted: (id: string) => {
+    store.setRow("sync_queue", id, { status: "completed" });
+  },
+
+  // Increment retry count
+  incrementRetry: (id: string) => {
+    const item = store.getRow("sync_queue", id);
+    if (item) {
+      store.setRow("sync_queue", id, {
+        retryCount: ((item.retryCount as number) || 0) + 1,
+      });
+    }
+  },
+
+  // Remove completed operations (cleanup)
+  cleanup: () => {
+    const queue = store.getTable("sync_queue");
+    Object.entries(queue).forEach(([id, item]) => {
+      if (item.status === "completed") {
+        store.delRow("sync_queue", id);
+      }
+    });
+  },
+
+  // Get queue status
+  getStatus: () => {
+    const queue = store.getTable("sync_queue");
+    const items = Object.values(queue);
+    return {
+      total: items.length,
+      pending: items.filter((item) => item.status === "pending").length,
+      completed: items.filter((item) => item.status === "completed").length,
+      items: items.map((item) => ({
+        id: item.id,
+        type: item.type,
+        status: item.status,
+        retryCount: item.retryCount || 0,
+        createdAt: item.createdAt,
+      })),
+    };
   },
 };
