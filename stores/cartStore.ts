@@ -3,19 +3,20 @@ import { calculateSaleTotals } from "../utils/productHelpers";
 import { ToastService } from "../services/toastService";
 import type { Product } from "../types/database";
 import type { CartProduct } from "../types/components";
+import type { ProductWithInventory } from "../types/components";
 
 interface CartState {
   // Cart State
   selectedProducts: CartProduct[];
 
   // UI State (kept for compatibility)
-  selectedProductForQuantity: Product | null;
+  selectedProductForQuantity: ProductWithInventory | null;
   keypadInput: string;
 
   // Cart Actions
-  setSelectedProductForQuantity: (product: Product | null) => void;
+  setSelectedProductForQuantity: (product: ProductWithInventory | null) => void;
   setKeypadInput: (input: string | ((prev: string) => string)) => void;
-  addToCart: (product: Product, quantity: number) => void;
+  addToCart: (product: ProductWithInventory, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, newQuantity: number) => void;
   getTotalAmount: () => number;
@@ -23,7 +24,7 @@ interface CartState {
   clearCart: () => void;
 
   // Event Handlers (kept for compatibility)
-  handleProductPress: (product: Product) => void;
+  handleProductPress: (product: ProductWithInventory) => void;
   handleKeypadNumber: (num: string) => void;
   handleKeypadDelete: () => void;
   handleKeypadClear: () => void;
@@ -54,18 +55,18 @@ export const useCartStore = create<CartState>((set, get) => ({
     const currentCartQuantity = existing ? existing.quantity : 0;
     const totalRequested = currentCartQuantity + quantity;
 
-    if (totalRequested > product.stock) {
+    if (totalRequested > product.inventory?.stock) {
       ToastService.stock.insufficient(
         product.name,
         totalRequested,
-        product.stock
+        product.inventory?.stock
       );
       return;
     }
 
     // Low stock warning
-    if (product.stock <= 10 && product.stock > 0) {
-      ToastService.stock.lowStock(product.name, product.stock);
+    if (product.inventory?.stock <= 10 && product.inventory?.stock > 0) {
+      ToastService.stock.lowStock(product.name, product.inventory?.stock);
     }
 
     set((state) => {
@@ -127,11 +128,11 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     // Final stock validation
     for (const product of state.selectedProducts) {
-      if (product.quantity > product.stock) {
+      if (product.quantity > product.inventory?.stock) {
         ToastService.stock.insufficient(
           product.name,
           product.quantity,
-          product.stock
+          product.inventory?.stock
         );
         return;
       }
@@ -152,7 +153,10 @@ export const useCartStore = create<CartState>((set, get) => ({
       // Update stock in TinyBase store
       const { store } = require("../services/tinybaseStore");
       state.selectedProducts.forEach((product) => {
-        const newStock = Math.max(0, product.stock - product.quantity);
+        const newStock = Math.max(
+          0,
+          product.inventory?.stock - product.quantity
+        );
         store.setCell("products", product.id, "stock", newStock);
 
         // Update Zustand store for UI updates

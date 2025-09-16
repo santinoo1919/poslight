@@ -1,7 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 
-export const useInventoryQuery = (userId: string) => {
+export const useInventoryQuery = (
+  userId: string,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: ["inventory", userId],
     queryFn: async () => {
@@ -14,5 +17,6 @@ export const useInventoryQuery = (userId: string) => {
       return data || [];
     },
     staleTime: 2 * 60 * 1000, // 2 minutes (changes more frequently)
+    enabled: options?.enabled ?? !!userId,
   });
 };

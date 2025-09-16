@@ -89,7 +89,7 @@ export interface KeypadButtonProps {
 }
 
 // Cart-related types
-export interface CartProduct extends Product {
+export interface CartProduct extends ProductWithInventory {
   quantity: number;
 }
 

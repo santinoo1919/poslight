@@ -7,12 +7,12 @@ import type { Product } from "../../types/components";
 import { useProductStore } from "../../stores/productStore";
 import { useCartStore } from "../../stores/cartStore";
 import { useMetricsStore } from "../../stores/metricsStore";
+import { useCategoriesQuery } from "../../hooks/useCategoriesQuery";
 
 export default function LeftPanel() {
   // Get product state from Zustand store
   const {
     products,
-    categories,
     loading,
     error,
     currentCategory,
@@ -21,6 +21,9 @@ export default function LeftPanel() {
     handleCategorySelect,
     handleSearch,
   } = useProductStore();
+
+  const { data: categories, isLoading: categoriesLoading } =
+    useCategoriesQuery();
 
   // Get cart state from Zustand store
   const { selectedProductForQuantity } = useCartStore();

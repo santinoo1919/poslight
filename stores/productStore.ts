@@ -5,6 +5,7 @@ import {
   searchProductsByName,
 } from "../utils/productHelpers";
 import type { Product, Category } from "../types/database";
+import { Inventory } from "../types/components";
 
 interface ProductState {
   // State
@@ -16,6 +17,7 @@ interface ProductState {
   searchResults: Product[];
   isFiltering: boolean;
   visibleProducts: Product[];
+  inventory: Inventory[];
 
   // Actions
   setProducts: (products: Product[] | null) => void;
@@ -25,6 +27,7 @@ interface ProductState {
   setCurrentCategory: (category: string | null) => void;
   setSearchResults: (results: Product[]) => void;
   setIsFiltering: (isFiltering: boolean) => void;
+  setInventory: (inventory: Inventory[]) => void;
 
   // Business Logic
   handleCategorySelect: (categoryName: string) => void;
@@ -47,6 +50,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
   searchResults: [],
   isFiltering: false,
   visibleProducts: [],
+  inventory: [],
 
   // Basic setters
   setProducts: (products) => set({ products }),
@@ -56,6 +60,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
   setCurrentCategory: (category) => set({ currentCategory: category }),
   setSearchResults: (results) => set({ searchResults: results }),
   setIsFiltering: (isFiltering) => set({ isFiltering }),
+  setInventory: (inventory) => set({ inventory }),
 
   // Business Logic
   handleCategorySelect: (categoryName: string) => {
