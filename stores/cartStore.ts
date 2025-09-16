@@ -4,6 +4,7 @@ import { ToastService } from "../services/toastService";
 import type { Product } from "../types/database";
 import type { CartProduct } from "../types/components";
 import type { ProductWithInventory } from "../types/components";
+import { useAuthStore } from "./authStore";
 
 interface CartState {
   // Cart State
@@ -55,20 +56,6 @@ export const useCartStore = create<CartState>((set, get) => ({
     const currentCartQuantity = existing ? existing.quantity : 0;
     const totalRequested = currentCartQuantity + quantity;
 
-    if (totalRequested > product.inventory?.stock) {
-      ToastService.stock.insufficient(
-        product.name,
-        totalRequested,
-        product.inventory?.stock
-      );
-      return;
-    }
-
-    // Low stock warning
-    if (product.inventory?.stock <= 10 && product.inventory?.stock > 0) {
-      ToastService.stock.lowStock(product.name, product.inventory?.stock);
-    }
-
     set((state) => {
       const existing = state.selectedProducts.find((p) => p.id === product.id);
       if (existing) {
@@ -116,26 +103,13 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   completeSale: () => {
     const state = get();
+    // Get real user ID from auth store
+    const { user } = useAuthStore.getState();
+    const userId = user?.id;
 
-    if (state.selectedProducts.length === 0) {
-      ToastService.show(
-        "error",
-        "Cart is Empty",
-        "Please add products to cart"
-      );
+    if (!userId) {
+      ToastService.show("error", "Not Authenticated", "Please log in again");
       return;
-    }
-
-    // Final stock validation
-    for (const product of state.selectedProducts) {
-      if (product.quantity > product.inventory?.stock) {
-        ToastService.stock.insufficient(
-          product.name,
-          product.quantity,
-          product.inventory?.stock
-        );
-        return;
-      }
     }
 
     try {
@@ -150,29 +124,90 @@ export const useCartStore = create<CartState>((set, get) => ({
         quantities
       );
 
-      // Update stock in TinyBase store
-      const { store } = require("../services/tinybaseStore");
-      state.selectedProducts.forEach((product) => {
-        const newStock = Math.max(
-          0,
-          product.inventory?.stock - product.quantity
-        );
-        store.setCell("products", product.id, "stock", newStock);
+      // Generate a proper UUID for the sale
+      const saleId = crypto.randomUUID();
 
-        // Update Zustand store for UI updates
-        const { useProductStore } = require("../stores/productStore");
-        const { updateProductStock } = useProductStore.getState();
-        if (updateProductStock) {
-          updateProductStock(product.id, newStock);
-        }
-      });
+      // Prepare sale data
+      const saleData = {
+        id: saleId,
+        user_id: userId,
+        total_amount: totalAmount,
+        payment_method: "cash",
+        status: "completed",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Prepare sale items
+      const saleItems = state.selectedProducts.map((product) => ({
+        sale_id: saleId,
+        product_id: product.id,
+        quantity: product.quantity,
+        unit_price: product.inventory?.sell_price || 0,
+        total_price: (product.inventory?.sell_price || 0) * product.quantity,
+      }));
+
+      // Prepare inventory updates
+      const inventoryUpdates = state.selectedProducts.map((product) => ({
+        product_id: product.id,
+        user_id: userId,
+        stock: (product.inventory?.stock || 0) - product.quantity,
+        buy_price: product.inventory?.buy_price || 0,
+        sell_price: product.inventory?.sell_price || 0,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      }));
 
       // Record sale in metrics store
       const { useMetricsStore } = require("../stores/metricsStore");
       const { recordSale } = useMetricsStore.getState();
       recordSale(totalAmount, totalProfit);
 
-      // Clear cart on successful sale
+      // Update local state immediately (works offline!)
+      const { useProductStore } = require("../stores/productStore");
+      const {
+        setInventory,
+        updateProductStock,
+        inventory: currentInventory,
+      } = useProductStore.getState();
+
+      // Update local inventory state by merging with existing inventory
+      const updatedInventory = [...(currentInventory || [])];
+
+      inventoryUpdates.forEach((update) => {
+        const existingIndex = updatedInventory.findIndex(
+          (item) =>
+            item.product_id === update.product_id &&
+            item.user_id === update.user_id
+        );
+
+        const inventoryItem = {
+          product_id: update.product_id,
+          user_id: update.user_id,
+          stock: update.stock,
+          buy_price: update.buy_price,
+          sell_price: update.sell_price,
+          is_active: update.is_active,
+          updated_at: update.updated_at,
+        };
+
+        if (existingIndex >= 0) {
+          updatedInventory[existingIndex] = inventoryItem;
+        } else {
+          updatedInventory.push(inventoryItem);
+        }
+      });
+
+      // Update local inventory in productStore
+      setInventory(updatedInventory);
+
+      // Update local product stock for immediate UI refresh
+      state.selectedProducts.forEach((product) => {
+        const newStock = (product.inventory?.stock || 0) - product.quantity;
+        updateProductStock(product.id, newStock);
+      });
+
+      // Clear cart immediately (optimistic update)
       set({
         selectedProducts: [],
         selectedProductForQuantity: null,
@@ -181,6 +216,9 @@ export const useCartStore = create<CartState>((set, get) => ({
 
       // Show success message
       ToastService.sale.complete(totalAmount, state.selectedProducts.length);
+
+      // Note: The actual sync will be handled by the component using the mutations
+      // This keeps the store pure and lets the UI handle the sync logic
     } catch (error) {
       ToastService.show("error", "Sale Error", "Failed to complete sale");
     }
@@ -194,7 +232,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     }),
 
   // Event Handlers (moved from App.tsx)
-  handleProductPress: (product: Product) => {
+  handleProductPress: (product: ProductWithInventory) => {
     set({ selectedProductForQuantity: product, keypadInput: "" });
   },
 

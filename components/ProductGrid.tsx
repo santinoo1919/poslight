@@ -19,6 +19,7 @@ export default function ProductGrid() {
     currentCategory,
     searchResults,
     resetProducts,
+    inventory: localInventory,
   } = useProductStore();
 
   // Get cart state from Zustand store
@@ -27,23 +28,29 @@ export default function ProductGrid() {
   // Get current user for inventory query
   const { user } = useAuthStore();
 
-  // Fetch inventory data
+  // Fetch inventory data (for initial load and sync)
   const {
     data: inventoryData,
     isLoading: inventoryLoading,
     error: inventoryError,
   } = useInventoryQuery(user?.id || "");
 
+  // Use local inventory if available, otherwise use query data
+  const inventoryToUse =
+    localInventory && localInventory.length > 0
+      ? localInventory
+      : inventoryData;
+
   // Create inventory lookup map
   const inventoryMap = useMemo(() => {
-    if (!inventoryData) return new Map();
+    if (!inventoryToUse) return new Map();
 
     const map = new Map();
-    inventoryData.forEach((inventory) => {
+    inventoryToUse.forEach((inventory) => {
       map.set(inventory.product_id, inventory);
     });
     return map;
-  }, [inventoryData]);
+  }, [inventoryToUse]);
 
   // Memoize visible products - only recompute when dependencies change
   const visibleProducts = useMemo(() => {
@@ -64,7 +71,8 @@ export default function ProductGrid() {
   }, [loading, products, searchResults, currentCategory]);
 
   // Show skeleton only during actual loading states
-  if (loading || !products) {
+  // Don't show skeleton if we have local inventory data
+  if ((loading || !products) && !localInventory?.length) {
     return <ProductGridSkeleton />;
   }
 

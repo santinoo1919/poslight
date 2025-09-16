@@ -6,7 +6,6 @@ import MainLayout from "./components/layouts/MainLayout";
 import LeftPanel from "./components/layouts/LeftPanel";
 import RightPanel from "./components/layouts/RightPanel";
 import Toast from "react-native-toast-message";
-
 import { View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useTheme } from "./stores/themeStore";
 import { QueryProvider } from "./providers/QueryProvider";

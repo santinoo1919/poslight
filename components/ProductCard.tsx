@@ -1,8 +1,13 @@
+// components/ProductCard.tsx
 import React from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
-import type { ProductCardProps } from "../types/components";
+import type {
+  ProductCardProps,
+  ProductWithInventory,
+} from "../types/components";
 import { getProfitTextColor } from "../utils/profitLevels";
 import { useProductCardData } from "../hooks/useProductCardData";
+import { ToastService } from "../services/toastService";
 
 export default function ProductCard({
   product,
@@ -20,6 +25,24 @@ export default function ProductCard({
     profitLevel,
   } = useProductCardData(product, inventory);
 
+  const handleProductPress = () => {
+    const stock = inventory?.stock ?? 0;
+
+    if (stock === 0) {
+      ToastService.stock.insufficient(product.name, 1, 0);
+      return;
+    }
+
+    if (stock <= 10) {
+      ToastService.stock.lowStock(product.name, stock);
+    }
+
+    // Use the onPress prop to trigger the keypad flow
+    if (onPress) {
+      onPress({ ...product, inventory });
+    }
+  };
+
   return (
     <TouchableOpacity
       className={`rounded-lg border p-3 flex-1 ${
@@ -29,7 +52,7 @@ export default function ProductCard({
             ? "bg-interactive-selected dark:bg-interactive-selectedDark border-brand-primary dark:border-brand-primaryDark"
             : "bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark"
       }`}
-      onPress={isOutOfStock ? undefined : () => onPress?.(product)}
+      onPress={isOutOfStock ? undefined : handleProductPress} // Fix this line
       activeOpacity={isOutOfStock ? 1 : Platform.OS === "ios" ? 0.7 : 1}
       disabled={isOutOfStock}
     >

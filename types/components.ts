@@ -24,7 +24,7 @@ export interface ProductWithInventory extends Product {
 export interface ProductCardProps {
   product: Product; // Catalog data (immutable)
   inventory?: Inventory; // Business data (user-specific, optional)
-  onPress?: (product: Product) => void;
+  onPress?: (product: ProductWithInventory) => void;
   onLongPress?: () => void;
 }
 

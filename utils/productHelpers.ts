@@ -100,7 +100,7 @@ export const filterProductsByCategory = (
 
 // 🎯 SALE CALCULATIONS
 export const calculateSaleTotals = (
-  products: Product[],
+  products: any[], // Changed to any[] to handle CartProduct with inventory
   quantities: Record<string, number>
 ) => {
   let totalAmount = 0;
@@ -109,8 +109,13 @@ export const calculateSaleTotals = (
   Object.entries(quantities).forEach(([productId, quantity]) => {
     const product = products.find((p) => p.id === productId);
     if (product) {
-      const price = product.sell_price || product.price || 0;
-      const buyPrice = product.buy_price || 0;
+      // Handle both direct product pricing and inventory pricing
+      const price =
+        product.inventory?.sell_price ||
+        product.sell_price ||
+        product.price ||
+        0;
+      const buyPrice = product.inventory?.buy_price || product.buy_price || 0;
 
       totalAmount += price * quantity;
       totalProfit += (price - buyPrice) * quantity;
