@@ -5,14 +5,6 @@ import { Inventory } from "../types/components";
 
 export const useProductCardData = (product: Product, inventory?: Inventory) => {
   return useMemo(() => {
-    // Debug: Log the data being received
-    console.log("🔍 useProductCardData:", {
-      productId: product.id,
-      productName: product.name,
-      inventory: inventory,
-      hasInventory: !!inventory,
-    });
-
     // Use inventory data only (products no longer have business data)
     const stock = inventory?.stock ?? 0;
     const isLowStock = stock <= 10;

@@ -3,6 +3,7 @@ import { useProductsQuery } from "./useProductsQuery";
 import { useCategoriesQuery } from "./useCategoriesQuery";
 import { useProductStore } from "../stores/productStore";
 import { useInventoryQuery } from "./useInventoryQuery";
+import { Inventory } from "../types/components";
 
 export const useDataSync = (userId?: string) => {
   const {
@@ -22,7 +23,7 @@ export const useDataSync = (userId?: string) => {
 
   React.useEffect(() => {
     if (products) setProducts(products);
-    if (inventory) setInventory(inventory);
+    if (inventory) setInventory(inventory as unknown as Inventory[]);
     setLoading(isLoading);
     setError(error?.message || null);
   }, [

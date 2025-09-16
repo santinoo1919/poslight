@@ -186,14 +186,14 @@ export const getMostBoughtProducts = (
   count: number = 4,
   minStock: number = 50
 ): Product[] => {
-  return products.filter((product) => product.stock > minStock).slice(0, count);
+  // Return empty array for now - we'll show all products in main grid
+  return [];
 };
 
 export const getMainGridProducts = (
   products: Product[],
   mostBoughtProducts: Product[]
 ): Product[] => {
-  return products.filter(
-    (item) => !mostBoughtProducts.some((mb) => mb.id === item.id)
-  );
+  // Since mostBoughtProducts is empty, return all products
+  return products;
 };

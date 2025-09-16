@@ -64,11 +64,6 @@ export const ensureDataIntegrity = (
         return false;
       }
 
-      console.log("✅ Data integrity check passed:", {
-        total: result.data.length,
-        valid: result.data.length,
-        invalid: 0,
-      });
       return true;
     }
 
@@ -85,11 +80,6 @@ export const ensureDataIntegrity = (
         return false;
       }
 
-      console.log("✅ Categories integrity check passed:", {
-        total: result.data.length,
-        valid: result.data.length,
-        invalid: 0,
-      });
       return true;
     }
 
@@ -136,13 +126,10 @@ export const safeMigrateData = <T>(
   migrationFn: (data: any) => T
 ): T => {
   try {
-    console.log("🔄 Starting safe data migration...");
     const migrated = migrationFn(oldData);
-    console.log("✅ Data migration completed successfully");
     return migrated;
   } catch (error) {
-    console.error("❌ Data migration failed:", error);
-    console.log("🔄 Falling back to default data...");
+    console.error("Data migration failed:", error);
     // Return safe default data
     return {} as T;
   }

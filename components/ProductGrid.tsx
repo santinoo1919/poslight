@@ -1,14 +1,23 @@
 import React, { useMemo } from "react";
-import { View } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import ProductGridSkeleton from "./ProductGridSkeleton";
 import ProductGridHeader from "./ProductGridHeader";
-import ProductGridContent from "./ProductGridContent";
 import ErrorDisplay from "./ErrorDisplay";
+import ProductCard from "./ProductCard";
 import type { Product } from "../types/database";
 import { useProductStore } from "../stores/productStore";
 import { useCartStore } from "../stores/cartStore";
 import { useAuthStore } from "../stores/authStore";
 import { useInventoryQuery } from "../hooks/useInventoryQuery";
+
+// Memoized ProductCard to prevent unnecessary re-renders
+const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
+  return (
+    prevProps.product.id === nextProps.product.id &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.inventory === nextProps.inventory
+  );
+});
 
 export default function ProductGrid() {
   // Get product state from Zustand store
@@ -71,7 +80,6 @@ export default function ProductGrid() {
   }, [loading, products, searchResults, currentCategory]);
 
   // Show skeleton only during actual loading states
-  // Don't show skeleton if we have local inventory data
   if ((loading || !products) && !localInventory?.length) {
     return <ProductGridSkeleton />;
   }
@@ -89,15 +97,56 @@ export default function ProductGrid() {
         currentCategory={currentCategory}
       />
 
-      <ProductGridContent
-        products={visibleProducts}
-        allProducts={products || []}
-        inventoryMap={inventoryMap}
-        onProductPress={handleProductPress}
-        selectedProductForQuantity={selectedProductForQuantity}
-        currentCategory={currentCategory}
-        loading={loading || inventoryLoading}
-      />
+      <ScrollView
+        className="flex-1 bg-background-light dark:bg-background-dark"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="p-4 bg-background-light dark:bg-background-dark">
+          <View className="space-y-6">
+            {/* Main Products Grid - 4 columns */}
+            <View>
+              <Text className="text-sm font-semibold text-text-primary dark:text-text-inverse mb-3">
+                {currentCategory
+                  ? `${currentCategory} Products`
+                  : "All Products"}{" "}
+                ({visibleProducts.length})
+              </Text>
+
+              <View className="flex-row flex-wrap justify-start">
+                {visibleProducts.map((product, index) => {
+                  const inventory = inventoryMap?.get(product.id);
+                  return (
+                    <View
+                      key={product.id || `product-${index}`}
+                      className="w-1/4 p-1"
+                    >
+                      <MemoizedProductCard
+                        product={product}
+                        inventory={inventory}
+                        onPress={handleProductPress}
+                        isSelected={
+                          selectedProductForQuantity?.id === product.id
+                        }
+                      />
+                    </View>
+                  );
+                })}
+              </View>
+
+              {/* Show message if no products */}
+              {visibleProducts.length === 0 && (
+                <View className="py-8 items-center">
+                  <Text className="text-text-secondary dark:text-text-muted text-center text-sm">
+                    {currentCategory
+                      ? `No products found in ${currentCategory}`
+                      : "No products available"}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 }

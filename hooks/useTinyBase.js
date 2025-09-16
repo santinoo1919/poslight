@@ -28,8 +28,6 @@ export default function useTinyBase() {
 
         // Simple approach: Use whatever data is in the store
         if (productsData && Object.keys(productsData).length > 0) {
-          console.log("✅ Data found in store, loading...");
-
           // Use the proper db.getProducts() function to get products with IDs
           const { db } = await import("../services/tinybaseStore");
           const processedProducts = db.getProducts();
@@ -117,8 +115,6 @@ export default function useTinyBase() {
 
   // SIMPLE: Just update the main products array using our helper
   const updateProductStock = useCallback((productId, newStock) => {
-    console.log(`🔍 updateProductStock: ${productId} -> ${newStock}`);
-
     // Use our clean helper function
     setProducts((prevProducts) =>
       updateProductStockHelper(prevProducts, productId, newStock)

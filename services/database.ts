@@ -130,7 +130,7 @@ class DatabaseService {
       "SELECT COUNT(*) as count FROM products"
     );
     if (rows[0].count > 0) {
-      console.log("Database already seeded, skipping... 🚀");
+      // Database already seeded, skipping
       return;
     }
 
