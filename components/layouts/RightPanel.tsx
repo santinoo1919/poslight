@@ -71,11 +71,11 @@ export default function RightPanel() {
       payment_method: "cash",
       status: "completed",
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     };
 
     const saleItems = productsToSync.map((product) => ({
       sale_id: saleId,
+      inventory_id: product.inventory?.id,
       product_id: product.id,
       quantity: product.quantity,
       unit_price: product.inventory?.sell_price || 0,
@@ -93,12 +93,19 @@ export default function RightPanel() {
     }));
 
     // Queue sync mutations (will retry when online)
+    console.log("🔄 Starting sync with data:", {
+      saleData,
+      saleItems,
+      inventoryUpdates,
+    });
+
     try {
       await Promise.all([
         syncSale.mutateAsync(saleData),
         syncSaleItems.mutateAsync(saleItems),
         syncInventory.mutateAsync(inventoryUpdates),
       ]);
+      console.log("✅ All sync mutations completed successfully");
     } catch (error) {
       console.error("❌ Sync failed:", error);
       // Mutations will retry automatically when online
