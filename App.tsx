@@ -15,6 +15,8 @@ import { toastConfig } from "./config/toastConfig";
 import Header from "./components/Header";
 import { useDataSync } from "./hooks/useDataSync";
 import { useSyncQueueProcessor } from "./hooks/useSyncMutations";
+import SalesSidePanel from "./components/SalesSidePanel";
+import { useDrawerStore } from "./stores/drawerStore";
 
 function AppContent() {
   // Get theme
@@ -30,6 +32,9 @@ function AppContent() {
 
   const { user } = useAuthStore();
 
+  // Get drawer state
+  const { isSalesDrawerOpen, closeSalesDrawer } = useDrawerStore();
+
   useDataSync(user?.id);
   useSyncQueueProcessor(); // Start background sync processing
 
@@ -42,6 +47,12 @@ function AppContent() {
       <Header />
 
       <MainLayout leftPanel={<LeftPanel />} rightPanel={<RightPanel />} />
+
+      {/* Add Sales Side Panel */}
+      <SalesSidePanel
+        isVisible={isSalesDrawerOpen}
+        onClose={closeSalesDrawer}
+      />
 
       <Toast config={toastConfig} />
     </SafeAreaWrapper>

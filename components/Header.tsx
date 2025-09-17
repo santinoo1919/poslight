@@ -1,11 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { useMetricsStore } from "../stores/metricsStore";
 import { useAuthStore } from "../stores/authStore";
 import ThemeToggle from "./ThemeToggle";
+import DailyMetricsCard from "./DailyMetricsCard";
 
 export default function Header() {
-  const { dailyRevenue, dailyProfit } = useMetricsStore();
   const { signOut } = useAuthStore();
 
   return (
@@ -29,27 +28,8 @@ export default function Header() {
           {/* Theme Toggle */}
           <ThemeToggle size="small" showIcon={false} />
 
-          <View className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2">
-            <View className="flex-row items-center space-x-3">
-              <View className="items-center">
-                <Text className="text-xs text-text-secondary dark:text-text-muted">
-                  Today's Revenue
-                </Text>
-                <Text className="text-sm font-bold text-state-success dark:text-state-successDark">
-                  €{dailyRevenue.toFixed(2)}
-                </Text>
-              </View>
-              <View className="w-px h-8 bg-border-muted dark:bg-border-dark"></View>
-              <View className="items-center">
-                <Text className="text-xs text-text-secondary dark:text-text-muted">
-                  Today's Profit
-                </Text>
-                <Text className="text-sm font-bold text-brand-primary dark:text-brand-primaryDark">
-                  €{dailyProfit.toFixed(2)}
-                </Text>
-              </View>
-            </View>
-          </View>
+          {/* Tappable Daily Metrics Card */}
+          <DailyMetricsCard />
 
           {/* Logout Button */}
           <TouchableOpacity

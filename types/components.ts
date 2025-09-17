@@ -168,6 +168,7 @@ export interface ErrorDisplayProps {
 export interface DailyMetricsCardProps {
   dailyRevenue: number;
   dailyProfit: number;
+  onPress?: () => void;
 }
 
 export interface ProductGridSkeletonProps {
