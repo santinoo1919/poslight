@@ -7,11 +7,10 @@ interface MetricsState {
   lastUpdatedDate: string | null;
 
   // Actions
-  calculateDailyMetrics: (sales: any[]) => void;
-  loadPersistedMetrics: () => Promise<void>;
+  recordSale: (revenue: number, profit: number) => void;
   resetDaily: () => void;
-  getDailyRevenue: () => number;
-  getDailyProfit: () => number;
+  recalculateFromLocalTransactions: () => void;
+  loadPersistedMetrics: () => Promise<void>;
 }
 
 const STORAGE_KEY = "daily_metrics";
@@ -21,30 +20,59 @@ export const useMetricsStore = create<MetricsState>((set, get) => ({
   dailyProfit: 0,
   lastUpdatedDate: null,
 
-  calculateDailyMetrics: (sales: any[]) => {
+  recordSale: (revenue: number, profit: number) => {
+    const { dailyRevenue, dailyProfit, lastUpdatedDate } = get();
     const today = new Date().toISOString().split("T")[0];
-    const todaySales = sales.filter((sale) =>
-      sale.created_at.startsWith(today)
-    );
 
-    const revenue = todaySales.reduce(
-      (sum, sale) => sum + (sale.total_amount || 0),
+    // Check if it's a new day and reset if needed
+    if (lastUpdatedDate !== today) {
+      set({
+        dailyRevenue: revenue,
+        dailyProfit: profit,
+        lastUpdatedDate: today,
+      });
+    } else {
+      set({
+        dailyRevenue: dailyRevenue + revenue,
+        dailyProfit: dailyProfit + profit,
+        lastUpdatedDate: today,
+      });
+    }
+
+    // Persist to AsyncStorage
+    const state = get();
+    AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        dailyRevenue: state.dailyRevenue,
+        dailyProfit: state.dailyProfit,
+        lastUpdatedDate: state.lastUpdatedDate,
+      })
+    ).catch((error) => {
+      console.warn("Failed to save metrics:", error);
+    });
+  },
+
+  resetDaily: () => {
+    set({ dailyRevenue: 0, dailyProfit: 0, lastUpdatedDate: null });
+    AsyncStorage.removeItem(STORAGE_KEY).catch((error) => {
+      console.warn("Failed to clear metrics:", error);
+    });
+  },
+
+  recalculateFromLocalTransactions: () => {
+    const { db } = require("../services/tinybaseStore");
+    const transactions = db.getTodayTransactions();
+    const today = new Date().toISOString().split("T")[0];
+
+    const revenue = transactions.reduce(
+      (sum, transaction) => sum + (transaction.total_amount || 0),
       0
     );
-    const profit = todaySales.reduce((sum, sale) => {
-      const itemProfit =
-        sale.sale_items?.reduce((itemSum: number, item: any) => {
-          // Use real cost data from inventory
-          const buyPrice = item.inventory?.buy_price || 0;
-          const sellPrice = item.unit_price || 0;
-          const quantity = item.quantity || 0;
 
-          // Calculate real profit: (sell_price - buy_price) * quantity
-          const itemProfit = (sellPrice - buyPrice) * quantity;
-          return itemSum + itemProfit;
-        }, 0) || 0;
-      return sum + itemProfit;
-    }, 0);
+    // For now, set profit to 0 since we don't have buy prices in transactions
+    // TODO: Get buy prices from inventory when available
+    const profit = 0;
 
     set({
       dailyRevenue: revenue,
@@ -60,9 +88,12 @@ export const useMetricsStore = create<MetricsState>((set, get) => ({
         dailyProfit: profit,
         lastUpdatedDate: today,
       })
-    );
+    ).catch((error) => {
+      console.warn("Failed to save metrics:", error);
+    });
   },
 
+  // Load persisted metrics on app start
   loadPersistedMetrics: async () => {
     try {
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
@@ -85,20 +116,5 @@ export const useMetricsStore = create<MetricsState>((set, get) => ({
     } catch (error) {
       console.error("Failed to load persisted metrics:", error);
     }
-  },
-
-  resetDaily: () => {
-    set({ dailyRevenue: 0, dailyProfit: 0, lastUpdatedDate: null });
-    AsyncStorage.removeItem(STORAGE_KEY);
-  },
-
-  getDailyRevenue: () => {
-    const { dailyRevenue } = get();
-    return dailyRevenue;
-  },
-
-  getDailyProfit: () => {
-    const { dailyProfit } = get();
-    return dailyProfit;
   },
 }));

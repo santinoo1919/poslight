@@ -1,7 +1,7 @@
 // components/SalesSidePanel.tsx
-import React from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { useSalesQuery } from "../hooks/useSalesQuery";
+import { db } from "../services/tinybaseStore";
 import { useTheme } from "../stores/themeStore";
 
 interface SalesSidePanelProps {
@@ -13,8 +13,43 @@ export default function SalesSidePanel({
   isVisible,
   onClose,
 }: SalesSidePanelProps) {
-  const { data: sales, isLoading, error } = useSalesQuery();
   const { isDark } = useTheme();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Refresh data when panel becomes visible
+  useEffect(() => {
+    if (isVisible) {
+      setRefreshKey((prev) => prev + 1);
+    }
+  }, [isVisible]);
+
+  // Get local sales data from TinyBase store
+  const sales = useMemo(() => {
+    const transactions = db.getTodayTransactions();
+    const products = db.getProducts();
+
+    return transactions
+      .map((transaction) => ({
+        id: transaction.id,
+        total_amount: transaction.total_amount,
+        created_at: transaction.created_at,
+        sale_items: db.getTransactionItems(transaction.id).map((item) => {
+          const product = products.find((p) => p.id === item.product_id);
+          return {
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_price: item.total_price,
+            products: {
+              name: product?.name || `Product ${item.product_id}`,
+            },
+          };
+        }),
+      }))
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      ); // Latest first
+  }, [refreshKey]);
 
   if (!isVisible) return null;
 
@@ -63,23 +98,7 @@ export default function SalesSidePanel({
             isDark ? "bg-background-dark" : "bg-background-light"
           }`}
         >
-          {isLoading ? (
-            <View className="py-8">
-              <Text
-                className={`text-center ${
-                  isDark ? "text-text-muted" : "text-text-secondary"
-                }`}
-              >
-                Loading sales...
-              </Text>
-            </View>
-          ) : error ? (
-            <View className="py-8">
-              <Text className="text-center text-state-error dark:text-state-errorDark">
-                Error loading sales
-              </Text>
-            </View>
-          ) : !sales || sales.length === 0 ? (
+          {!sales || sales.length === 0 ? (
             <View className="py-8">
               <Text
                 className={`text-center ${

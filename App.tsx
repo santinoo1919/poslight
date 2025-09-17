@@ -17,6 +17,8 @@ import { useDataSync } from "./hooks/useDataSync";
 import { useSyncQueueProcessor } from "./hooks/useSyncMutations";
 import SalesSidePanel from "./components/SalesSidePanel";
 import { useDrawerStore } from "./stores/drawerStore";
+import { useMetricsStore } from "./stores/metricsStore";
+import { loadStore } from "./services/tinybaseStore";
 
 function AppContent() {
   // Get theme
@@ -35,8 +37,26 @@ function AppContent() {
   // Get drawer state
   const { isSalesDrawerOpen, closeSalesDrawer } = useDrawerStore();
 
+  // Get metrics store
+  const { loadPersistedMetrics, recalculateFromLocalTransactions } =
+    useMetricsStore();
+
   useDataSync(user?.id);
   useSyncQueueProcessor(); // Start background sync processing
+
+  // Initialize store and metrics on app start
+  React.useEffect(() => {
+    const initializeApp = async () => {
+      // Load persistent store first
+      await loadStore();
+
+      // Then load metrics and recalculate
+      await loadPersistedMetrics();
+      recalculateFromLocalTransactions();
+    };
+
+    initializeApp();
+  }, [loadPersistedMetrics, recalculateFromLocalTransactions]);
 
   return (
     <SafeAreaWrapper

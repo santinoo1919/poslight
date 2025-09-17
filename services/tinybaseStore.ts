@@ -1,5 +1,6 @@
 import { createStore } from "tinybase";
 import { getProfitLevel } from "../utils/profitLevels";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type {
   Product,
   Category,
@@ -7,7 +8,7 @@ import type {
   TransactionItem,
 } from "../types/database";
 
-// TinyBase store - empty, populated by queries from Supabase
+// TinyBase store - persistent, populated by queries from Supabase
 
 // Create the main store (empty, will be populated by queries)
 export const store = createStore()
@@ -17,6 +18,61 @@ export const store = createStore()
   .setTable("transactions", {})
   .setTable("transaction_items", {})
   .setTable("sync_queue", {}); // For persistent sync operations
+
+// Persistence functions
+const STORAGE_KEY = "tinybase_store";
+
+export const saveStore = async () => {
+  try {
+    const storeData = {
+      categories: store.getTable("categories"),
+      products: store.getTable("products"),
+      inventory: store.getTable("inventory"),
+      transactions: store.getTable("transactions"),
+      transaction_items: store.getTable("transaction_items"),
+      sync_queue: store.getTable("sync_queue"),
+    };
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(storeData));
+  } catch (error) {
+    console.warn("Failed to save store:", error);
+  }
+};
+
+export const loadStore = async () => {
+  try {
+    const stored = await AsyncStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const data = JSON.parse(stored);
+
+      // Load each table
+      Object.entries(data.categories || {}).forEach(([id, category]) => {
+        store.setRow("categories", id, category as any);
+      });
+
+      Object.entries(data.products || {}).forEach(([id, product]) => {
+        store.setRow("products", id, product as any);
+      });
+
+      Object.entries(data.inventory || {}).forEach(([id, inventory]) => {
+        store.setRow("inventory", id, inventory as any);
+      });
+
+      Object.entries(data.transactions || {}).forEach(([id, transaction]) => {
+        store.setRow("transactions", id, transaction as any);
+      });
+
+      Object.entries(data.transaction_items || {}).forEach(([id, item]) => {
+        store.setRow("transaction_items", id, item as any);
+      });
+
+      Object.entries(data.sync_queue || {}).forEach(([id, queueItem]) => {
+        store.setRow("sync_queue", id, queueItem as any);
+      });
+    }
+  } catch (error) {
+    console.warn("Failed to load store:", error);
+  }
+};
 
 // Initialize store with data (no persistence for now)
 export const initializeStore = async (): Promise<void> => {
@@ -49,6 +105,9 @@ export const db: {
     lastUpdated: string;
   };
   updateDailyMetrics: (revenue: number, profit: number) => void;
+  getTransactions: () => Transaction[];
+  getTransactionItems: (transactionId: string) => TransactionItem[];
+  getTodayTransactions: () => Transaction[];
 } = {
   // Get all products with category info
   getProducts: (): Product[] => {
@@ -145,6 +204,8 @@ export const db: {
       status: "completed",
       created_at: new Date().toISOString(),
     });
+    // Save to persistent storage
+    saveStore();
     return transactionId;
   },
 
@@ -164,6 +225,8 @@ export const db: {
         total_price: item.total_price,
       });
     });
+    // Save to persistent storage
+    saveStore();
   },
 
   // Get daily metrics
@@ -206,6 +269,30 @@ export const db: {
       profit: ((currentMetrics.profit as number) || 0) + profit,
       lastUpdated: new Date().toISOString(),
     });
+  },
+
+  // Get all transactions
+  getTransactions: (): Transaction[] => {
+    const transactions = store.getTable("transactions");
+    return Object.values(transactions) as unknown as Transaction[];
+  },
+
+  // Get transaction items for a specific transaction
+  getTransactionItems: (transactionId: string): TransactionItem[] => {
+    const transactionItems = store.getTable("transaction_items");
+    return Object.values(transactionItems).filter(
+      (item) => item.transaction_id === transactionId
+    ) as unknown as TransactionItem[];
+  },
+
+  // Get today's transactions
+  getTodayTransactions: (): Transaction[] => {
+    const transactions = store.getTable("transactions");
+    const today = new Date().toISOString().split("T")[0];
+
+    return Object.values(transactions).filter((transaction) =>
+      (transaction.created_at as string).startsWith(today)
+    ) as unknown as Transaction[];
   },
 };
 

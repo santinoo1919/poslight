@@ -163,6 +163,18 @@ export const useCartStore = create<CartState>((set, get) => ({
       const { recordSale } = useMetricsStore.getState();
       recordSale(totalAmount, totalProfit);
 
+      // Record transaction in TinyBase store
+      const { db } = require("../services/tinybaseStore");
+      const transactionId = db.addTransaction({
+        total_amount: totalAmount,
+        payment_method: "cash",
+        status: "completed",
+        created_at: new Date().toISOString(),
+      });
+      
+      // Record transaction items
+      db.addTransactionItems(transactionId, saleItems);
+
       // Update local state immediately (works offline!)
       const { useProductStore } = require("../stores/productStore");
       const {

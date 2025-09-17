@@ -3,12 +3,10 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useMetricsStore } from "../stores/metricsStore";
 import { useDrawerStore } from "../stores/drawerStore";
-import { useMetricsSync } from "../hooks/useMetricsSync";
 
 export default function DailyMetricsCard() {
   const { dailyRevenue, dailyProfit } = useMetricsStore();
   const { openSalesDrawer } = useDrawerStore();
-  const { isLoading } = useMetricsSync();
 
   return (
     <TouchableOpacity
@@ -22,7 +20,7 @@ export default function DailyMetricsCard() {
             Today's Revenue
           </Text>
           <Text className="text-sm font-bold text-state-success dark:text-state-successDark">
-            {isLoading ? "..." : `€${dailyRevenue.toFixed(2)}`}
+            €{dailyRevenue.toFixed(2)}
           </Text>
         </View>
         <View className="w-px h-8 bg-border-light dark:bg-border-dark"></View>
@@ -31,7 +29,7 @@ export default function DailyMetricsCard() {
             Today's Profit
           </Text>
           <Text className="text-sm font-bold text-brand-primary dark:text-brand-primaryDark">
-            {isLoading ? "..." : `€${dailyProfit.toFixed(2)}`}
+            €{dailyProfit.toFixed(2)}
           </Text>
         </View>
       </View>
