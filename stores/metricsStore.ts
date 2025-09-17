@@ -70,9 +70,25 @@ export const useMetricsStore = create<MetricsState>((set, get) => ({
       0
     );
 
-    // For now, set profit to 0 since we don't have buy prices in transactions
-    // TODO: Get buy prices from inventory when available
-    const profit = 0;
+    // Calculate profit from transaction items using actual buy prices
+    const profit = transactions.reduce((totalProfit, transaction) => {
+      const transactionItems = db.getTransactionItems(transaction.id);
+
+      const transactionProfit = transactionItems.reduce((itemSum, item) => {
+        const sellPrice = item.unit_price || 0;
+        const quantity = item.quantity || 0;
+
+        // Get the buy price from inventory data
+        const inventoryData = db.getInventoryForProduct(item.product_id);
+        const buyPrice = inventoryData?.buy_price || 0;
+
+        const itemProfit = (sellPrice - buyPrice) * quantity;
+
+        return itemSum + itemProfit;
+      }, 0);
+
+      return totalProfit + transactionProfit;
+    }, 0);
 
     set({
       dailyRevenue: revenue,

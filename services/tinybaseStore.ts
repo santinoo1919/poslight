@@ -17,6 +17,7 @@ export const store = createStore()
   .setTable("inventory", {})
   .setTable("transactions", {})
   .setTable("transaction_items", {})
+  .setTable("stock_updates", {}) // For stock update sync
   .setTable("sync_queue", {}); // For persistent sync operations
 
 // Persistence functions
@@ -30,6 +31,7 @@ export const saveStore = async () => {
       inventory: store.getTable("inventory"),
       transactions: store.getTable("transactions"),
       transaction_items: store.getTable("transaction_items"),
+      stock_updates: store.getTable("stock_updates"),
       sync_queue: store.getTable("sync_queue"),
     };
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(storeData));
@@ -65,6 +67,10 @@ export const loadStore = async () => {
         store.setRow("transaction_items", id, item as any);
       });
 
+      Object.entries(data.stock_updates || {}).forEach(([id, stockUpdate]) => {
+        store.setRow("stock_updates", id, stockUpdate as any);
+      });
+
       Object.entries(data.sync_queue || {}).forEach(([id, queueItem]) => {
         store.setRow("sync_queue", id, queueItem as any);
       });
@@ -93,7 +99,7 @@ export const db: {
   getCategories: () => Category[];
   searchProducts: (query: string) => Product[];
   getProductsByCategory: (category: string) => Product[];
-  updateStock: (productId: string, newStock: number) => boolean;
+  updateStock: (productId: string, newStock: number) => void;
   addTransaction: (transaction: Omit<Transaction, "id">) => string;
   addTransactionItems: (
     transactionId: string,
@@ -108,6 +114,12 @@ export const db: {
   getTransactions: () => Transaction[];
   getTransactionItems: (transactionId: string) => TransactionItem[];
   getTodayTransactions: () => Transaction[];
+  getInventoryForProduct: (productId: string) => any;
+  addStockUpdate: (
+    productId: string,
+    oldStock: number,
+    newStock: number
+  ) => string;
 } = {
   // Get all products with category info
   getProducts: (): Product[] => {
@@ -186,12 +198,6 @@ export const db: {
             icon: (categories[product.category as string] as any)?.icon || "📦",
           }) as Product
       );
-  },
-
-  // Update stock (instant update)
-  updateStock: (productId: string, newStock: number): boolean => {
-    store.setCell("products", productId, "stock", newStock);
-    return true;
   },
 
   // Add transaction
@@ -294,13 +300,72 @@ export const db: {
       (transaction.created_at as string).startsWith(today)
     ) as unknown as Transaction[];
   },
+
+  // Get inventory data for a specific product
+  getInventoryForProduct: (productId: string): any => {
+    const inventory = store.getTable("inventory");
+    const inventoryItems = Object.values(inventory);
+
+    // Find inventory item for this product
+    const inventoryItem = inventoryItems.find(
+      (item: any) => item.product_id === productId && item.is_active
+    );
+
+    return inventoryItem || null;
+  },
+
+  // Update stock for a product
+  updateStock: (productId: string, newStock: number): void => {
+    const inventory = store.getTable("inventory");
+    const inventoryItems = Object.values(inventory);
+
+    // Find inventory item for this product
+    const inventoryItem = inventoryItems.find(
+      (item: any) => item.product_id === productId && item.is_active
+    );
+
+    if (inventoryItem) {
+      // Update the stock in the inventory table
+      store.setRow("inventory", inventoryItem.id as string, {
+        ...inventoryItem,
+        stock: newStock,
+        updated_at: new Date().toISOString(),
+      });
+
+      // Save to persistent storage
+      saveStore();
+    }
+  },
+
+  // Add stock update record for sync
+  addStockUpdate: (
+    productId: string,
+    oldStock: number,
+    newStock: number
+  ): string => {
+    const stockUpdateId = `stock-${Date.now()}`;
+
+    store.setRow("stock_updates", stockUpdateId, {
+      id: stockUpdateId,
+      product_id: productId,
+      old_stock: oldStock,
+      new_stock: newStock,
+      created_at: new Date().toISOString(),
+      synced: false,
+    });
+
+    // Save to persistent storage
+    saveStore();
+
+    return stockUpdateId;
+  },
 };
 
 // Sync Queue Utilities
 export const syncQueue = {
   // Add operation to sync queue
   add: (operation: {
-    type: "sale" | "sale_items" | "inventory";
+    type: "sale" | "sale_items" | "inventory" | "stock_update";
     data: any;
     retryCount?: number;
   }) => {

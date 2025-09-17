@@ -74,6 +74,30 @@ export const useSyncInventory = () => {
   });
 };
 
+export const useSyncStockUpdate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (stockUpdate: any) => {
+      try {
+        const { data, error } = await supabase
+          .from("inventory")
+          .update({ stock: stockUpdate.new_stock })
+          .eq("product_id", stockUpdate.product_id);
+        if (error) throw error;
+        return data;
+      } catch (error) {
+        // Queue for later retry
+        syncQueue.add({ type: "stock_update", data: stockUpdate });
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+    },
+  });
+};
+
 // Background queue processor hook
 export const useSyncQueueProcessor = () => {
   const queryClient = useQueryClient();
@@ -111,6 +135,14 @@ export const useSyncQueueProcessor = () => {
                   ignoreDuplicates: false,
                 });
               if (invError) throw invError;
+              break;
+
+            case "stock_update":
+              const { error: stockError } = await supabase
+                .from("inventory")
+                .update({ stock: data.new_stock })
+                .eq("product_id", data.product_id);
+              if (stockError) throw stockError;
               break;
           }
 
