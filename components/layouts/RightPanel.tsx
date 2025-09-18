@@ -3,14 +3,8 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import Keypad from "../Keypad";
 import type { Product, CartProduct } from "../../types/components";
 import { useCartStore } from "../../stores/cartStore";
-import { ToastService } from "../../services/toastService";
-import {
-  useSyncSale,
-  useSyncSaleItems,
-  useSyncInventory,
-  useSyncStockUpdate,
-} from "../../hooks/useSyncMutations";
-import { useAuthStore } from "../../stores/authStore";
+import { useCartOperations } from "../../hooks/useCartOperations";
+import { useStockOperations } from "../../hooks/useStockOperations";
 
 export default function RightPanel() {
   // Tab state
@@ -29,187 +23,11 @@ export default function RightPanel() {
     handleKeypadDelete,
     handleKeypadClear,
     handleKeypadEnter,
-    completeSale,
-    getTotalAmount,
   } = useCartStore();
 
-  // Sync mutations
-  const syncSale = useSyncSale();
-  const syncSaleItems = useSyncSaleItems();
-  const syncInventory = useSyncInventory();
-  const syncStockUpdate = useSyncStockUpdate();
-
-  const handleCompleteSale = async () => {
-    // Final validation before sale
-    for (const product of selectedProducts) {
-      const stock = product.inventory?.stock ?? 0;
-      if (product.quantity > stock) {
-        ToastService.stock.insufficient(product.name, product.quantity, stock);
-        return;
-      }
-    }
-
-    // Store selected products before clearing cart
-    const productsToSync = [...selectedProducts];
-
-    // Complete the sale (this updates local state immediately and clears cart)
-    completeSale();
-
-    // Prepare sync data for database (only if online)
-    const { user } = useAuthStore.getState();
-    const userId = user?.id;
-
-    if (!userId) return;
-
-    const totalAmount = productsToSync.reduce(
-      (sum, product) =>
-        sum + (product.inventory?.sell_price || 0) * product.quantity,
-      0
-    );
-
-    const saleId = crypto.randomUUID();
-
-    const saleData = {
-      id: saleId,
-      user_id: userId,
-      total_amount: totalAmount,
-      payment_method: "cash",
-      status: "completed",
-      created_at: new Date().toISOString(),
-    };
-
-    const saleItems = productsToSync.map((product) => ({
-      sale_id: saleId,
-      inventory_id: product.inventory?.id,
-      product_id: product.id,
-      quantity: product.quantity,
-      unit_price: product.inventory?.sell_price || 0,
-      total_price: (product.inventory?.sell_price || 0) * product.quantity,
-    }));
-
-    const inventoryUpdates = productsToSync.map((product) => ({
-      product_id: product.id,
-      user_id: userId,
-      stock: (product.inventory?.stock || 0) - product.quantity,
-      buy_price: product.inventory?.buy_price || 0,
-      sell_price: product.inventory?.sell_price || 0,
-      is_active: true,
-      updated_at: new Date().toISOString(),
-    }));
-
-    // Queue sync mutations (will retry when online)
-    console.log("🔄 Starting sync with data:", {
-      saleData,
-      saleItems,
-      inventoryUpdates,
-    });
-
-    try {
-      await Promise.all([
-        syncSale.mutateAsync(saleData),
-        syncSaleItems.mutateAsync(saleItems),
-        syncInventory.mutateAsync(inventoryUpdates),
-      ]);
-      console.log("✅ All sync mutations completed successfully");
-    } catch (error) {
-      console.error("❌ Sync failed:", error);
-      // Mutations will retry automatically when online
-    }
-  };
-
-  const handleUpdateStock = async () => {
-    // Final validation before stock update
-    for (const product of selectedProducts) {
-      if (product.quantity < 0) {
-        ToastService.stock.insufficient(product.name, product.quantity, 0);
-        return;
-      }
-    }
-
-    // Store selected products before clearing cart
-    const productsToUpdate = [...selectedProducts];
-
-    // Get user ID for sync
-    const { user } = useAuthStore.getState();
-    const userId = user?.id;
-
-    if (!userId) return;
-
-    // Update stock locally first
-    const { db } = require("../../services/tinybaseStore");
-
-    for (const product of productsToUpdate) {
-      const oldStock = product.inventory?.stock || 0;
-      const stockToAdd = product.quantity;
-      const newStock = oldStock + stockToAdd;
-
-      // Update local stock (add to existing)
-      db.updateStock(product.id, newStock);
-
-      // Add stock update record for sync
-      db.addStockUpdate(product.id, oldStock, newStock);
-    }
-
-    // Update local product store for immediate UI refresh (same as sales)
-    const { useProductStore } = require("../../stores/productStore");
-    const { setInventory, inventory: currentInventory } =
-      useProductStore.getState();
-
-    // Update inventory array (this is what the UI reads from)
-    const updatedInventory = [...(currentInventory || [])];
-
-    productsToUpdate.forEach((product) => {
-      const oldStock = product.inventory?.stock || 0;
-      const stockToAdd = product.quantity;
-      const newStock = oldStock + stockToAdd;
-
-      // Find and update inventory item
-      const existingIndex = updatedInventory.findIndex(
-        (item) => item.product_id === product.id
-      );
-
-      if (existingIndex >= 0) {
-        updatedInventory[existingIndex] = {
-          ...updatedInventory[existingIndex],
-          stock: newStock,
-          updated_at: new Date().toISOString(),
-        };
-      }
-    });
-
-    setInventory(updatedInventory);
-
-    // Clear the cart
-    selectedProducts.forEach((product) => removeFromCart(product.id));
-
-    // Prepare sync data for database (only if online)
-    try {
-      const stockUpdates = productsToUpdate.map((product) => {
-        const oldStock = product.inventory?.stock || 0;
-        const stockToAdd = product.quantity;
-        const newStock = oldStock + stockToAdd;
-
-        return {
-          product_id: product.id,
-          old_stock: oldStock,
-          new_stock: newStock,
-          created_at: new Date().toISOString(),
-        };
-      });
-
-      console.log("🔄 Starting stock sync with data:", stockUpdates);
-
-      // Sync each stock update
-      await Promise.all(
-        stockUpdates.map((update) => syncStockUpdate.mutateAsync(update))
-      );
-
-      console.log("✅ All stock updates synced successfully");
-    } catch (error) {
-      console.error("❌ Stock sync failed:", error);
-      // Updates will retry automatically when online
-    }
-  };
+  // Custom hooks for operations
+  const { handleCompleteSale, getTotalAmount } = useCartOperations();
+  const { handleUpdateStock } = useStockOperations();
 
   return (
     <>
