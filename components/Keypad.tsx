@@ -92,11 +92,6 @@ const Keypad: React.FC<KeypadProps> = React.memo(
           <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
             💰 Quantity Keypad
           </Text>
-          <View className="mt-3">
-            <Text className="text-xs text-text-secondary dark:text-text-muted text-center">
-              Select product → Type quantity → Auto-adds to cart
-            </Text>
-          </View>
         </View>
 
         {/* Keypad Grid */}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import Keypad from "../Keypad";
+import ActionCTA from "../ActionCTA";
 import type { Product, CartProduct } from "../../types/components";
 import { useCartStore } from "../../stores/cartStore";
 import { useCartOperations } from "../../hooks/useCartOperations";
@@ -178,25 +179,15 @@ export default function RightPanel() {
                   </View>
                 </ScrollView>
 
-                {/* Cart Total and Actions */}
+                {/* Cart CTA */}
                 <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
-                  <View className="flex-row justify-between items-center mb-4">
-                    <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse">
-                      Total:
-                    </Text>
-                    <Text className="text-xl font-bold text-text-primary dark:text-text-inverse">
-                      €{getTotalAmount().toFixed(2)}
-                    </Text>
-                  </View>
-
-                  <TouchableOpacity
+                  <ActionCTA
                     onPress={handleCompleteSale}
-                    className="bg-state-success dark:bg-state-successDark py-3 rounded-lg"
-                  >
-                    <Text className="text-white text-center font-semibold text-lg">
-                      Complete Sale
-                    </Text>
-                  </TouchableOpacity>
+                    totalAmount={getTotalAmount()}
+                    itemCount={selectedProducts.length}
+                    disabled={selectedProducts.length === 0}
+                    mode="cart"
+                  />
                 </View>
               </View>
             )}
@@ -305,16 +296,14 @@ export default function RightPanel() {
                   </View>
                 </ScrollView>
 
-                {/* Stock Update Action */}
+                {/* Stock CTA */}
                 <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
-                  <TouchableOpacity
+                  <ActionCTA
                     onPress={handleUpdateStock}
-                    className="bg-state-success dark:bg-state-successDark py-3 rounded-lg"
-                  >
-                    <Text className="text-white text-center font-semibold text-lg">
-                      Add Stock
-                    </Text>
-                  </TouchableOpacity>
+                    itemCount={selectedProducts.length}
+                    disabled={selectedProducts.length === 0}
+                    mode="stock"
+                  />
                 </View>
               </View>
             )}
