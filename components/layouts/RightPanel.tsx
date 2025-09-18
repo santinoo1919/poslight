@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import Keypad from "../Keypad";
 import ActionCTA from "../ActionCTA";
+import ItemList from "../ItemList";
+import CartItemCard from "../CartItemCard";
+import StockItemCard from "../StockItemCard";
 import type { Product, CartProduct } from "../../types/components";
 import { useCartStore } from "../../stores/cartStore";
 import { useCartOperations } from "../../hooks/useCartOperations";
@@ -106,91 +109,36 @@ export default function RightPanel() {
               />
             </View>
 
-            {selectedProducts.length === 0 ? (
-              <View className="bg-background-light dark:bg-background-dark rounded-lg p-4">
-                <Text className="text-text-secondary dark:text-text-muted text-center">
-                  No products selected
-                </Text>
-                <Text className="text-text-muted dark:text-text-secondary text-xs text-center mt-2">
-                  Tap products to add to cart
-                </Text>
-              </View>
-            ) : (
-              <View className="flex-1 flex-col">
-                {/* Cart Items - Scrollable */}
-                <ScrollView
-                  className="flex-1"
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingBottom: 20 }}
-                >
-                  <View className="space-y-3">
-                    {selectedProducts.map((product) => (
-                      <View
-                        key={product.id}
-                        className="bg-background-light dark:bg-background-dark rounded-lg p-3 border border-border-light dark:border-border-dark"
-                      >
-                        <View className="flex-row items-center justify-between mb-2">
-                          <Text
-                            className="font-medium text-text-primary dark:text-text-inverse text-sm"
-                            numberOfLines={1}
-                          >
-                            {product.name}
-                          </Text>
-                          <TouchableOpacity
-                            onPress={() => removeFromCart(product.id)}
-                            className="p-1"
-                          >
-                            <Text className="text-state-error dark:text-state-errorDark text-lg">
-                              ×
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-
-                        <View className="flex-row items-center justify-between">
-                          <Text className="text-text-secondary dark:text-text-muted text-sm">
-                            €{product.inventory?.sell_price.toFixed(2)} ×{" "}
-                            {product.quantity}
-                          </Text>
-                          <Text className="font-semibold text-text-primary dark:text-text-inverse">
-                            €
-                            {(
-                              product.inventory?.sell_price * product.quantity
-                            ).toFixed(2)}
-                          </Text>
-                        </View>
-
-                        <View className="flex-row items-center justify-between mt-2">
-                          <Text className="text-xs text-text-secondary dark:text-text-muted">
-                            Stock: {product.inventory?.stock}
-                          </Text>
-                          <TouchableOpacity
-                            onPress={() =>
-                              setSelectedProductForQuantity(product)
-                            }
-                            className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark px-2 py-1 rounded"
-                          >
-                            <Text className="text-text-primary dark:text-text-inverse text-xs">
-                              Edit Qty
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                </ScrollView>
-
-                {/* Cart CTA */}
-                <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
-                  <ActionCTA
-                    onPress={handleCompleteSale}
-                    totalAmount={getTotalAmount()}
-                    itemCount={selectedProducts.length}
-                    disabled={selectedProducts.length === 0}
-                    mode="cart"
+            <View className="flex-1 flex-col">
+              {/* Cart Items - Using ItemList */}
+              <ItemList
+                items={selectedProducts}
+                renderItem={(product) => (
+                  <CartItemCard
+                    product={product}
+                    selectedItem={selectedProductForQuantity}
+                    onRemove={removeFromCart}
+                    onEdit={setSelectedProductForQuantity}
                   />
-                </View>
+                )}
+                emptyState={{
+                  title: "No products selected",
+                  subtitle: "Tap products to add to cart",
+                }}
+                className="flex-1"
+              />
+
+              {/* Cart CTA */}
+              <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
+                <ActionCTA
+                  onPress={handleCompleteSale}
+                  totalAmount={getTotalAmount()}
+                  itemCount={selectedProducts.length}
+                  disabled={selectedProducts.length === 0}
+                  mode="cart"
+                />
               </View>
-            )}
+            </View>
           </>
         ) : (
           <>
@@ -226,87 +174,35 @@ export default function RightPanel() {
               />
             </View>
 
-            {selectedProducts.length === 0 ? (
-              <View className="bg-background-light dark:bg-background-dark rounded-lg p-4">
-                <Text className="text-text-secondary dark:text-text-muted text-center">
-                  No products selected for stock update
-                </Text>
-                <Text className="text-text-muted dark:text-text-secondary text-xs text-center mt-2">
-                  Tap products to update stock
-                </Text>
-              </View>
-            ) : (
-              <View className="flex-1 flex-col">
-                {/* Stock Items - Scrollable */}
-                <ScrollView
-                  className="flex-1"
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingBottom: 20 }}
-                >
-                  <View className="space-y-3">
-                    {selectedProducts.map((product) => (
-                      <View
-                        key={product.id}
-                        className="bg-background-light dark:bg-background-dark rounded-lg p-3 border border-border-light dark:border-border-dark"
-                      >
-                        <View className="flex-row items-center justify-between mb-2">
-                          <Text
-                            className="font-medium text-text-primary dark:text-text-inverse text-sm"
-                            numberOfLines={1}
-                          >
-                            {product.name}
-                          </Text>
-                          <TouchableOpacity
-                            onPress={() => removeFromCart(product.id)}
-                            className="p-1"
-                          >
-                            <Text className="text-state-error dark:text-state-errorDark text-lg">
-                              ×
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-
-                        <View className="flex-row items-center justify-between">
-                          <Text className="text-text-secondary dark:text-text-muted text-sm">
-                            Current: {product.inventory?.stock}
-                          </Text>
-                          <Text className="font-semibold text-text-primary dark:text-text-inverse">
-                            +{product.quantity} ={" "}
-                            {product.inventory?.stock + product.quantity}
-                          </Text>
-                        </View>
-
-                        <View className="flex-row items-center justify-between mt-2">
-                          <Text className="text-xs text-text-secondary dark:text-text-muted">
-                            Buy: €{product.inventory?.buy_price?.toFixed(2)}
-                          </Text>
-                          <TouchableOpacity
-                            onPress={() =>
-                              setSelectedProductForQuantity(product)
-                            }
-                            className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark px-2 py-1 rounded"
-                          >
-                            <Text className="text-text-primary dark:text-text-inverse text-xs">
-                              Edit Stock
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                </ScrollView>
-
-                {/* Stock CTA */}
-                <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
-                  <ActionCTA
-                    onPress={handleUpdateStock}
-                    itemCount={selectedProducts.length}
-                    disabled={selectedProducts.length === 0}
-                    mode="stock"
+            <View className="flex-1 flex-col">
+              {/* Stock Items - Using ItemList */}
+              <ItemList
+                items={selectedProducts}
+                renderItem={(product) => (
+                  <StockItemCard
+                    product={product}
+                    selectedItem={selectedProductForQuantity}
+                    onRemove={removeFromCart}
+                    onEdit={setSelectedProductForQuantity}
                   />
-                </View>
+                )}
+                emptyState={{
+                  title: "No products selected for stock update",
+                  subtitle: "Tap products to update stock",
+                }}
+                className="flex-1"
+              />
+
+              {/* Stock CTA */}
+              <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
+                <ActionCTA
+                  onPress={handleUpdateStock}
+                  itemCount={selectedProducts.length}
+                  disabled={selectedProducts.length === 0}
+                  mode="stock"
+                />
               </View>
-            )}
+            </View>
           </>
         )}
       </View>
