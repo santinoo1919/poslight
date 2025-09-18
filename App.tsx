@@ -24,11 +24,6 @@ function AppContent() {
   // Get theme
   const { isDark, loadTheme } = useTheme();
 
-  // Load saved theme on app start
-  React.useEffect(() => {
-    loadTheme();
-  }, [loadTheme]);
-
   // Get auth state for logout functionality
   const { signOut } = useAuthStore();
 
@@ -41,21 +36,26 @@ function AppContent() {
   const { loadPersistedMetrics, recalculateFromLocalTransactions } =
     useMetricsStore();
 
+  // Initialize store FIRST, before any queries run
+  React.useEffect(() => {
+    const initializeStore = async () => {
+      await loadStore();
+      await loadTheme(); // Load theme after store
+    };
+    initializeStore();
+  }, [loadTheme]);
+
   useDataSync(user?.id);
   useSyncQueueProcessor(); // Start background sync processing
 
-  // Initialize store and metrics on app start
+  // Initialize metrics after store is loaded
   React.useEffect(() => {
-    const initializeApp = async () => {
-      // Load persistent store first
-      await loadStore();
-
-      // Then load metrics and recalculate
+    const initializeMetrics = async () => {
       await loadPersistedMetrics();
       recalculateFromLocalTransactions();
     };
 
-    initializeApp();
+    initializeMetrics();
   }, [loadPersistedMetrics, recalculateFromLocalTransactions]);
 
   return (

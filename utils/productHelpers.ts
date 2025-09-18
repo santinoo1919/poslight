@@ -10,8 +10,8 @@ export const enrichProductWithCategory = (
   id: productId,
   ...product,
   categoryName: categories[product.category]?.name || product.category,
-  color: categories[product.category]?.color || "#3B82F6",
-  icon: categories[product.category]?.icon || "📦",
+  color: categories[product.category]?.color,
+  icon: categories[product.category]?.icon,
 });
 
 // 🎯 BULK PRODUCT ENRICHMENT
@@ -90,7 +90,7 @@ export const filterProductsByCategory = (
   products: Product[],
   category: string | null
 ): Product[] => {
-  if (!category || category === "Show All") return products;
+  if (!category) return products;
 
   const categoryLower = category.toLowerCase();
   return products.filter(

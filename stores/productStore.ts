@@ -65,8 +65,9 @@ export const useProductStore = create<ProductState>((set, get) => ({
   setInventory: (inventory) => set({ inventory }),
 
   // Business Logic
-  handleCategorySelect: (categoryName: string) => {
-    set({ currentCategory: categoryName === "Show All" ? null : categoryName });
+  handleCategorySelect: (categoryKey: string) => {
+    // Handle "show-all" as null (show all products)
+    set({ currentCategory: categoryKey === "show-all" ? null : categoryKey });
   },
 
   handleSearch: (query: string) => {

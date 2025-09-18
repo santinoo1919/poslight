@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { usePersistence } from "../utils/persistence";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -17,45 +17,37 @@ interface ThemeState {
 // Colors are now centralized in tailwind.config.js
 // This store only handles theme state (light/dark mode)
 
-export const useThemeStore = create<ThemeState>((set, get) => ({
-  // Initial state
-  mode: "system",
-  isDark: false,
+export const useThemeStore = create<ThemeState>((set, get) => {
+  const persistence = usePersistence("theme-store");
 
-  // Theme actions
-  setMode: (mode: ThemeMode) => {
-    const isDark = mode === "dark" || (mode === "system" && getSystemTheme());
+  return {
+    // Initial state
+    mode: "system",
+    isDark: false,
 
-    console.log("🎨 Theme changing:", { mode, isDark });
+    // Theme actions
+    setMode: (mode: ThemeMode) => {
+      const isDark = mode === "dark" || (mode === "system" && getSystemTheme());
 
-    set({
-      mode,
-      isDark,
-    });
+      const newState = { mode, isDark };
+      set(newState);
+      persistence.save(newState);
+    },
 
-    // Save to AsyncStorage (async but don't await)
-    AsyncStorage.setItem("theme-mode", mode).catch((error) => {
-      console.warn("Failed to save theme mode:", error);
-    });
-  },
+    toggleTheme: () => {
+      const { mode } = get();
+      const newMode = mode === "light" ? "dark" : "light";
+      get().setMode(newMode);
+    },
 
-  toggleTheme: () => {
-    const { mode } = get();
-    const newMode = mode === "light" ? "dark" : "light";
-    get().setMode(newMode);
-  },
-
-  loadTheme: async () => {
-    try {
-      const savedMode = await AsyncStorage.getItem("theme-mode");
-      if (savedMode && ["light", "dark", "system"].includes(savedMode)) {
-        get().setMode(savedMode as ThemeMode);
+    loadTheme: async () => {
+      const persisted = await persistence.load();
+      if (persisted) {
+        set(persisted);
       }
-    } catch (error) {
-      console.warn("Failed to load theme mode:", error);
-    }
-  },
-}));
+    },
+  };
+});
 
 // Helper function to detect system theme
 const getSystemTheme = (): boolean => {

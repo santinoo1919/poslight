@@ -150,6 +150,35 @@ export default function RightPanel() {
       db.addStockUpdate(product.id, oldStock, newStock);
     }
 
+    // Update local product store for immediate UI refresh (same as sales)
+    const { useProductStore } = require("../../stores/productStore");
+    const { setInventory, inventory: currentInventory } =
+      useProductStore.getState();
+
+    // Update inventory array (this is what the UI reads from)
+    const updatedInventory = [...(currentInventory || [])];
+
+    productsToUpdate.forEach((product) => {
+      const oldStock = product.inventory?.stock || 0;
+      const stockToAdd = product.quantity;
+      const newStock = oldStock + stockToAdd;
+
+      // Find and update inventory item
+      const existingIndex = updatedInventory.findIndex(
+        (item) => item.product_id === product.id
+      );
+
+      if (existingIndex >= 0) {
+        updatedInventory[existingIndex] = {
+          ...updatedInventory[existingIndex],
+          stock: newStock,
+          updated_at: new Date().toISOString(),
+        };
+      }
+    });
+
+    setInventory(updatedInventory);
+
     // Clear the cart
     selectedProducts.forEach((product) => removeFromCart(product.id));
 

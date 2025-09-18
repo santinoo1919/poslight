@@ -8,7 +8,7 @@ export default function ProductGridHeader({
   currentCategory,
 }: ProductGridHeaderProps) {
   // Determine the title based on whether a category is selected
-  const title = currentCategory ? currentCategory : "Show All";
+  const title = currentCategory || "All Products";
 
   return (
     <View className="px-4 py-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">

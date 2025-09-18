@@ -104,7 +104,7 @@ export default function AnimatedCategorySelector({
         className="mr-2 px-3 py-2 rounded-full"
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        onPress={() => handleCategoryPress(null)}
+        onPress={() => handleCategoryPress("show-all")}
         onLayout={(event) => onCategoryLayout("all", event)}
         android_ripple={null}
         android_disableSound={true}

@@ -171,7 +171,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         status: "completed",
         created_at: new Date().toISOString(),
       });
-      
+
       // Record transaction items
       db.addTransactionItems(transactionId, saleItems);
 

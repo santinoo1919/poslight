@@ -134,9 +134,8 @@ export const db: {
           categoryName:
             (categories[product.category as string] as any)?.name ||
             product.category,
-          color:
-            (categories[product.category as string] as any)?.color || "#3B82F6",
-          icon: (categories[product.category as string] as any)?.icon || "📦",
+          color: (categories[product.category as string] as any)?.color,
+          icon: (categories[product.category as string] as any)?.icon,
         }) as Product
     );
   },
@@ -169,10 +168,8 @@ export const db: {
             categoryName:
               (categories[product.category as string] as any)?.name ||
               product.category,
-            color:
-              (categories[product.category as string] as any)?.color ||
-              "#3B82F6",
-            icon: (categories[product.category as string] as any)?.icon || "📦",
+            color: (categories[product.category as string] as any)?.color,
+            icon: (categories[product.category as string] as any)?.icon,
           }) as Product
       );
   },
@@ -192,10 +189,8 @@ export const db: {
             categoryName:
               (categories[product.category as string] as any)?.name ||
               product.category,
-            color:
-              (categories[product.category as string] as any)?.color ||
-              "#3B82F6",
-            icon: (categories[product.category as string] as any)?.icon || "📦",
+            color: (categories[product.category as string] as any)?.color,
+            icon: (categories[product.category as string] as any)?.icon,
           }) as Product
       );
   },
