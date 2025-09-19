@@ -34,7 +34,8 @@
     "zod": "^4.0.17",
     "zustand": "^5.0.8",
     "expo-dev-client": "~5.2.4",
-    "expo-crypto": "~14.1.5"
+    "expo-crypto": "~14.1.5",
+    "expo-haptics": "~14.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

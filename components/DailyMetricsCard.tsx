@@ -13,18 +13,18 @@ export default function DailyMetricsCard() {
   return (
     <TouchableOpacity
       onPress={openSalesDrawer}
-      className={`${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"} border rounded-lg px-3 py-2 ml-4`}
+      className={`${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"} border rounded-lg px-4 py-2 mx-4`}
       activeOpacity={0.7}
     >
-      <View className="flex-row items-center space-x-3">
-        <View className="items-center">
+      <View className="flex-row w-auto gap-x-3 items-center">
+        <View className="items-center gap-y-1">
           <Text
             className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"}`}
           >
             Today's Revenue
           </Text>
           <Text
-            className={`text-sm font-bold ${isDark ? "text-state-successDark" : "text-state-success"}`}
+            className={`text-lg font-bold ${isDark ? "text-state-successDark" : "text-state-success"}`}
           >
             €{dailyRevenue.toFixed(2)}
           </Text>
@@ -32,14 +32,14 @@ export default function DailyMetricsCard() {
         <View
           className={`w-px h-8 ${isDark ? "bg-border-dark" : "bg-border-light"}`}
         ></View>
-        <View className="items-center">
+        <View className="items-center gap-y-1">
           <Text
             className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"}`}
           >
             Today's Profit
           </Text>
           <Text
-            className={`text-sm font-bold ${isDark ? "text-brand-primaryDark" : "text-brand-primary"}`}
+            className={`text-lg font-bold ${isDark ? "text-brand-primaryDark" : "text-brand-primary"}`}
           >
             €{dailyProfit.toFixed(2)}
           </Text>

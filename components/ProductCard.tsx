@@ -1,6 +1,7 @@
 // components/ProductCard.tsx
 import React from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
+import * as Haptics from "expo-haptics";
 import type {
   ProductCardProps,
   ProductWithInventory,
@@ -31,12 +32,19 @@ export default function ProductCard({
     const stock = inventory?.stock ?? 0;
 
     if (stock === 0) {
+      // Light haptic for error state
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       ToastService.stock.insufficient(product.name, 1, 0);
       return;
     }
 
     if (stock <= 10) {
+      // Warning haptic for low stock
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       ToastService.stock.lowStock(product.name, stock);
+    } else {
+      // Success haptic for product selection
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
     // Use the onPress prop to trigger the keypad flow

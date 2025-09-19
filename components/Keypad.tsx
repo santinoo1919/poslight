@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+import * as Haptics from "expo-haptics";
 import type {
   KeypadProps,
   ButtonVariant,
@@ -49,10 +50,16 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
     }
   };
 
+  const handlePress = () => {
+    // Light haptic feedback for keypad buttons
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress(value);
+  };
+
   return (
     <TouchableOpacity
       className={getButtonStyle()}
-      onPress={() => onPress(value)}
+      onPress={handlePress}
       disabled={disabled}
       activeOpacity={0.7}
     >

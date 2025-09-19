@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../stores/authStore";
 import { useTheme } from "../stores/themeStore";
 import ThemeToggle from "./ThemeToggle";
@@ -39,16 +40,17 @@ export default function Header() {
           {/* Tappable Daily Metrics Card */}
           <DailyMetricsCard />
 
-          {/* Logout Button */}
+          {/* Logout Icon */}
           <TouchableOpacity
             onPress={signOut}
-            className={`${isDark ? "bg-interactive-selectedDark" : "bg-interactive-selected"} px-4 py-2 rounded-lg`}
+            className="p-2 ml-3"
+            activeOpacity={0.7}
           >
-            <Text
-              className={`${isDark ? "text-text-inverse" : "text-text-primary"} text-sm font-semibold`}
-            >
-              Logout
-            </Text>
+            <Ionicons
+              name="log-out-outline"
+              size={28}
+              color={isDark ? "#9ca3af" : "#6b7280"}
+            />
           </TouchableOpacity>
         </View>
       </View>
