@@ -6,6 +6,7 @@ import {
   useSyncSaleItems,
   useSyncInventory,
 } from "./useSyncMutations";
+import * as Crypto from "expo-crypto";
 
 export const useCartOperations = () => {
   const { selectedProducts, completeSale, getTotalAmount } = useCartStore();
@@ -15,34 +16,61 @@ export const useCartOperations = () => {
   const syncInventory = useSyncInventory();
 
   const handleCompleteSale = async () => {
+    console.log("🚀 Starting sale completion process...");
+    console.log("📦 Selected products:", selectedProducts);
+    console.log("💰 Total amount:", getTotalAmount());
+
     // Final validation before sale
     for (const product of selectedProducts) {
       const stock = product.inventory?.stock ?? 0;
+      console.log(`🔍 Checking stock for ${product.name}:`, {
+        required: product.quantity,
+        available: stock,
+        sufficient: product.quantity <= stock,
+      });
+
       if (product.quantity > stock) {
+        console.error("❌ Insufficient stock for:", product.name);
         ToastService.stock.insufficient(product.name, product.quantity, stock);
         return;
       }
     }
 
+    console.log("✅ Stock validation passed");
+
     // Store selected products before clearing cart
     const productsToSync = [...selectedProducts];
+    console.log("📋 Products to sync:", productsToSync);
 
     // Complete the sale (this updates local state immediately and clears cart)
-    completeSale();
+    console.log("🔄 Calling completeSale from store...");
+    try {
+      completeSale();
+      console.log("✅ Sale completed in store successfully");
+    } catch (error) {
+      console.error("❌ Error in completeSale:", error);
+      throw error;
+    }
 
     // Prepare sync data for database (only if online)
     const { user } = useAuthStore.getState();
     const userId = user?.id;
+    console.log("👤 User ID:", userId);
 
-    if (!userId) return;
+    if (!userId) {
+      console.warn("⚠️ No user ID found, skipping sync");
+      return;
+    }
 
     const totalAmount = productsToSync.reduce(
       (sum, product) =>
         sum + (product.inventory?.sell_price || 0) * product.quantity,
       0
     );
+    console.log("💰 Calculated total amount:", totalAmount);
 
-    const saleId = crypto.randomUUID();
+    const saleId = Crypto.randomUUID();
+    console.log("🆔 Generated sale ID:", saleId);
 
     const saleData = {
       id: saleId,
@@ -52,6 +80,7 @@ export const useCartOperations = () => {
       status: "completed",
       created_at: new Date().toISOString(),
     };
+    console.log("📊 Sale data:", saleData);
 
     const saleItems = productsToSync.map((product) => ({
       sale_id: saleId,
@@ -61,6 +90,7 @@ export const useCartOperations = () => {
       unit_price: product.inventory?.sell_price || 0,
       total_price: (product.inventory?.sell_price || 0) * product.quantity,
     }));
+    console.log("🛒 Sale items:", saleItems);
 
     const inventoryUpdates = productsToSync.map((product) => ({
       product_id: product.id,
@@ -71,6 +101,7 @@ export const useCartOperations = () => {
       is_active: true,
       updated_at: new Date().toISOString(),
     }));
+    console.log("📦 Inventory updates:", inventoryUpdates);
 
     // Queue sync mutations (will retry when online)
     console.log("🔄 Starting sync with data:", {
@@ -80,6 +111,7 @@ export const useCartOperations = () => {
     });
 
     try {
+      console.log("🔄 Calling sync mutations...");
       await Promise.all([
         syncSale.mutateAsync(saleData),
         syncSaleItems.mutateAsync(saleItems),
@@ -88,6 +120,11 @@ export const useCartOperations = () => {
       console.log("✅ All sync mutations completed successfully");
     } catch (error) {
       console.error("❌ Sync failed:", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
       // Mutations will retry automatically when online
     }
   };

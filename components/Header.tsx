@@ -34,9 +34,11 @@ export default function Header() {
           {/* Logout Button */}
           <TouchableOpacity
             onPress={signOut}
-            className="bg-interactive-disabled dark:bg-interactive-disabledDark px-4 py-2 rounded-lg"
+            className="bg-interactive-selected dark:bg-interactive-selectedDark px-4 py-2 rounded-lg"
           >
-            <Text className="text-white text-sm font-semibold">Logout</Text>
+            <Text className="text-text-primary dark:text-text-inverse text-sm font-semibold">
+              Logout
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

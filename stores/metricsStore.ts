@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { usePersistence } from "../utils/persistence";
+import { db } from "../services/tinybaseStore";
 
 interface MetricsState {
   dailyRevenue: number;
@@ -14,8 +14,6 @@ interface MetricsState {
 }
 
 export const useMetricsStore = create<MetricsState>((set, get) => {
-  const persistence = usePersistence("metrics-store");
-
   return {
     dailyRevenue: 0,
     dailyProfit: 0,
@@ -30,7 +28,8 @@ export const useMetricsStore = create<MetricsState>((set, get) => {
       };
 
       set(newState);
-      persistence.save(newState);
+      // Update TinyBase store
+      db.updateDailyMetrics(newState.dailyRevenue, newState.dailyProfit);
     },
 
     resetDaily: () => {
@@ -41,11 +40,11 @@ export const useMetricsStore = create<MetricsState>((set, get) => {
       };
 
       set(newState);
-      persistence.save(newState);
+      // Update TinyBase store
+      db.updateDailyMetrics(0, 0);
     },
 
     recalculateFromLocalTransactions: () => {
-      const { db } = require("../services/tinybaseStore");
       const transactions = db.getTodayTransactions();
       const today = new Date().toISOString().split("T")[0];
 
@@ -81,25 +80,30 @@ export const useMetricsStore = create<MetricsState>((set, get) => {
       };
 
       set(newState);
-      persistence.save(newState);
+      // Update TinyBase store
+      db.updateDailyMetrics(revenue, profit);
     },
 
     loadPersistedMetrics: async () => {
       const today = new Date().toISOString().split("T")[0];
-      const persisted = await persistence.load();
+      const metrics = db.getDailyMetrics();
 
-      if (persisted) {
+      if (metrics) {
         // Check if we need to reset for new day
-        if (persisted.lastUpdatedDate !== today) {
+        if (metrics.lastUpdated && !metrics.lastUpdated.startsWith(today)) {
           const newState = {
             dailyRevenue: 0,
             dailyProfit: 0,
             lastUpdatedDate: today,
           };
           set(newState);
-          persistence.save(newState);
+          db.updateDailyMetrics(0, 0);
         } else {
-          set(persisted);
+          set({
+            dailyRevenue: metrics.revenue,
+            dailyProfit: metrics.profit,
+            lastUpdatedDate: today,
+          });
         }
       }
     },

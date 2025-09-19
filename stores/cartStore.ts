@@ -5,6 +5,7 @@ import type { Product } from "../types/database";
 import type { CartProduct } from "../types/components";
 import type { ProductWithInventory } from "../types/components";
 import { useAuthStore } from "./authStore";
+import * as Crypto from "expo-crypto";
 
 interface CartState {
   // Cart State
@@ -125,7 +126,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       );
 
       // Generate a proper UUID for the sale
-      const saleId = crypto.randomUUID();
+      const saleId = Crypto.randomUUID();
 
       // Prepare sale data
       const saleData = {

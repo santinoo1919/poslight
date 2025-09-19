@@ -7,6 +7,7 @@ import type {
   Transaction,
   TransactionItem,
 } from "../types/database";
+import * as Crypto from "expo-crypto";
 
 // TinyBase store - persistent, populated by queries from Supabase
 
@@ -18,7 +19,9 @@ export const store = createStore()
   .setTable("transactions", {})
   .setTable("transaction_items", {})
   .setTable("stock_updates", {}) // For stock update sync
-  .setTable("sync_queue", {}); // For persistent sync operations
+  .setTable("sync_queue", {}) // For persistent sync operations
+  .setTable("dailyMetrics", {}) // For daily metrics
+  .setTable("cashflowMetrics", {}); // For cashflow metrics
 
 // Persistence functions
 const STORAGE_KEY = "tinybase_store";
@@ -33,6 +36,8 @@ export const saveStore = async () => {
       transaction_items: store.getTable("transaction_items"),
       stock_updates: store.getTable("stock_updates"),
       sync_queue: store.getTable("sync_queue"),
+      dailyMetrics: store.getTable("dailyMetrics"),
+      cashflowMetrics: store.getTable("cashflowMetrics"),
     };
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(storeData));
   } catch (error) {
@@ -73,6 +78,14 @@ export const loadStore = async () => {
 
       Object.entries(data.sync_queue || {}).forEach(([id, queueItem]) => {
         store.setRow("sync_queue", id, queueItem as any);
+      });
+
+      Object.entries(data.dailyMetrics || {}).forEach(([id, metric]) => {
+        store.setRow("dailyMetrics", id, metric as any);
+      });
+
+      Object.entries(data.cashflowMetrics || {}).forEach(([id, metric]) => {
+        store.setRow("cashflowMetrics", id, metric as any);
       });
     }
   } catch (error) {
@@ -120,6 +133,8 @@ export const db: {
     oldStock: number,
     newStock: number
   ) => string;
+  getCashflowMetrics: () => any;
+  updateCashflowMetrics: (metrics: any) => void;
 } = {
   // Get all products with category info
   getProducts: (): Product[] => {
@@ -354,6 +369,38 @@ export const db: {
 
     return stockUpdateId;
   },
+
+  // Get cashflow metrics
+  getCashflowMetrics: (): any => {
+    const metrics = store.getTable("cashflowMetrics");
+    const today = new Date().toDateString();
+
+    if (metrics[today]) {
+      return metrics[today];
+    }
+
+    // Return default values
+    return {
+      openingCashBalance: 0,
+      currentCashBalance: 0,
+      totalCashReceived: 0,
+      totalChangeGiven: 0,
+      totalCashSales: 0,
+      netCashFlow: 0,
+      lastUpdated: new Date().toISOString(),
+    };
+  },
+
+  // Update cashflow metrics
+  updateCashflowMetrics: (metrics: any): void => {
+    const today = new Date().toDateString();
+    store.setRow("cashflowMetrics", today, {
+      ...metrics,
+      lastUpdated: new Date().toISOString(),
+    });
+    // Save to persistent storage
+    saveStore();
+  },
 };
 
 // Sync Queue Utilities
@@ -364,7 +411,7 @@ export const syncQueue = {
     data: any;
     retryCount?: number;
   }) => {
-    const id = crypto.randomUUID();
+    const id = Crypto.randomUUID();
     store.setRow("sync_queue", id, {
       id,
       type: operation.type,
