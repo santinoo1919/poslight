@@ -10,6 +10,7 @@ import { useCartStore } from "../stores/cartStore";
 import { useAuthStore } from "../stores/authStore";
 import { useInventoryQuery } from "../hooks/useInventoryQuery";
 import { useTheme } from "../stores/themeStore";
+import { getGridColumns, getProductCardSpacing } from "../utils/responsive";
 
 // Memoized ProductCard to prevent unnecessary re-renders
 const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
@@ -22,6 +23,8 @@ const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
 
 export default function ProductGrid() {
   const { isDark } = useTheme();
+  const columns = getGridColumns();
+  const cardSpacing = getProductCardSpacing();
 
   // Get product state from Zustand store
   const {
@@ -112,15 +115,23 @@ export default function ProductGrid() {
           className={`p-4 ${isDark ? "bg-background-dark" : "bg-background-light"}`}
         >
           <View className="space-y-6">
-            {/* Main Products Grid - 4 columns */}
+            {/* Main Products Grid - Dynamic columns */}
             <View>
               <View className="flex-row flex-wrap justify-start">
                 {visibleProducts.map((product, index) => {
                   const inventory = inventoryMap?.get(product.id);
+                  const columnWidth =
+                    columns === 2
+                      ? "w-1/2"
+                      : columns === 3
+                        ? "w-1/3"
+                        : columns === 4
+                          ? "w-1/4"
+                          : "w-1/5";
                   return (
                     <View
                       key={product.id || `product-${index}`}
-                      className="w-1/4 p-1"
+                      className={`${columnWidth} ${cardSpacing}`}
                     >
                       <MemoizedProductCard
                         product={product}

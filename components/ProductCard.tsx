@@ -10,6 +10,7 @@ import { getProfitTextColor } from "../utils/profitLevels";
 import { useProductCardData } from "../hooks/useProductCardData";
 import { ToastService } from "../services/toastService";
 import { useTheme } from "../stores/themeStore";
+import { getResponsiveFontSize } from "../utils/responsive";
 
 export default function ProductCard({
   product,
@@ -96,7 +97,7 @@ export default function ProductCard({
 
       {/* Product Name */}
       <Text
-        className={`font-semibold text-sm mb-1 ${
+        className={`font-semibold mb-1 ${getResponsiveFontSize("text-sm")} ${
           isOutOfStock
             ? `${isDark ? "text-text-muted" : "text-text-secondary"}`
             : `${isDark ? "text-text-inverse" : "text-text-primary"}`
@@ -111,7 +112,7 @@ export default function ProductCard({
         {/* Top row: Sell Price + Profit */}
         <View className="flex-row justify-between items-center">
           <Text
-            className={`font-bold text-base ${
+            className={`font-bold ${getResponsiveFontSize("text-base")} ${
               isOutOfStock
                 ? `${isDark ? "text-text-muted" : "text-text-secondary"}`
                 : `${isDark ? "text-state-successDark" : "text-state-success"}`
@@ -120,7 +121,7 @@ export default function ProductCard({
             €{sellPrice.toFixed(2)}
           </Text>
           <Text
-            className={`text-xs font-medium ${
+            className={`font-medium ${getResponsiveFontSize("text-sm")} ${
               isOutOfStock
                 ? `${isDark ? "text-text-muted" : "text-text-secondary"}`
                 : getProfitTextColor(profitLevel)
@@ -133,12 +134,12 @@ export default function ProductCard({
         {/* Bottom row: Buy Price + Stock */}
         <View className="flex-row justify-between items-center">
           <Text
-            className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"}`}
+            className={`${getResponsiveFontSize("text-sm")} ${isDark ? "text-text-muted" : "text-text-secondary"}`}
           >
             €{buyPrice.toFixed(2)}
           </Text>
           <Text
-            className={`text-xs font-medium ${
+            className={`font-medium ${getResponsiveFontSize("text-sm")} ${
               isOutOfStock
                 ? `${isDark ? "text-state-errorDark" : "text-state-error"}`
                 : isLowStock

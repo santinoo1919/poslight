@@ -7,6 +7,7 @@ import type {
   KeypadButtonProps,
 } from "../types/components";
 import { useTheme } from "../stores/themeStore";
+import { getKeypadButtonSize, getTouchTargetSize } from "../utils/responsive";
 
 // Keypad button component - single responsibility
 const KeypadButton: React.FC<KeypadButtonProps> = ({
@@ -18,8 +19,8 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
   const { isDark } = useTheme();
 
   const getButtonStyle = (): string => {
-    const baseStyle =
-      "w-16 h-16 rounded-lg items-center justify-center mx-2 mb-3";
+    const touchTarget = getTouchTargetSize();
+    const baseStyle = `flex-1 aspect-square ${touchTarget} rounded-lg items-center justify-center mx-1 mb-2`;
 
     // Keep subtle tints for action buttons, neutral for numbers
     switch (variant) {
@@ -35,7 +36,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
   };
 
   const getTextStyle = (): string => {
-    const baseStyle = "font-bold text-xl";
+    const baseStyle = "font-bold text-3xl";
 
     // Match text colors to button tints
     switch (variant) {
@@ -98,7 +99,7 @@ const Keypad: React.FC<KeypadProps> = React.memo(
 
     return (
       <View
-        className={`${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"} border-t p-4`}
+        className={`${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"} border-t p-2`}
       >
         {/* Keypad Header */}
         <View className="mb-3">
@@ -110,9 +111,9 @@ const Keypad: React.FC<KeypadProps> = React.memo(
         </View>
 
         {/* Keypad Grid */}
-        <View className="items-center">
+        <View className="items-center space-y-2">
           {/* Row 1: 1, 2, 3 */}
-          <View className="flex-row">
+          <View className="flex-row space-x-2">
             <KeypadButton
               value="1"
               variant="number"
@@ -134,7 +135,7 @@ const Keypad: React.FC<KeypadProps> = React.memo(
           </View>
 
           {/* Row 2: 4, 5, 6 */}
-          <View className="flex-row">
+          <View className="flex-row space-x-2">
             <KeypadButton
               value="4"
               variant="number"
@@ -156,7 +157,7 @@ const Keypad: React.FC<KeypadProps> = React.memo(
           </View>
 
           {/* Row 3: 7, 8, 9 */}
-          <View className="flex-row">
+          <View className="flex-row space-x-2">
             <KeypadButton
               value="7"
               variant="number"
@@ -178,7 +179,7 @@ const Keypad: React.FC<KeypadProps> = React.memo(
           </View>
 
           {/* Row 4: Delete, 0, Enter */}
-          <View className="flex-row justify-center">
+          <View className="flex-row space-x-2">
             <KeypadButton
               value="⌫"
               variant="function"
@@ -200,13 +201,15 @@ const Keypad: React.FC<KeypadProps> = React.memo(
           </View>
 
           {/* Row 5: Clear */}
-          <View className="flex-row justify-center">
+          <View className="flex-row space-x-2">
+            <View className="flex-1" />
             <KeypadButton
               value="C"
               variant="clear"
               onPress={handleClear}
               disabled={disabled}
             />
+            <View className="flex-1" />
           </View>
         </View>
 

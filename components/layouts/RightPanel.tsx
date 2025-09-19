@@ -83,198 +83,198 @@ export default function RightPanel() {
       </View>
 
       {/* Tab Content */}
-      <View
-        className={`flex-1 p-4 ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
-      >
-        {activeTab === "cart" ? (
-          <>
-            {/* Keypad Section */}
-            <View className="mb-4">
-              {/* Keypad Header with Collapse Toggle */}
-              <View className="flex-row items-center justify-between mb-3">
-                <Text
-                  className={`text-lg font-semibold ${isDark ? "text-text-inverse" : "text-text-primary"}`}
-                >
-                  Keypad
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    console.log(
-                      "🔄 Toggling keypad collapse:",
-                      !isKeypadCollapsed
-                    );
-                    setIsKeypadCollapsed(!isKeypadCollapsed);
-                  }}
-                  className={`p-2 rounded-lg ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
-                >
-                  <Ionicons
-                    name={isKeypadCollapsed ? "chevron-down" : "chevron-up"}
-                    size={20}
-                    color="#6B7280"
-                  />
-                </Pressable>
+      <View className="flex-1 flex-col">
+        {/* Scrollable Content */}
+        <View
+          className={`flex-1 p-4 ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
+        >
+          {activeTab === "cart" ? (
+            <>
+              {/* Keypad Section */}
+              <View className="mb-4">
+                {/* Keypad Header with Collapse Toggle */}
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text
+                    className={`text-lg font-semibold ${isDark ? "text-text-inverse" : "text-text-primary"}`}
+                  >
+                    Keypad
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      console.log(
+                        "🔄 Toggling keypad collapse:",
+                        !isKeypadCollapsed
+                      );
+                      setIsKeypadCollapsed(!isKeypadCollapsed);
+                    }}
+                    className={`p-2 rounded-lg ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
+                  >
+                    <Ionicons
+                      name={isKeypadCollapsed ? "chevron-down" : "chevron-up"}
+                      size={20}
+                      color="#6B7280"
+                    />
+                  </Pressable>
+                </View>
+
+                {!isKeypadCollapsed && (
+                  <>
+                    {selectedProductForQuantity && (
+                      <View
+                        className={`${isDark ? "bg-background-dark" : "bg-background-light"} border ${isDark ? "border-border-dark" : "border-border-light"} rounded-lg p-3 mb-3`}
+                      >
+                        <Text
+                          className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
+                        >
+                          {selectedProductForQuantity.name}
+                        </Text>
+                        <Text
+                          className={`text-lg font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
+                        >
+                          {keypadInput || "0"}
+                        </Text>
+                        <Text
+                          className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"} text-center mt-1`}
+                        >
+                          Available Stock:{" "}
+                          {selectedProductForQuantity.inventory?.stock ?? 0}
+                        </Text>
+                      </View>
+                    )}
+
+                    <Keypad
+                      onNumberPress={handleKeypadNumber}
+                      onDelete={handleKeypadDelete}
+                      onClear={handleKeypadClear}
+                      onEnter={handleKeypadEnter}
+                      disabled={!selectedProductForQuantity}
+                    />
+                  </>
+                )}
               </View>
 
-              {!isKeypadCollapsed && (
-                <>
-                  {selectedProductForQuantity && (
-                    <View
-                      className={`${isDark ? "bg-background-dark" : "bg-background-light"} border ${isDark ? "border-border-dark" : "border-border-light"} rounded-lg p-3 mb-3`}
-                    >
-                      <Text
-                        className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
-                      >
-                        {selectedProductForQuantity.name}
-                      </Text>
-                      <Text
-                        className={`text-lg font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
-                      >
-                        {keypadInput || "0"}
-                      </Text>
-                      <Text
-                        className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"} text-center mt-1`}
-                      >
-                        Available Stock:{" "}
-                        {selectedProductForQuantity.inventory?.stock ?? 0}
-                      </Text>
-                    </View>
-                  )}
-
-                  <Keypad
-                    onNumberPress={handleKeypadNumber}
-                    onDelete={handleKeypadDelete}
-                    onClear={handleKeypadClear}
-                    onEnter={handleKeypadEnter}
-                    disabled={!selectedProductForQuantity}
+              {/* Cart Items - Using ItemList */}
+              <ItemList
+                items={selectedProducts}
+                renderItem={(product) => (
+                  <CartItemCard
+                    product={product}
+                    selectedItem={selectedProductForQuantity}
+                    onRemove={removeFromCart}
+                    onEdit={setSelectedProductForQuantity}
                   />
-                </>
-              )}
-            </View>
-
-            {/* Cart Items - Using ItemList */}
-            <ItemList
-              items={selectedProducts}
-              renderItem={(product) => (
-                <CartItemCard
-                  product={product}
-                  selectedItem={selectedProductForQuantity}
-                  onRemove={removeFromCart}
-                  onEdit={setSelectedProductForQuantity}
-                />
-              )}
-              emptyState={{
-                title: "No products selected",
-                subtitle: "Tap products to add to cart",
-              }}
-              className="flex-1"
-            />
-
-            {/* Cart CTA */}
-            <View
-              className={`border-t ${isDark ? "border-border-dark" : "border-border-light"} pt-4 mt-4`}
-            >
-              <ActionCTA
-                onPress={handleCompleteSale}
-                totalAmount={getTotalAmount()}
-                itemCount={selectedProducts.length}
-                disabled={selectedProducts.length === 0}
-                mode="cart"
+                )}
+                emptyState={{
+                  title: "No products selected",
+                  subtitle: "Tap products to add to cart",
+                }}
+                className="flex-1"
               />
-            </View>
-          </>
-        ) : (
-          <>
-            {/* Keypad Section for Stock */}
-            <View className="mb-4">
-              {/* Keypad Header with Collapse Toggle */}
-              <View className="flex-row items-center justify-between mb-3">
-                <Text
-                  className={`text-lg font-semibold ${isDark ? "text-text-inverse" : "text-text-primary"}`}
-                >
-                  Stock Keypad
-                </Text>
-                <Pressable
-                  onPress={() => setIsKeypadCollapsed(!isKeypadCollapsed)}
-                  className={`p-2 rounded-lg ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
-                >
-                  <Ionicons
-                    name={isKeypadCollapsed ? "chevron-down" : "chevron-up"}
-                    size={20}
-                    color="#6B7280"
-                  />
-                </Pressable>
+            </>
+          ) : (
+            <>
+              {/* Keypad Section for Stock */}
+              <View className="mb-4">
+                {/* Keypad Header with Collapse Toggle */}
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text
+                    className={`text-lg font-semibold ${isDark ? "text-text-inverse" : "text-text-primary"}`}
+                  >
+                    Stock Keypad
+                  </Text>
+                  <Pressable
+                    onPress={() => setIsKeypadCollapsed(!isKeypadCollapsed)}
+                    className={`p-2 rounded-lg ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
+                  >
+                    <Ionicons
+                      name={isKeypadCollapsed ? "chevron-down" : "chevron-up"}
+                      size={20}
+                      color="#6B7280"
+                    />
+                  </Pressable>
+                </View>
+
+                {!isKeypadCollapsed && (
+                  <>
+                    {selectedProductForQuantity && (
+                      <View
+                        className={`${isDark ? "bg-background-dark" : "bg-background-light"} border ${isDark ? "border-border-dark" : "border-border-light"} rounded-lg p-3 mb-3`}
+                      >
+                        <Text
+                          className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
+                        >
+                          Adding stock to: {selectedProductForQuantity.name}
+                        </Text>
+                        <Text
+                          className={`text-lg font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
+                        >
+                          +{keypadInput || "0"}
+                        </Text>
+                        <Text
+                          className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"} text-center mt-1`}
+                        >
+                          Current:{" "}
+                          {selectedProductForQuantity.inventory?.stock ?? 0} →
+                          New:{" "}
+                          {(selectedProductForQuantity.inventory?.stock ?? 0) +
+                            parseInt(keypadInput || "0")}
+                        </Text>
+                      </View>
+                    )}
+
+                    <Keypad
+                      onNumberPress={handleKeypadNumber}
+                      onDelete={handleKeypadDelete}
+                      onClear={handleKeypadClear}
+                      onEnter={handleKeypadEnter}
+                      disabled={!selectedProductForQuantity}
+                    />
+                  </>
+                )}
               </View>
 
-              {!isKeypadCollapsed && (
-                <>
-                  {selectedProductForQuantity && (
-                    <View
-                      className={`${isDark ? "bg-background-dark" : "bg-background-light"} border ${isDark ? "border-border-dark" : "border-border-light"} rounded-lg p-3 mb-3`}
-                    >
-                      <Text
-                        className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
-                      >
-                        Adding stock to: {selectedProductForQuantity.name}
-                      </Text>
-                      <Text
-                        className={`text-lg font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
-                      >
-                        +{keypadInput || "0"}
-                      </Text>
-                      <Text
-                        className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"} text-center mt-1`}
-                      >
-                        Current:{" "}
-                        {selectedProductForQuantity.inventory?.stock ?? 0} →
-                        New:{" "}
-                        {(selectedProductForQuantity.inventory?.stock ?? 0) +
-                          parseInt(keypadInput || "0")}
-                      </Text>
-                    </View>
-                  )}
-
-                  <Keypad
-                    onNumberPress={handleKeypadNumber}
-                    onDelete={handleKeypadDelete}
-                    onClear={handleKeypadClear}
-                    onEnter={handleKeypadEnter}
-                    disabled={!selectedProductForQuantity}
+              {/* Stock Items - Using ItemList */}
+              <ItemList
+                items={selectedProducts}
+                renderItem={(product) => (
+                  <StockItemCard
+                    product={product}
+                    selectedItem={selectedProductForQuantity}
+                    onRemove={removeFromCart}
+                    onEdit={setSelectedProductForQuantity}
                   />
-                </>
-              )}
-            </View>
-
-            {/* Stock Items - Using ItemList */}
-            <ItemList
-              items={selectedProducts}
-              renderItem={(product) => (
-                <StockItemCard
-                  product={product}
-                  selectedItem={selectedProductForQuantity}
-                  onRemove={removeFromCart}
-                  onEdit={setSelectedProductForQuantity}
-                />
-              )}
-              emptyState={{
-                title: "No products selected for stock update",
-                subtitle: "Tap products to update stock",
-              }}
-              className="flex-1"
-            />
-
-            {/* Stock CTA */}
-            <View
-              className={`border-t ${isDark ? "border-border-dark" : "border-border-light"} pt-4 mt-4`}
-            >
-              <ActionCTA
-                onPress={handleUpdateStock}
-                itemCount={selectedProducts.length}
-                disabled={selectedProducts.length === 0}
-                mode="stock"
+                )}
+                emptyState={{
+                  title: "No products selected for stock update",
+                  subtitle: "Tap products to update stock",
+                }}
+                className="flex-1"
               />
-            </View>
-          </>
-        )}
+            </>
+          )}
+        </View>
+
+        {/* Sticky CTA at Bottom */}
+        <View
+          className={`border-t ${isDark ? "border-border-dark" : "border-border-light"} p-4 ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
+        >
+          {activeTab === "cart" ? (
+            <ActionCTA
+              onPress={handleCompleteSale}
+              totalAmount={getTotalAmount()}
+              itemCount={selectedProducts.length}
+              disabled={selectedProducts.length === 0}
+              mode="cart"
+            />
+          ) : (
+            <ActionCTA
+              onPress={handleUpdateStock}
+              itemCount={selectedProducts.length}
+              disabled={selectedProducts.length === 0}
+              mode="stock"
+            />
+          )}
+        </View>
       </View>
     </>
   );
