@@ -52,7 +52,7 @@ export default function ProductCard({
             ? "bg-interactive-selected dark:bg-interactive-selectedDark border-brand-primary dark:border-brand-primaryDark"
             : "bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark"
       }`}
-      onPress={isOutOfStock ? undefined : handleProductPress} // Fix this line
+      onPress={isOutOfStock ? undefined : handleProductPress}
       activeOpacity={isOutOfStock ? 1 : Platform.OS === "ios" ? 0.7 : 1}
       disabled={isOutOfStock}
     >

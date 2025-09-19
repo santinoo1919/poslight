@@ -246,7 +246,14 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   // Event Handlers (moved from App.tsx)
   handleProductPress: (product: ProductWithInventory) => {
-    set({ selectedProductForQuantity: product, keypadInput: "" });
+    set((state) => {
+      // If the same product is tapped again, deselect it
+      if (state.selectedProductForQuantity?.id === product.id) {
+        return { selectedProductForQuantity: null, keypadInput: "" };
+      }
+      // Otherwise, select the new product
+      return { selectedProductForQuantity: product, keypadInput: "" };
+    });
   },
 
   handleKeypadNumber: (num: string) => {

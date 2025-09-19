@@ -19,7 +19,7 @@ export default function StockItemCard({
 
   return (
     <View
-      className={`bg-background-light dark:bg-background-dark rounded-lg p-3 border ${
+      className={`bg-background-light dark:bg-background-dark rounded-lg p-3 border mb-2 ${
         isSelected
           ? "border-blue-500 dark:border-blue-400"
           : "border-border-light dark:border-border-dark"

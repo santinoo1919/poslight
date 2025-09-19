@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Keypad from "../Keypad";
 import ActionCTA from "../ActionCTA";
 import ItemList from "../ItemList";
@@ -13,6 +14,8 @@ import { useStockOperations } from "../../hooks/useStockOperations";
 export default function RightPanel() {
   // Tab state
   const [activeTab, setActiveTab] = useState<"cart" | "stock">("cart");
+  // Keypad collapse state
+  const [isKeypadCollapsed, setIsKeypadCollapsed] = useState(true); // Start collapsed
 
   // Get cart state from Zustand store
   const {
@@ -79,129 +82,166 @@ export default function RightPanel() {
       <View className="flex-1 p-4 bg-surface-light dark:bg-surface-dark">
         {activeTab === "cart" ? (
           <>
-            <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse mb-4">
-              Cart ({selectedProducts.length} items)
-            </Text>
-
             {/* Keypad Section */}
             <View className="mb-4">
-              {selectedProductForQuantity && (
-                <View className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 mb-3">
-                  <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
-                    Setting quantity for: {selectedProductForQuantity.name}
-                  </Text>
-                  <Text className="text-lg font-bold text-text-primary dark:text-text-inverse text-center mt-1">
-                    {keypadInput || "0"}
-                  </Text>
-                  <Text className="text-xs text-text-secondary dark:text-text-muted text-center mt-1">
-                    Available Stock:{" "}
-                    {selectedProductForQuantity.inventory?.stock ?? 0}
-                  </Text>
-                </View>
-              )}
+              {/* Keypad Header with Collapse Toggle */}
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse">
+                  Keypad
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    console.log(
+                      "🔄 Toggling keypad collapse:",
+                      !isKeypadCollapsed
+                    );
+                    setIsKeypadCollapsed(!isKeypadCollapsed);
+                  }}
+                  className="p-2 rounded-lg bg-surface-light dark:bg-surface-dark"
+                >
+                  <Ionicons
+                    name={isKeypadCollapsed ? "chevron-down" : "chevron-up"}
+                    size={20}
+                    color="#6B7280"
+                  />
+                </Pressable>
+              </View>
 
-              <Keypad
-                onNumberPress={handleKeypadNumber}
-                onDelete={handleKeypadDelete}
-                onClear={handleKeypadClear}
-                onEnter={handleKeypadEnter}
-                disabled={!selectedProductForQuantity}
-              />
+              {!isKeypadCollapsed && (
+                <>
+                  {selectedProductForQuantity && (
+                    <View className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 mb-3">
+                      <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
+                        {selectedProductForQuantity.name}
+                      </Text>
+                      <Text className="text-lg font-bold text-text-primary dark:text-text-inverse text-center mt-1">
+                        {keypadInput || "0"}
+                      </Text>
+                      <Text className="text-xs text-text-secondary dark:text-text-muted text-center mt-1">
+                        Available Stock:{" "}
+                        {selectedProductForQuantity.inventory?.stock ?? 0}
+                      </Text>
+                    </View>
+                  )}
+
+                  <Keypad
+                    onNumberPress={handleKeypadNumber}
+                    onDelete={handleKeypadDelete}
+                    onClear={handleKeypadClear}
+                    onEnter={handleKeypadEnter}
+                    disabled={!selectedProductForQuantity}
+                  />
+                </>
+              )}
             </View>
 
-            <View className="flex-1 flex-col">
-              {/* Cart Items - Using ItemList */}
-              <ItemList
-                items={selectedProducts}
-                renderItem={(product) => (
-                  <CartItemCard
-                    product={product}
-                    selectedItem={selectedProductForQuantity}
-                    onRemove={removeFromCart}
-                    onEdit={setSelectedProductForQuantity}
-                  />
-                )}
-                emptyState={{
-                  title: "No products selected",
-                  subtitle: "Tap products to add to cart",
-                }}
-                className="flex-1"
-              />
-
-              {/* Cart CTA */}
-              <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
-                <ActionCTA
-                  onPress={handleCompleteSale}
-                  totalAmount={getTotalAmount()}
-                  itemCount={selectedProducts.length}
-                  disabled={selectedProducts.length === 0}
-                  mode="cart"
+            {/* Cart Items - Using ItemList */}
+            <ItemList
+              items={selectedProducts}
+              renderItem={(product) => (
+                <CartItemCard
+                  product={product}
+                  selectedItem={selectedProductForQuantity}
+                  onRemove={removeFromCart}
+                  onEdit={setSelectedProductForQuantity}
                 />
-              </View>
+              )}
+              emptyState={{
+                title: "No products selected",
+                subtitle: "Tap products to add to cart",
+              }}
+              className="flex-1"
+            />
+
+            {/* Cart CTA */}
+            <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
+              <ActionCTA
+                onPress={handleCompleteSale}
+                totalAmount={getTotalAmount()}
+                itemCount={selectedProducts.length}
+                disabled={selectedProducts.length === 0}
+                mode="cart"
+              />
             </View>
           </>
         ) : (
           <>
-            <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse mb-4">
-              Stock Management
-            </Text>
-
             {/* Keypad Section for Stock */}
             <View className="mb-4">
-              {selectedProductForQuantity && (
-                <View className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 mb-3">
-                  <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
-                    Adding stock to: {selectedProductForQuantity.name}
-                  </Text>
-                  <Text className="text-lg font-bold text-text-primary dark:text-text-inverse text-center mt-1">
-                    +{keypadInput || "0"}
-                  </Text>
-                  <Text className="text-xs text-text-secondary dark:text-text-muted text-center mt-1">
-                    Current: {selectedProductForQuantity.inventory?.stock ?? 0}{" "}
-                    → New:{" "}
-                    {(selectedProductForQuantity.inventory?.stock ?? 0) +
-                      parseInt(keypadInput || "0")}
-                  </Text>
-                </View>
-              )}
+              {/* Keypad Header with Collapse Toggle */}
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse">
+                  Stock Keypad
+                </Text>
+                <Pressable
+                  onPress={() => setIsKeypadCollapsed(!isKeypadCollapsed)}
+                  className="p-2 rounded-lg bg-surface-light dark:bg-surface-dark"
+                >
+                  <Ionicons
+                    name={isKeypadCollapsed ? "chevron-down" : "chevron-up"}
+                    size={20}
+                    color="#6B7280"
+                  />
+                </Pressable>
+              </View>
 
-              <Keypad
-                onNumberPress={handleKeypadNumber}
-                onDelete={handleKeypadDelete}
-                onClear={handleKeypadClear}
-                onEnter={handleKeypadEnter}
-                disabled={!selectedProductForQuantity}
-              />
+              {!isKeypadCollapsed && (
+                <>
+                  {selectedProductForQuantity && (
+                    <View className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 mb-3">
+                      <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
+                        Adding stock to: {selectedProductForQuantity.name}
+                      </Text>
+                      <Text className="text-lg font-bold text-text-primary dark:text-text-inverse text-center mt-1">
+                        +{keypadInput || "0"}
+                      </Text>
+                      <Text className="text-xs text-text-secondary dark:text-text-muted text-center mt-1">
+                        Current:{" "}
+                        {selectedProductForQuantity.inventory?.stock ?? 0} →
+                        New:{" "}
+                        {(selectedProductForQuantity.inventory?.stock ?? 0) +
+                          parseInt(keypadInput || "0")}
+                      </Text>
+                    </View>
+                  )}
+
+                  <Keypad
+                    onNumberPress={handleKeypadNumber}
+                    onDelete={handleKeypadDelete}
+                    onClear={handleKeypadClear}
+                    onEnter={handleKeypadEnter}
+                    disabled={!selectedProductForQuantity}
+                  />
+                </>
+              )}
             </View>
 
-            <View className="flex-1 flex-col">
-              {/* Stock Items - Using ItemList */}
-              <ItemList
-                items={selectedProducts}
-                renderItem={(product) => (
-                  <StockItemCard
-                    product={product}
-                    selectedItem={selectedProductForQuantity}
-                    onRemove={removeFromCart}
-                    onEdit={setSelectedProductForQuantity}
-                  />
-                )}
-                emptyState={{
-                  title: "No products selected for stock update",
-                  subtitle: "Tap products to update stock",
-                }}
-                className="flex-1"
-              />
-
-              {/* Stock CTA */}
-              <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
-                <ActionCTA
-                  onPress={handleUpdateStock}
-                  itemCount={selectedProducts.length}
-                  disabled={selectedProducts.length === 0}
-                  mode="stock"
+            {/* Stock Items - Using ItemList */}
+            <ItemList
+              items={selectedProducts}
+              renderItem={(product) => (
+                <StockItemCard
+                  product={product}
+                  selectedItem={selectedProductForQuantity}
+                  onRemove={removeFromCart}
+                  onEdit={setSelectedProductForQuantity}
                 />
-              </View>
+              )}
+              emptyState={{
+                title: "No products selected for stock update",
+                subtitle: "Tap products to update stock",
+              }}
+              className="flex-1"
+            />
+
+            {/* Stock CTA */}
+            <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
+              <ActionCTA
+                onPress={handleUpdateStock}
+                itemCount={selectedProducts.length}
+                disabled={selectedProducts.length === 0}
+                mode="stock"
+              />
             </View>
           </>
         )}

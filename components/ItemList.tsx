@@ -43,10 +43,14 @@ export default function ItemList<T>({
       className={className}
       showsVerticalScrollIndicator={showsVerticalScrollIndicator}
       contentContainerStyle={contentContainerStyle}
+      scrollEventThrottle={16}
+      bounces={true}
+      alwaysBounceVertical={false}
+      keyboardShouldPersistTaps="handled"
     >
-      <View className="space-y-3">
+      <View className="space-y-4">
         {items.map((item, index) => (
-          <View key={key ? `${key}-${index}` : index}>
+          <View key={key ? `${key}-${index}` : index} className="mb-1">
             {renderItem(item, index)}
           </View>
         ))}

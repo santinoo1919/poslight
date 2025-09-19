@@ -6,10 +6,17 @@ import MainLayout from "./components/layouts/MainLayout";
 import LeftPanel from "./components/layouts/LeftPanel";
 import RightPanel from "./components/layouts/RightPanel";
 import Toast from "react-native-toast-message";
-import { View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { useTheme } from "./stores/themeStore";
 import { QueryProvider } from "./providers/QueryProvider";
 import { useAuthStore } from "./stores/authStore";
+import { useCartStore } from "./stores/cartStore";
 import LoginScreen from "./components/LoginScreen";
 import { toastConfig } from "./config/toastConfig";
 import Header from "./components/Header";
@@ -28,6 +35,18 @@ function AppContent() {
   const { signOut } = useAuthStore();
 
   const { user } = useAuthStore();
+
+  // Get cart state for global selection clearing
+  const { selectedProductForQuantity, setSelectedProductForQuantity } =
+    useCartStore();
+
+  // Clear product selection when tapping anywhere in the app
+  const handleGlobalClearSelection = () => {
+    if (selectedProductForQuantity) {
+      console.log("🧹 Global clear selection");
+      setSelectedProductForQuantity(null);
+    }
+  };
 
   // Get drawer state
   const { isSalesDrawerOpen, closeSalesDrawer } = useDrawerStore();
@@ -64,15 +83,26 @@ function AppContent() {
     >
       <StatusBar style={isDark ? "light" : "dark"} />
 
-      <Header />
+      <View className="flex-1">
+        <Header />
 
-      <MainLayout leftPanel={<LeftPanel />} rightPanel={<RightPanel />} />
+        <MainLayout
+          leftPanel={
+            <TouchableWithoutFeedback onPress={handleGlobalClearSelection}>
+              <View className="flex-1">
+                <LeftPanel />
+              </View>
+            </TouchableWithoutFeedback>
+          }
+          rightPanel={<RightPanel />}
+        />
 
-      {/* Add Sales Side Panel */}
-      <SalesSidePanel
-        isVisible={isSalesDrawerOpen}
-        onClose={closeSalesDrawer}
-      />
+        {/* Add Sales Side Panel */}
+        <SalesSidePanel
+          isVisible={isSalesDrawerOpen}
+          onClose={closeSalesDrawer}
+        />
+      </View>
 
       <Toast config={toastConfig} />
     </SafeAreaWrapper>
