@@ -1,6 +1,6 @@
 // components/ProductCard.tsx
 import React from "react";
-import { View, Text, TouchableOpacity, Platform } from "react-native";
+import { View, Text, TouchableOpacity, Platform, Image } from "react-native";
 import * as Haptics from "expo-haptics";
 import type {
   ProductCardProps,
@@ -84,15 +84,15 @@ export default function ProductCard({
         </Text>
       </View>
 
-      {/* Product Image Placeholder */}
+      {/* Product Image */}
       <View
-        className={`h-16 ${isDark ? "bg-background-dark" : "bg-background-light"} rounded-md mb-2 items-center justify-center`}
+        className={`w-full aspect-[3/2] ${isDark ? "bg-background-dark" : "bg-background-light"} rounded-md mb-2 items-center justify-center`}
       >
-        <Text
-          className={`${isDark ? "text-text-muted" : "text-text-secondary"} text-xl`}
-        >
-          📦
-        </Text>
+        <Image
+          source={require("../assets/sicam.png")}
+          className="h-24 w-32"
+          resizeMode="contain"
+        />
       </View>
 
       {/* Product Name */}

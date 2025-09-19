@@ -1,8 +1,10 @@
 // components/SalesSidePanel.tsx
 import React, { useMemo, useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { db } from "../services/tinybaseStore";
 import { useTheme } from "../stores/themeStore";
+import { isIPad, isIPadPro, isIPadAir, isIPadMini } from "../utils/responsive";
 
 interface SalesSidePanelProps {
   isVisible: boolean;
@@ -15,6 +17,14 @@ export default function SalesSidePanel({
 }: SalesSidePanelProps) {
   const { isDark } = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Responsive panel width based on device
+  const getPanelWidth = () => {
+    if (isIPadPro) return 400; // iPad Pro: wider panel
+    if (isIPadAir) return 360; // iPad Air: medium panel
+    if (isIPadMini) return 320; // iPad Mini: smaller panel
+    return 320; // Default for phones
+  };
 
   // Refresh data when panel becomes visible
   useEffect(() => {
@@ -55,53 +65,54 @@ export default function SalesSidePanel({
 
   return (
     <View className="absolute inset-0 z-50">
-      {/* Backdrop */}
+      {/* Backdrop with opacity */}
       <TouchableOpacity
-        className="flex-1 bg-black bg-opacity-50"
+        style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
+        className="flex-1"
         onPress={onClose}
         activeOpacity={1}
       />
 
       {/* Side Panel */}
       <View
-        className={`absolute right-0 top-0 bottom-0 w-80 shadow-lg ${
-          isDark ? "bg-surface-dark" : "bg-surface-light"
-        }`}
+        style={{
+          width: getPanelWidth(),
+          backgroundColor: isDark ? "#1f2937" : "#f9fafb", // bg-surface-dark : bg-surface-light
+        }}
+        className="absolute right-0 top-0 bottom-0 shadow-lg"
       >
         {/* Header */}
         <View
-          className={`flex-row items-center justify-between px-4 py-4 border-b ${
+          className={`flex-row items-center justify-between px-6 py-6 border-b ${
             isDark ? "border-border-dark" : "border-border-light"
           }`}
         >
           <Text
-            className={`text-lg font-semibold ${
+            className={`text-xl font-semibold ${
               isDark ? "text-text-inverse" : "text-text-primary"
             }`}
           >
             Today's Sales ({sales?.length || 0})
           </Text>
-          <TouchableOpacity onPress={onClose} className="p-2">
-            <Text
-              className={`text-lg ${
-                isDark ? "text-text-inverse" : "text-text-primary"
-              }`}
-            >
-              ×
-            </Text>
+          <TouchableOpacity onPress={onClose} className="p-3">
+            <Ionicons
+              name="close-outline"
+              size={28}
+              color={isDark ? "#9ca3af" : "#6b7280"}
+            />
           </TouchableOpacity>
         </View>
 
         {/* Content */}
         <ScrollView
-          className={`flex-1 px-4 py-2 ${
+          className={`flex-1 px-4 py-4 ${
             isDark ? "bg-background-dark" : "bg-background-light"
           }`}
         >
           {!sales || sales.length === 0 ? (
-            <View className="py-8">
+            <View className="py-12">
               <Text
-                className={`text-center ${
+                className={`text-center text-lg ${
                   isDark ? "text-text-muted" : "text-text-secondary"
                 }`}
               >
@@ -109,20 +120,18 @@ export default function SalesSidePanel({
               </Text>
             </View>
           ) : (
-            <View className="space-y-3">
+            <View className="space-y-4">
               {sales.map((sale) => (
                 <View
                   key={sale.id}
-                  className={`rounded-lg p-4 border ${
-                    isDark
-                      ? "bg-background-dark border-border-dark"
-                      : "bg-background-light border-border-light"
+                  className={`${isDark ? "bg-background-dark" : "bg-background-light"} rounded-lg p-4 border mb-4 ${
+                    isDark ? "border-border-dark" : "border-border-light"
                   }`}
                 >
                   {/* Time and Total */}
-                  <View className="flex-row justify-between items-center mb-2">
+                  <View className="flex-row justify-between items-center mb-3">
                     <Text
-                      className={`text-sm ${
+                      className={`text-base ${
                         isDark ? "text-text-muted" : "text-text-secondary"
                       }`}
                     >
@@ -132,7 +141,7 @@ export default function SalesSidePanel({
                       })}
                     </Text>
                     <Text
-                      className={`text-lg font-bold ${
+                      className={`text-xl font-bold ${
                         isDark ? "text-state-successDark" : "text-state-success"
                       }`}
                     >
@@ -141,22 +150,22 @@ export default function SalesSidePanel({
                   </View>
 
                   {/* Items */}
-                  <View className="space-y-1">
+                  <View className="space-y-3">
                     {sale.sale_items?.map((item, index) => (
                       <View
                         key={index}
-                        className="flex-row justify-between items-center"
+                        className="flex-row justify-between items-center py-2"
                       >
                         <View className="flex-1">
                           <Text
-                            className={`text-sm font-medium ${
+                            className={`text-base font-medium ${
                               isDark ? "text-text-inverse" : "text-text-primary"
                             }`}
                           >
                             {item.products?.name || "Unknown Product"}
                           </Text>
                           <Text
-                            className={`text-xs ${
+                            className={`text-sm ${
                               isDark ? "text-text-muted" : "text-text-secondary"
                             }`}
                           >
@@ -164,7 +173,7 @@ export default function SalesSidePanel({
                           </Text>
                         </View>
                         <Text
-                          className={`text-sm font-semibold ${
+                          className={`text-base font-semibold ${
                             isDark ? "text-text-inverse" : "text-text-primary"
                           }`}
                         >
