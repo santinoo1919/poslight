@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import SearchBar from "../SearchBar";
 import ProductGrid from "../ProductGrid";
-import AnimatedCategorySelector from "../AnimatedCategorySelector";
+import CategorySelector from "../AnimatedCategorySelector";
 import type { Product } from "../../types/components";
 import { useProductStore } from "../../stores/productStore";
 import { useCartStore } from "../../stores/cartStore";
@@ -30,24 +30,13 @@ export default function LeftPanel() {
 
   return (
     <>
-      {/* Categories */}
+      {/* Categories - Full width scrollable */}
       <View className="px-4 py-3 border-b border-border-light dark:border-border-dark">
-        <Text className="text-sm font-medium text-text-secondary dark:text-text-muted mb-2">
-          Categories
-        </Text>
-        <View className="flex-row items-center justify-between">
-          {/* Animated Category Selector */}
-          <AnimatedCategorySelector
-            categories={categories || []}
-            currentCategory={currentCategory}
-            onCategorySelect={handleCategorySelect}
-          />
-
-          {/* Search Bar - On the right, using remaining space */}
-          <View className="ml-4 flex-shrink-0">
-            <SearchBar onSearch={handleSearch} />
-          </View>
-        </View>
+        <CategorySelector
+          categories={categories || []}
+          currentCategory={currentCategory}
+          onCategorySelect={handleCategorySelect}
+        />
       </View>
 
       {/* Product Grid */}

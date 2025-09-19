@@ -29,6 +29,7 @@ export default function ProductGrid() {
     searchResults,
     resetProducts,
     inventory: localInventory,
+    handleSearch,
   } = useProductStore();
 
   // Get cart state from Zustand store
@@ -95,6 +96,7 @@ export default function ProductGrid() {
         visibleProductsCount={visibleProducts.length}
         totalProductsCount={products?.length || 0}
         currentCategory={currentCategory}
+        onSearch={handleSearch}
       />
 
       <ScrollView
@@ -105,13 +107,6 @@ export default function ProductGrid() {
           <View className="space-y-6">
             {/* Main Products Grid - 4 columns */}
             <View>
-              <Text className="text-sm font-semibold text-text-primary dark:text-text-inverse mb-3">
-                {currentCategory
-                  ? `${currentCategory} Products`
-                  : "All Products"}{" "}
-                ({visibleProducts.length})
-              </Text>
-
               <View className="flex-row flex-wrap justify-start">
                 {visibleProducts.map((product, index) => {
                   const inventory = inventoryMap?.get(product.id);

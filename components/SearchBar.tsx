@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, TextInput, TouchableOpacity, Text } from "react-native";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  Keyboard,
+  Pressable,
+} from "react-native";
 import type { SearchBarProps } from "../types/components";
 
 const SearchBar = React.memo(
@@ -21,13 +28,18 @@ const SearchBar = React.memo(
       setSearchText("");
       onSearch("");
       onChangeText?.("");
+      Keyboard.dismiss(); // Dismiss keyboard when clearing
+    };
+
+    const dismissKeyboard = () => {
+      Keyboard.dismiss();
     };
 
     // Use controlled value if provided, otherwise use local state
     const displayValue = value !== undefined ? value : searchText;
 
     return (
-      <View className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 w-full">
+      <View className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 w-64">
         <View className="flex-row items-center">
           <Text className="text-text-secondary dark:text-text-muted mr-2">
             🔍
@@ -40,6 +52,9 @@ const SearchBar = React.memo(
             onChangeText={handleSearch}
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+            onSubmitEditing={dismissKeyboard} // Dismiss keyboard on search
           />
           {/* Always render clear button to prevent layout shifts */}
           <View className="ml-2 w-6 h-6 justify-center items-center">

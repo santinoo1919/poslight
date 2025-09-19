@@ -148,6 +148,7 @@ export interface ProductGridHeaderProps {
   visibleProductsCount: number;
   totalProductsCount: number;
   currentCategory: string | null;
+  onSearch?: (query: string) => void;
 }
 
 export interface ProductGridContentProps {
