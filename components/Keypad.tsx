@@ -5,6 +5,7 @@ import type {
   ButtonVariant,
   KeypadButtonProps,
 } from "../types/components";
+import { useTheme } from "../stores/themeStore";
 
 // Keypad button component - single responsibility
 const KeypadButton: React.FC<KeypadButtonProps> = ({
@@ -13,6 +14,8 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
   variant = "default",
   disabled = false,
 }) => {
+  const { isDark } = useTheme();
+
   const getButtonStyle = (): string => {
     const baseStyle =
       "w-16 h-16 rounded-lg items-center justify-center mx-2 mb-3";
@@ -20,13 +23,13 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
     // Keep subtle tints for action buttons, neutral for numbers
     switch (variant) {
       case "number":
-        return `${baseStyle} bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark`;
+        return `${baseStyle} ${isDark ? "bg-background-dark border-border-dark" : "bg-background-light border-border-light"}`;
       case "function":
-        return `${baseStyle} bg-blue-50 dark:bg-blue-900 bg-opacity-30 dark:bg-opacity-30 border border-blue-200 dark:border-blue-700`;
+        return `${baseStyle} ${isDark ? "bg-blue-900 bg-opacity-30 border-blue-700" : "bg-blue-50 bg-opacity-30 border-blue-200"}`;
       case "clear":
-        return `${baseStyle} bg-red-50 dark:bg-red-900 bg-opacity-30 dark:bg-opacity-30 border border-red-200 dark:border-red-700`;
+        return `${baseStyle} ${isDark ? "bg-red-900 bg-opacity-30 border-red-700" : "bg-red-50 bg-opacity-30 border-red-200"}`;
       default:
-        return `${baseStyle} bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark`;
+        return `${baseStyle} ${isDark ? "bg-background-dark border-border-dark" : "bg-background-light border-border-light"}`;
     }
   };
 
@@ -36,13 +39,13 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
     // Match text colors to button tints
     switch (variant) {
       case "number":
-        return `${baseStyle} text-text-primary dark:text-text-inverse`;
+        return `${baseStyle} ${isDark ? "text-text-inverse" : "text-text-primary"}`;
       case "function":
-        return `${baseStyle} text-blue-700 dark:text-blue-300`;
+        return `${baseStyle} ${isDark ? "text-blue-300" : "text-blue-700"}`;
       case "clear":
-        return `${baseStyle} text-red-700 dark:text-red-300`;
+        return `${baseStyle} ${isDark ? "text-red-300" : "text-red-700"}`;
       default:
-        return `${baseStyle} text-text-primary dark:text-text-inverse`;
+        return `${baseStyle} ${isDark ? "text-text-inverse" : "text-text-primary"}`;
     }
   };
 
@@ -61,6 +64,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 // Main Keypad component - orchestrates the keypad layout
 const Keypad: React.FC<KeypadProps> = React.memo(
   ({ onNumberPress, onDelete, onClear, onEnter, disabled = false }) => {
+    const { isDark } = useTheme();
     const handleNumberPress = (number: string) => {
       if (onNumberPress && !disabled) {
         onNumberPress(number);
@@ -86,10 +90,14 @@ const Keypad: React.FC<KeypadProps> = React.memo(
     };
 
     return (
-      <View className="bg-surface-light dark:bg-surface-dark border-t border-border-light dark:border-border-dark p-4">
+      <View
+        className={`${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"} border-t p-4`}
+      >
         {/* Keypad Header */}
         <View className="mb-3">
-          <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
+          <Text
+            className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
+          >
             💰 Quantity Keypad
           </Text>
         </View>

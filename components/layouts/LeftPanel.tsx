@@ -8,8 +8,11 @@ import { useProductStore } from "../../stores/productStore";
 import { useCartStore } from "../../stores/cartStore";
 import { useMetricsStore } from "../../stores/metricsStore";
 import { useCategoriesQuery } from "../../hooks/useCategoriesQuery";
+import { useTheme } from "../../stores/themeStore";
 
 export default function LeftPanel() {
+  const { isDark } = useTheme();
+
   // Get product state from Zustand store
   const {
     products,
@@ -31,7 +34,9 @@ export default function LeftPanel() {
   return (
     <>
       {/* Categories - Full width scrollable */}
-      <View className="px-4 py-3 border-b border-border-light dark:border-border-dark">
+      <View
+        className={`px-4 py-3 border-b ${isDark ? "border-border-dark" : "border-border-light"}`}
+      >
         <CategorySelector
           categories={categories || []}
           currentCategory={currentCategory}

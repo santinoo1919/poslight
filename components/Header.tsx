@@ -1,24 +1,32 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useAuthStore } from "../stores/authStore";
+import { useTheme } from "../stores/themeStore";
 import ThemeToggle from "./ThemeToggle";
 import DailyMetricsCard from "./DailyMetricsCard";
 
 export default function Header() {
   const { signOut } = useAuthStore();
+  const { isDark } = useTheme();
 
   return (
-    <View className="bg-surface-light dark:bg-surface-dark pt-4 pb-3 px-4 border-b border-border-light dark:border-border-dark sticky top-0 z-10">
+    <View
+      className={`${isDark ? "bg-surface-dark" : "bg-surface-light"} pt-4 pb-3 px-4 border-b ${isDark ? "border-border-dark" : "border-border-light"} sticky top-0 z-10`}
+    >
       <View className="flex-row items-center justify-between">
         {/* Left side - Empty space to balance layout */}
         <View className="w-40" />
 
         {/* Centered title and subtitle */}
         <View className="items-center flex-1">
-          <Text className="text-xl font-bold text-text-primary dark:text-text-inverse text-center">
+          <Text
+            className={`text-xl font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
+          >
             POS Light
           </Text>
-          <Text className="text-text-secondary dark:text-text-muted mt-1 text-sm text-center">
+          <Text
+            className={`${isDark ? "text-text-muted" : "text-text-secondary"} mt-1 text-sm text-center`}
+          >
             Simple • Fast • Offline
           </Text>
         </View>
@@ -34,9 +42,11 @@ export default function Header() {
           {/* Logout Button */}
           <TouchableOpacity
             onPress={signOut}
-            className="bg-interactive-selected dark:bg-interactive-selectedDark px-4 py-2 rounded-lg"
+            className={`${isDark ? "bg-interactive-selectedDark" : "bg-interactive-selected"} px-4 py-2 rounded-lg`}
           >
-            <Text className="text-text-primary dark:text-text-inverse text-sm font-semibold">
+            <Text
+              className={`${isDark ? "text-text-inverse" : "text-text-primary"} text-sm font-semibold`}
+            >
               Logout
             </Text>
           </TouchableOpacity>

@@ -1,5 +1,6 @@
 import React from "react";
 import { TouchableOpacity, Text } from "react-native";
+import { useTheme } from "../stores/themeStore";
 
 interface ActionCTAProps {
   onPress: () => void;
@@ -16,6 +17,7 @@ export default function ActionCTA({
   disabled = false,
   mode,
 }: ActionCTAProps) {
+  const { isDark } = useTheme();
   const isCartMode = mode === "cart";
   const isStockMode = mode === "stock";
 
@@ -30,10 +32,10 @@ export default function ActionCTA({
   };
 
   const getButtonColor = () => {
-    if (disabled) return "bg-gray-400 dark:bg-gray-600";
-    if (isCartMode) return "bg-green-600 dark:bg-green-500";
-    if (isStockMode) return "bg-blue-600 dark:bg-blue-500";
-    return "bg-gray-600 dark:bg-gray-500";
+    if (disabled) return isDark ? "bg-gray-600" : "bg-gray-400";
+    if (isCartMode) return isDark ? "bg-green-500" : "bg-green-600";
+    if (isStockMode) return isDark ? "bg-blue-500" : "bg-blue-600";
+    return isDark ? "bg-gray-500" : "bg-gray-600";
   };
 
   return (

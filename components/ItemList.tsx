@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
+import { useTheme } from "../stores/themeStore";
 
 interface EmptyState {
   title: string;
@@ -25,13 +26,21 @@ export default function ItemList<T>({
   contentContainerStyle = { paddingBottom: 20 },
   showsVerticalScrollIndicator = false,
 }: ItemListProps<T>) {
+  const { isDark } = useTheme();
+
   if (items.length === 0) {
     return (
-      <View className="bg-background-light dark:bg-background-dark rounded-lg p-4">
-        <Text className="text-text-secondary dark:text-text-muted text-center">
+      <View
+        className={`${isDark ? "bg-background-dark" : "bg-background-light"} rounded-lg p-4`}
+      >
+        <Text
+          className={`${isDark ? "text-text-muted" : "text-text-secondary"} text-center`}
+        >
           {emptyState.title}
         </Text>
-        <Text className="text-text-muted dark:text-text-secondary text-xs text-center mt-2">
+        <Text
+          className={`${isDark ? "text-text-secondary" : "text-text-muted"} text-xs text-center mt-2`}
+        >
           {emptyState.subtitle}
         </Text>
       </View>

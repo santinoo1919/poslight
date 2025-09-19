@@ -8,6 +8,7 @@ import type {
 import { getProfitTextColor } from "../utils/profitLevels";
 import { useProductCardData } from "../hooks/useProductCardData";
 import { ToastService } from "../services/toastService";
+import { useTheme } from "../stores/themeStore";
 
 export default function ProductCard({
   product,
@@ -15,6 +16,7 @@ export default function ProductCard({
   onPress,
   isSelected = false,
 }: ProductCardProps & { isSelected?: boolean }) {
+  const { isDark } = useTheme();
   const {
     stock,
     isLowStock,
@@ -47,10 +49,10 @@ export default function ProductCard({
     <TouchableOpacity
       className={`rounded-lg border p-3 flex-1 ${
         isOutOfStock
-          ? "bg-interactive-disabled dark:bg-interactive-disabledDark border-border-muted dark:border-border-dark opacity-50"
+          ? `${isDark ? "bg-interactive-disabledDark border-border-dark" : "bg-interactive-disabled border-border-muted"} opacity-50`
           : isSelected
-            ? "bg-interactive-selected dark:bg-interactive-selectedDark border-brand-primary dark:border-brand-primaryDark"
-            : "bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark"
+            ? `${isDark ? "bg-interactive-selectedDark border-brand-primaryDark" : "bg-interactive-selected border-brand-primary"}`
+            : `${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"}`
       }`}
       onPress={isOutOfStock ? undefined : handleProductPress}
       activeOpacity={isOutOfStock ? 1 : Platform.OS === "ios" ? 0.7 : 1}
@@ -66,14 +68,20 @@ export default function ProductCard({
             {product.icon || "📦"}
           </Text>
         </View>
-        <Text className="text-xs text-text-muted dark:text-text-secondary">
+        <Text
+          className={`text-xs ${isDark ? "text-text-secondary" : "text-text-muted"}`}
+        >
           #{product.sku}
         </Text>
       </View>
 
       {/* Product Image Placeholder */}
-      <View className="h-16 bg-background-light dark:bg-background-dark rounded-md mb-2 items-center justify-center">
-        <Text className="text-text-secondary dark:text-text-muted text-xl">
+      <View
+        className={`h-16 ${isDark ? "bg-background-dark" : "bg-background-light"} rounded-md mb-2 items-center justify-center`}
+      >
+        <Text
+          className={`${isDark ? "text-text-muted" : "text-text-secondary"} text-xl`}
+        >
           📦
         </Text>
       </View>
@@ -82,8 +90,8 @@ export default function ProductCard({
       <Text
         className={`font-semibold text-sm mb-1 ${
           isOutOfStock
-            ? "text-text-secondary dark:text-text-muted"
-            : "text-text-primary dark:text-text-inverse"
+            ? `${isDark ? "text-text-muted" : "text-text-secondary"}`
+            : `${isDark ? "text-text-inverse" : "text-text-primary"}`
         }`}
         numberOfLines={2}
       >
@@ -97,8 +105,8 @@ export default function ProductCard({
           <Text
             className={`font-bold text-base ${
               isOutOfStock
-                ? "text-text-secondary dark:text-text-muted"
-                : "text-state-success dark:text-state-successDark"
+                ? `${isDark ? "text-text-muted" : "text-text-secondary"}`
+                : `${isDark ? "text-state-successDark" : "text-state-success"}`
             }`}
           >
             €{sellPrice.toFixed(2)}
@@ -106,7 +114,7 @@ export default function ProductCard({
           <Text
             className={`text-xs font-medium ${
               isOutOfStock
-                ? "text-text-secondary dark:text-text-muted"
+                ? `${isDark ? "text-text-muted" : "text-text-secondary"}`
                 : getProfitTextColor(profitLevel)
             }`}
           >
@@ -116,16 +124,18 @@ export default function ProductCard({
 
         {/* Bottom row: Buy Price + Stock */}
         <View className="flex-row justify-between items-center">
-          <Text className="text-xs text-text-secondary dark:text-text-muted">
+          <Text
+            className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"}`}
+          >
             €{buyPrice.toFixed(2)}
           </Text>
           <Text
             className={`text-xs font-medium ${
               isOutOfStock
-                ? "text-state-error dark:text-state-errorDark"
+                ? `${isDark ? "text-state-errorDark" : "text-state-error"}`
                 : isLowStock
-                  ? "text-state-error dark:text-state-errorDark"
-                  : "text-text-secondary dark:text-text-muted"
+                  ? `${isDark ? "text-state-errorDark" : "text-state-error"}`
+                  : `${isDark ? "text-text-muted" : "text-text-secondary"}`
             }`}
           >
             {isLowStock && !isOutOfStock && "⚠️ "}Stock: {stock}

@@ -4,11 +4,14 @@ import type {
   ProductGridSkeletonProps,
   SkeletonItemProps,
 } from "../types/components";
+import { useTheme } from "../stores/themeStore";
 
 export default function ProductGridSkeleton({
   count = 20,
   columns = 4,
 }: ProductGridSkeletonProps = {}) {
+  const { isDark } = useTheme();
+
   // Simple skeleton item component
   const SkeletonItem: React.FC<SkeletonItemProps> = ({
     width,
@@ -16,7 +19,7 @@ export default function ProductGridSkeleton({
     marginBottom = 8,
   }) => (
     <View
-      className="bg-border-light dark:bg-border-dark rounded-lg"
+      className={`${isDark ? "bg-border-dark" : "bg-border-light"} rounded-lg`}
       style={{
         width: width as any,
         height,
@@ -29,7 +32,9 @@ export default function ProductGridSkeleton({
   return (
     <View className="flex-1">
       {/* Products Header with Count Skeleton */}
-      <View className="px-4 py-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
+      <View
+        className={`px-4 py-3 border-b ${isDark ? "border-border-dark bg-background-dark" : "border-border-light bg-background-light"}`}
+      >
         <View className="flex-row justify-between items-center">
           <SkeletonItem width={120} height={24} />
           <SkeletonItem width={60} height={16} />

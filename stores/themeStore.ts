@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { usePersistence } from "../utils/persistence";
+import { Appearance } from "react-native";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -20,6 +21,16 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>((set, get) => {
   const persistence = usePersistence("theme-store");
 
+  // Listen for system theme changes
+  const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+    const { mode } = get();
+    if (mode === "system") {
+      const isDark = colorScheme === "dark";
+      set({ isDark });
+      persistence.save({ mode, isDark });
+    }
+  });
+
   return {
     // Initial state
     mode: "system",
@@ -28,6 +39,11 @@ export const useThemeStore = create<ThemeState>((set, get) => {
     // Theme actions
     setMode: (mode: ThemeMode) => {
       const isDark = mode === "dark" || (mode === "system" && getSystemTheme());
+      console.log("🎨 Setting theme mode:", {
+        mode,
+        isDark,
+        systemTheme: getSystemTheme(),
+      });
 
       const newState = { mode, isDark };
       set(newState);
@@ -35,8 +51,13 @@ export const useThemeStore = create<ThemeState>((set, get) => {
     },
 
     toggleTheme: () => {
-      const { mode } = get();
+      const { mode, isDark } = get();
       const newMode = mode === "light" ? "dark" : "light";
+      console.log("🎨 Theme toggle:", {
+        currentMode: mode,
+        currentIsDark: isDark,
+        newMode,
+      });
       get().setMode(newMode);
     },
 
@@ -44,6 +65,10 @@ export const useThemeStore = create<ThemeState>((set, get) => {
       const persisted = await persistence.load();
       if (persisted) {
         set(persisted);
+      } else {
+        // If no persisted theme, initialize with system theme
+        const isDark = getSystemTheme();
+        set({ mode: "system", isDark });
       }
     },
   };
@@ -51,9 +76,13 @@ export const useThemeStore = create<ThemeState>((set, get) => {
 
 // Helper function to detect system theme
 const getSystemTheme = (): boolean => {
-  // In React Native, you can use Appearance API
-  // For now, default to light theme
-  return false;
+  try {
+    const colorScheme = Appearance.getColorScheme();
+    return colorScheme === "dark";
+  } catch (error) {
+    console.log("Error detecting system theme:", error);
+    return false; // Fallback to light theme
+  }
 };
 
 // Helper hook for easy theme access

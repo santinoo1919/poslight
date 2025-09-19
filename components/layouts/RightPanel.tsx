@@ -10,8 +10,10 @@ import type { Product, CartProduct } from "../../types/components";
 import { useCartStore } from "../../stores/cartStore";
 import { useCartOperations } from "../../hooks/useCartOperations";
 import { useStockOperations } from "../../hooks/useStockOperations";
+import { useTheme } from "../../stores/themeStore";
 
 export default function RightPanel() {
+  const { isDark } = useTheme();
   // Tab state
   const [activeTab, setActiveTab] = useState<"cart" | "stock">("cart");
   // Keypad collapse state
@@ -39,20 +41,22 @@ export default function RightPanel() {
   return (
     <>
       {/* Tab Header */}
-      <View className="flex-row bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark">
+      <View
+        className={`flex-row ${isDark ? "bg-background-dark" : "bg-background-light"} border-b ${isDark ? "border-border-dark" : "border-border-light"}`}
+      >
         <TouchableOpacity
           onPress={() => setActiveTab("cart")}
           className={`flex-1 py-3 px-4 ${
             activeTab === "cart"
-              ? "bg-surface-light dark:bg-surface-dark border-b-2 border-state-success dark:border-state-successDark"
+              ? `${isDark ? "bg-surface-dark border-b-2 border-state-successDark" : "bg-surface-light border-b-2 border-state-success"}`
               : ""
           }`}
         >
           <Text
             className={`text-center font-medium ${
               activeTab === "cart"
-                ? "text-text-primary dark:text-text-inverse"
-                : "text-text-secondary dark:text-text-muted"
+                ? `${isDark ? "text-text-inverse" : "text-text-primary"}`
+                : `${isDark ? "text-text-muted" : "text-text-secondary"}`
             }`}
           >
             🛒 Cart ({selectedProducts.length})
@@ -62,15 +66,15 @@ export default function RightPanel() {
           onPress={() => setActiveTab("stock")}
           className={`flex-1 py-3 px-4 ${
             activeTab === "stock"
-              ? "bg-surface-light dark:bg-surface-dark border-b-2 border-state-success dark:border-state-successDark"
+              ? `${isDark ? "bg-surface-dark border-b-2 border-state-successDark" : "bg-surface-light border-b-2 border-state-success"}`
               : ""
           }`}
         >
           <Text
             className={`text-center font-medium ${
               activeTab === "stock"
-                ? "text-text-primary dark:text-text-inverse"
-                : "text-text-secondary dark:text-text-muted"
+                ? `${isDark ? "text-text-inverse" : "text-text-primary"}`
+                : `${isDark ? "text-text-muted" : "text-text-secondary"}`
             }`}
           >
             📦 Stock
@@ -79,14 +83,18 @@ export default function RightPanel() {
       </View>
 
       {/* Tab Content */}
-      <View className="flex-1 p-4 bg-surface-light dark:bg-surface-dark">
+      <View
+        className={`flex-1 p-4 ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
+      >
         {activeTab === "cart" ? (
           <>
             {/* Keypad Section */}
             <View className="mb-4">
               {/* Keypad Header with Collapse Toggle */}
               <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse">
+                <Text
+                  className={`text-lg font-semibold ${isDark ? "text-text-inverse" : "text-text-primary"}`}
+                >
                   Keypad
                 </Text>
                 <Pressable
@@ -97,7 +105,7 @@ export default function RightPanel() {
                     );
                     setIsKeypadCollapsed(!isKeypadCollapsed);
                   }}
-                  className="p-2 rounded-lg bg-surface-light dark:bg-surface-dark"
+                  className={`p-2 rounded-lg ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
                 >
                   <Ionicons
                     name={isKeypadCollapsed ? "chevron-down" : "chevron-up"}
@@ -110,14 +118,22 @@ export default function RightPanel() {
               {!isKeypadCollapsed && (
                 <>
                   {selectedProductForQuantity && (
-                    <View className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 mb-3">
-                      <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
+                    <View
+                      className={`${isDark ? "bg-background-dark" : "bg-background-light"} border ${isDark ? "border-border-dark" : "border-border-light"} rounded-lg p-3 mb-3`}
+                    >
+                      <Text
+                        className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
+                      >
                         {selectedProductForQuantity.name}
                       </Text>
-                      <Text className="text-lg font-bold text-text-primary dark:text-text-inverse text-center mt-1">
+                      <Text
+                        className={`text-lg font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
+                      >
                         {keypadInput || "0"}
                       </Text>
-                      <Text className="text-xs text-text-secondary dark:text-text-muted text-center mt-1">
+                      <Text
+                        className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"} text-center mt-1`}
+                      >
                         Available Stock:{" "}
                         {selectedProductForQuantity.inventory?.stock ?? 0}
                       </Text>
@@ -154,7 +170,9 @@ export default function RightPanel() {
             />
 
             {/* Cart CTA */}
-            <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
+            <View
+              className={`border-t ${isDark ? "border-border-dark" : "border-border-light"} pt-4 mt-4`}
+            >
               <ActionCTA
                 onPress={handleCompleteSale}
                 totalAmount={getTotalAmount()}
@@ -170,12 +188,14 @@ export default function RightPanel() {
             <View className="mb-4">
               {/* Keypad Header with Collapse Toggle */}
               <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-lg font-semibold text-text-primary dark:text-text-inverse">
+                <Text
+                  className={`text-lg font-semibold ${isDark ? "text-text-inverse" : "text-text-primary"}`}
+                >
                   Stock Keypad
                 </Text>
                 <Pressable
                   onPress={() => setIsKeypadCollapsed(!isKeypadCollapsed)}
-                  className="p-2 rounded-lg bg-surface-light dark:bg-surface-dark"
+                  className={`p-2 rounded-lg ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
                 >
                   <Ionicons
                     name={isKeypadCollapsed ? "chevron-down" : "chevron-up"}
@@ -188,14 +208,22 @@ export default function RightPanel() {
               {!isKeypadCollapsed && (
                 <>
                   {selectedProductForQuantity && (
-                    <View className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-3 mb-3">
-                      <Text className="text-sm font-medium text-text-primary dark:text-text-inverse text-center">
+                    <View
+                      className={`${isDark ? "bg-background-dark" : "bg-background-light"} border ${isDark ? "border-border-dark" : "border-border-light"} rounded-lg p-3 mb-3`}
+                    >
+                      <Text
+                        className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
+                      >
                         Adding stock to: {selectedProductForQuantity.name}
                       </Text>
-                      <Text className="text-lg font-bold text-text-primary dark:text-text-inverse text-center mt-1">
+                      <Text
+                        className={`text-lg font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
+                      >
                         +{keypadInput || "0"}
                       </Text>
-                      <Text className="text-xs text-text-secondary dark:text-text-muted text-center mt-1">
+                      <Text
+                        className={`text-xs ${isDark ? "text-text-muted" : "text-text-secondary"} text-center mt-1`}
+                      >
                         Current:{" "}
                         {selectedProductForQuantity.inventory?.stock ?? 0} →
                         New:{" "}
@@ -235,7 +263,9 @@ export default function RightPanel() {
             />
 
             {/* Stock CTA */}
-            <View className="border-t border-border-light dark:border-border-dark pt-4 mt-4">
+            <View
+              className={`border-t ${isDark ? "border-border-dark" : "border-border-light"} pt-4 mt-4`}
+            >
               <ActionCTA
                 onPress={handleUpdateStock}
                 itemCount={selectedProducts.length}

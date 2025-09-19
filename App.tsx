@@ -13,10 +13,10 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from "react-native";
-import { useTheme } from "./stores/themeStore";
 import { QueryProvider } from "./providers/QueryProvider";
 import { useAuthStore } from "./stores/authStore";
 import { useCartStore } from "./stores/cartStore";
+import { useTheme } from "./stores/themeStore";
 import LoginScreen from "./components/LoginScreen";
 import { toastConfig } from "./config/toastConfig";
 import Header from "./components/Header";
@@ -77,9 +77,11 @@ function AppContent() {
     initializeMetrics();
   }, [loadPersistedMetrics, recalculateFromLocalTransactions]);
 
+  console.log("🎨 App render - isDark:", isDark);
+
   return (
     <SafeAreaWrapper
-      className={`flex-1 bg-background-light dark:bg-background-dark ${isDark ? "dark" : ""}`}
+      className={`flex-1 ${isDark ? "bg-background-dark" : "bg-background-light"}`}
     >
       <StatusBar style={isDark ? "light" : "dark"} />
 

@@ -9,6 +9,7 @@ import { useProductStore } from "../stores/productStore";
 import { useCartStore } from "../stores/cartStore";
 import { useAuthStore } from "../stores/authStore";
 import { useInventoryQuery } from "../hooks/useInventoryQuery";
+import { useTheme } from "../stores/themeStore";
 
 // Memoized ProductCard to prevent unnecessary re-renders
 const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
@@ -20,6 +21,8 @@ const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
 });
 
 export default function ProductGrid() {
+  const { isDark } = useTheme();
+
   // Get product state from Zustand store
   const {
     products,
@@ -91,7 +94,9 @@ export default function ProductGrid() {
   }
 
   return (
-    <View className="flex-1 bg-background-light dark:bg-background-dark">
+    <View
+      className={`flex-1 ${isDark ? "bg-background-dark" : "bg-background-light"}`}
+    >
       <ProductGridHeader
         visibleProductsCount={visibleProducts.length}
         totalProductsCount={products?.length || 0}
@@ -100,10 +105,12 @@ export default function ProductGrid() {
       />
 
       <ScrollView
-        className="flex-1 bg-background-light dark:bg-background-dark"
+        className={`flex-1 ${isDark ? "bg-background-dark" : "bg-background-light"}`}
         showsVerticalScrollIndicator={false}
       >
-        <View className="p-4 bg-background-light dark:bg-background-dark">
+        <View
+          className={`p-4 ${isDark ? "bg-background-dark" : "bg-background-light"}`}
+        >
           <View className="space-y-6">
             {/* Main Products Grid - 4 columns */}
             <View>
@@ -131,7 +138,9 @@ export default function ProductGrid() {
               {/* Show message if no products */}
               {visibleProducts.length === 0 && (
                 <View className="py-8 items-center">
-                  <Text className="text-text-secondary dark:text-text-muted text-center text-sm">
+                  <Text
+                    className={`${isDark ? "text-text-muted" : "text-text-secondary"} text-center text-sm`}
+                  >
                     {currentCategory
                       ? `No products found in ${currentCategory}`
                       : "No products available"}
