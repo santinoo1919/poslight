@@ -17,6 +17,7 @@ import { QueryProvider } from "./providers/QueryProvider";
 import { useAuthStore } from "./stores/authStore";
 import { useCartStore } from "./stores/cartStore";
 import { useTheme } from "./stores/themeStore";
+import { useProductStore } from "./stores/productStore";
 import LoginScreen from "./components/LoginScreen";
 import { toastConfig } from "./config/toastConfig";
 import Header from "./components/Header";
@@ -55,27 +56,25 @@ function AppContent() {
   const { loadPersistedMetrics, recalculateFromLocalTransactions } =
     useMetricsStore();
 
+  // Get product store
+  const { initializeProducts } = useProductStore();
+
   // Initialize store FIRST, before any queries run
   React.useEffect(() => {
     const initializeStore = async () => {
-      await loadStore();
+      await loadStore(); // Load TinyBase from AsyncStorage
       await loadTheme(); // Load theme after store
+      initializeProducts(); // Initialize products from TinyBase
+
+      // Initialize metrics after store is loaded
+      await loadPersistedMetrics();
+      // Don't recalculate - use persisted values to maintain consistency
     };
     initializeStore();
-  }, [loadTheme]);
+  }, [loadTheme, initializeProducts, loadPersistedMetrics]);
 
   // useDataSync(user?.id);
   // useSyncQueueProcessor(); // Start background sync processing
-
-  // Initialize metrics after store is loaded
-  React.useEffect(() => {
-    const initializeMetrics = async () => {
-      await loadPersistedMetrics();
-      recalculateFromLocalTransactions();
-    };
-
-    initializeMetrics();
-  }, [loadPersistedMetrics, recalculateFromLocalTransactions]);
 
   console.log("🎨 App render - isDark:", isDark);
 

@@ -184,41 +184,15 @@ export const useCartStore = create<CartState>((set, get) => ({
         inventory: currentInventory,
       } = useProductStore.getState();
 
-      // Update local inventory state by merging with existing inventory
-      const updatedInventory = [...(currentInventory || [])];
-
-      inventoryUpdates.forEach((update) => {
-        const existingIndex = updatedInventory.findIndex(
-          (item) =>
-            item.product_id === update.product_id &&
-            item.user_id === update.user_id
-        );
-
-        const inventoryItem = {
-          product_id: update.product_id,
-          user_id: update.user_id,
-          stock: update.stock,
-          buy_price: update.buy_price,
-          sell_price: update.sell_price,
-          is_active: update.is_active,
-          updated_at: update.updated_at,
-        };
-
-        if (existingIndex >= 0) {
-          updatedInventory[existingIndex] = inventoryItem;
-        } else {
-          updatedInventory.push(inventoryItem);
-        }
-      });
-
-      // Update local inventory in productStore
-      setInventory(updatedInventory);
-
-      // Update local product stock for immediate UI refresh
+      // Update stock in TinyBase (single source of truth)
       state.selectedProducts.forEach((product) => {
         const newStock = (product.inventory?.stock || 0) - product.quantity;
-        updateProductStock(product.id, newStock);
+        db.updateStock(product.id, newStock);
       });
+
+      // Sync inventory state from TinyBase to ensure consistency
+      const { syncInventoryFromTinyBase } = useProductStore.getState();
+      syncInventoryFromTinyBase();
 
       // Clear cart immediately (optimistic update)
       set({

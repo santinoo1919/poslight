@@ -37,6 +37,10 @@ interface ProductState {
   clearSearch: () => void;
   resetProducts: () => void;
   updateProductStock: (productId: string, newStock: number) => void;
+  syncInventoryFromTinyBase: () => void;
+  refreshProducts: () => void;
+  initializeProducts: () => void;
+  clearAllData: () => void;
 
   // Computed
   getProductsByCategory: (categoryName: string) => Product[];
@@ -85,11 +89,118 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
   updateProductStock: (productId: string, newStock: number) => {
     set((state) => ({
-      products:
-        state.products?.map((product) =>
-          product.id === productId ? { ...product, stock: newStock } : product
-        ) || null,
+      inventory: (state.inventory || []).map((item) =>
+        item.product_id === productId
+          ? { ...item, stock: newStock, updated_at: new Date().toISOString() }
+          : item
+      ),
     }));
+  },
+
+  // Sync inventory state from TinyBase (single source of truth)
+  syncInventoryFromTinyBase: () => {
+    try {
+      const { db } = require("../services/tinybaseStore");
+      const inventory = db.getAllInventory();
+
+      console.log(
+        "🔄 Syncing inventory from TinyBase:",
+        inventory.length,
+        "items"
+      );
+
+      set((state) => ({
+        inventory,
+      }));
+    } catch (error) {
+      console.error("Error syncing inventory from TinyBase:", error);
+    }
+  },
+
+  refreshProducts: () => {
+    try {
+      // Import db here to avoid circular dependency
+      const { db } = require("../services/tinybaseStore");
+      const products = db.getProducts();
+      const categories = db.getCategories();
+      const inventory = db.getAllInventory();
+
+      console.log("🔄 Refreshing products:", products.length, "products found");
+      console.log("📦 Inventory:", inventory.length, "inventory items found");
+      console.log(
+        "📦 Products:",
+        products.map((p) => ({ id: p.id, name: p.name, category: p.category }))
+      );
+
+      set({
+        products,
+        categories,
+        inventory,
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      console.error("Error refreshing products:", error);
+      set({
+        error: "Failed to load products",
+        loading: false,
+      });
+    }
+  },
+
+  initializeProducts: () => {
+    try {
+      // Import db here to avoid circular dependency
+      const { db } = require("../services/tinybaseStore");
+      const products = db.getProducts();
+      const categories = db.getCategories();
+      const inventory = db.getAllInventory();
+
+      console.log(
+        "🚀 Initializing products from TinyBase:",
+        products.length,
+        "products found"
+      );
+      console.log("📦 Inventory:", inventory.length, "inventory items found");
+
+      set({
+        products,
+        categories,
+        inventory,
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      console.error("Error initializing products:", error);
+      set({
+        error: "Failed to initialize products",
+        loading: false,
+      });
+    }
+  },
+
+  clearAllData: () => {
+    try {
+      // Clear AsyncStorage
+      AsyncStorage.removeItem("tinybase_store");
+
+      // Clear Zustand state
+      set({
+        products: null,
+        categories: null,
+        loading: false,
+        error: null,
+        currentCategory: null,
+        searchResults: [],
+        isFiltering: false,
+        visibleProducts: [],
+        inventory: [],
+      });
+
+      console.log("🧹 Cleared all cached data - ready for fresh start");
+    } catch (error) {
+      console.error("Error clearing data:", error);
+    }
   },
 
   // Computed values

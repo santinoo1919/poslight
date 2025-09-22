@@ -48,8 +48,18 @@ export const saveStore = async () => {
 export const loadStore = async () => {
   try {
     const stored = await AsyncStorage.getItem(STORAGE_KEY);
+    console.log(
+      "📱 Loading store from AsyncStorage:",
+      stored ? "Data found" : "No data found"
+    );
+
     if (stored) {
       const data = JSON.parse(stored);
+      console.log("📊 Store data loaded:", {
+        products: Object.keys(data.products || {}).length,
+        categories: Object.keys(data.categories || {}).length,
+        inventory: Object.keys(data.inventory || {}).length,
+      });
 
       // Load each table
       Object.entries(data.categories || {}).forEach(([id, category]) => {
@@ -87,6 +97,10 @@ export const loadStore = async () => {
       Object.entries(data.cashflowMetrics || {}).forEach(([id, metric]) => {
         store.setRow("cashflowMetrics", id, metric as any);
       });
+
+      console.log("✅ Store data loaded successfully into TinyBase");
+    } else {
+      console.log("📭 No stored data found, starting with empty store");
     }
   } catch (error) {
     console.warn("Failed to load store:", error);
@@ -128,6 +142,7 @@ export const db: {
   getTransactionItems: (transactionId: string) => TransactionItem[];
   getTodayTransactions: () => Transaction[];
   getInventoryForProduct: (productId: string) => any;
+  getAllInventory: () => any[];
   addStockUpdate: (
     productId: string,
     oldStock: number,
@@ -135,6 +150,17 @@ export const db: {
   ) => string;
   getCashflowMetrics: () => any;
   updateCashflowMetrics: (metrics: any) => void;
+  addProduct: (productData: {
+    name: string;
+    description: string;
+    sku: string;
+    barcode?: string;
+    brand?: string;
+    category: string;
+    price: number;
+    cost?: number;
+    initialStock: number;
+  }) => string;
 } = {
   // Get all products with category info
   getProducts: (): Product[] => {
@@ -324,6 +350,15 @@ export const db: {
     return inventoryItem || null;
   },
 
+  // Get all inventory data
+  getAllInventory: (): any[] => {
+    const inventory = store.getTable("inventory");
+    const inventoryItems = Object.values(inventory);
+
+    // Return all active inventory items
+    return inventoryItems.filter((item: any) => item.is_active);
+  },
+
   // Update stock for a product
   updateStock: (productId: string, newStock: number): void => {
     const inventory = store.getTable("inventory");
@@ -400,6 +435,60 @@ export const db: {
     });
     // Save to persistent storage
     saveStore();
+  },
+
+  // Add new product
+  addProduct: (productData: {
+    name: string;
+    description: string;
+    sku: string;
+    barcode?: string;
+    brand?: string;
+    category: string;
+    price: number;
+    cost?: number;
+    initialStock: number;
+  }): string => {
+    const productId = `prod-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Create product record
+    const product = {
+      id: productId,
+      sku: productData.sku,
+      barcode: productData.barcode || null,
+      name: productData.name,
+      description: productData.description || null,
+      category: productData.category,
+      brand: productData.brand || null,
+      images: null, // TODO: Add image support later
+      created_at: new Date().toISOString(),
+      price: productData.price, // Legacy field for backward compatibility
+    };
+
+    // Save product to products table
+    store.setRow("products", productId, product);
+
+    // Create inventory record
+    const inventoryId = `inv-${productId}`;
+    const inventory = {
+      id: inventoryId,
+      product_id: productId,
+      user_id: "local-user", // For standalone mode, use a fixed user ID
+      stock: productData.initialStock,
+      sell_price: productData.price,
+      buy_price: productData.cost || 0,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Save inventory to inventory table
+    store.setRow("inventory", inventoryId, inventory);
+
+    // Save to persistent storage
+    saveStore();
+
+    return productId;
   },
 };
 
