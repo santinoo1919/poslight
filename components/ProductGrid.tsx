@@ -4,6 +4,7 @@ import ProductGridSkeleton from "./ProductGridSkeleton";
 import ProductGridHeader from "./ProductGridHeader";
 import ErrorDisplay from "./ErrorDisplay";
 import ProductCard from "./ProductCard";
+import EmptyState from "./EmptyState";
 import type { Product } from "../types/database";
 import { useProductStore } from "../stores/productStore";
 import { useCartStore } from "../stores/cartStore";
@@ -83,14 +84,22 @@ export default function ProductGrid() {
     return products;
   }, [loading, products, searchResults, currentCategory]);
 
-  // Show skeleton only during actual loading states
-  if ((loading || !products) && !localInventory?.length) {
-    return <ProductGridSkeleton />;
-  }
-
   // Show error if there is one
   if (error) {
     return <ErrorDisplay error={error} onRetry={resetProducts} />;
+  }
+
+  // In standalone mode, show empty state if no products (skip loading state)
+  // Since we disabled Supabase queries, we don't need to wait for loading
+  if (!visibleProducts || visibleProducts.length === 0) {
+    return (
+      <EmptyState
+        onAddProducts={() => {
+          // TODO: Implement add products functionality
+          console.log("Add products clicked");
+        }}
+      />
+    );
   }
 
   return (
