@@ -86,11 +86,16 @@ export default function ProductCard({
 
       {/* Product Image */}
       <View
-        className={`w-full aspect-[3/2] ${isDark ? "bg-background-dark" : "bg-background-light"} rounded-md mb-2 items-center justify-center`}
+        className={`w-full aspect-[3/2] ${isDark ? "bg-background-dark" : "bg-background-light"} rounded-md mb-2 items-center justify-center overflow-hidden`}
       >
         <Image
           source={require("../assets/sicam.png")}
-          className="h-24 w-32"
+          style={{
+            width: "100%",
+            height: "100%",
+            maxWidth: "100%",
+            maxHeight: "100%",
+          }}
           resizeMode="contain"
         />
       </View>

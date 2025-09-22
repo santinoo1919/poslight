@@ -8,7 +8,7 @@ import type { Product } from "../types/database";
 import { useProductStore } from "../stores/productStore";
 import { useCartStore } from "../stores/cartStore";
 import { useAuthStore } from "../stores/authStore";
-import { useInventoryQuery } from "../hooks/useInventoryQuery";
+// import { useInventoryQuery } from "../hooks/useInventoryQuery";
 import { useTheme } from "../stores/themeStore";
 import { getGridColumns, getProductCardSpacing } from "../utils/responsive";
 
@@ -44,18 +44,15 @@ export default function ProductGrid() {
   // Get current user for inventory query
   const { user } = useAuthStore();
 
-  // Fetch inventory data (for initial load and sync)
-  const {
-    data: inventoryData,
-    isLoading: inventoryLoading,
-    error: inventoryError,
-  } = useInventoryQuery(user?.id || "");
+  // TODO: Reintroduce inventory query later when needed
+  // const {
+  //   data: inventoryData,
+  //   isLoading: inventoryLoading,
+  //   error: inventoryError,
+  // } = useInventoryQuery(user?.id || "");
 
-  // Use local inventory if available, otherwise use query data
-  const inventoryToUse =
-    localInventory && localInventory.length > 0
-      ? localInventory
-      : inventoryData;
+  // Use local inventory only (standalone mode)
+  const inventoryToUse = localInventory;
 
   // Create inventory lookup map
   const inventoryMap = useMemo(() => {

@@ -7,7 +7,7 @@ import type { Product } from "../../types/components";
 import { useProductStore } from "../../stores/productStore";
 import { useCartStore } from "../../stores/cartStore";
 import { useMetricsStore } from "../../stores/metricsStore";
-import { useCategoriesQuery } from "../../hooks/useCategoriesQuery";
+// import { useCategoriesQuery } from "../../hooks/useCategoriesQuery";
 import { useTheme } from "../../stores/themeStore";
 
 export default function LeftPanel() {
@@ -25,8 +25,13 @@ export default function LeftPanel() {
     handleSearch,
   } = useProductStore();
 
-  const { data: categories, isLoading: categoriesLoading } =
-    useCategoriesQuery();
+  // TODO: Reintroduce categories query later when needed
+  // const { data: categories, isLoading: categoriesLoading } =
+  //   useCategoriesQuery();
+
+  // Use local categories from TinyBase for standalone mode
+  const { db } = require("../../services/tinybaseStore");
+  const categories = db.getCategories();
 
   // Get cart state from Zustand store
   const { selectedProductForQuantity } = useCartStore();
@@ -38,7 +43,7 @@ export default function LeftPanel() {
         className={`px-4 py-3 border-b ${isDark ? "border-border-dark" : "border-border-light"}`}
       >
         <CategorySelector
-          categories={categories || []}
+          categories={categories}
           currentCategory={currentCategory}
           onCategorySelect={handleCategorySelect}
         />

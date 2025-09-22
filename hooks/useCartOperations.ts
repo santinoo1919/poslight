@@ -1,19 +1,19 @@
 import { useAuthStore } from "../stores/authStore";
 import { useCartStore } from "../stores/cartStore";
 import { ToastService } from "../services/toastService";
-import {
-  useSyncSale,
-  useSyncSaleItems,
-  useSyncInventory,
-} from "./useSyncMutations";
+// import {
+//   useSyncSale,
+//   useSyncSaleItems,
+//   useSyncInventory,
+// } from "./useSyncMutations";
 import * as Crypto from "expo-crypto";
 
 export const useCartOperations = () => {
   const { selectedProducts, completeSale, getTotalAmount } = useCartStore();
 
-  const syncSale = useSyncSale();
-  const syncSaleItems = useSyncSaleItems();
-  const syncInventory = useSyncInventory();
+  // const syncSale = useSyncSale();
+  // const syncSaleItems = useSyncSaleItems();
+  // const syncInventory = useSyncInventory();
 
   const handleCompleteSale = async () => {
     console.log("🚀 Starting sale completion process...");
@@ -52,81 +52,86 @@ export const useCartOperations = () => {
       throw error;
     }
 
-    // Prepare sync data for database (only if online)
-    const { user } = useAuthStore.getState();
-    const userId = user?.id;
-    console.log("👤 User ID:", userId);
-
-    if (!userId) {
-      console.warn("⚠️ No user ID found, skipping sync");
-      return;
-    }
-
-    const totalAmount = productsToSync.reduce(
-      (sum, product) =>
-        sum + (product.inventory?.sell_price || 0) * product.quantity,
-      0
+    // TODO: Reintroduce sync logic later when needed
+    console.log(
+      "✅ Sale completed locally - sync disabled for standalone mode"
     );
-    console.log("💰 Calculated total amount:", totalAmount);
 
-    const saleId = Crypto.randomUUID();
-    console.log("🆔 Generated sale ID:", saleId);
+    // // Prepare sync data for database (only if online)
+    // const { user } = useAuthStore.getState();
+    // const userId = user?.id;
+    // console.log("👤 User ID:", userId);
 
-    const saleData = {
-      id: saleId,
-      user_id: userId,
-      total_amount: totalAmount,
-      payment_method: "cash",
-      status: "completed",
-      created_at: new Date().toISOString(),
-    };
-    console.log("📊 Sale data:", saleData);
+    // if (!userId) {
+    //   console.warn("⚠️ No user ID found, skipping sync");
+    //   return;
+    // }
 
-    const saleItems = productsToSync.map((product) => ({
-      sale_id: saleId,
-      inventory_id: product.inventory?.id,
-      product_id: product.id,
-      quantity: product.quantity,
-      unit_price: product.inventory?.sell_price || 0,
-      total_price: (product.inventory?.sell_price || 0) * product.quantity,
-    }));
-    console.log("🛒 Sale items:", saleItems);
+    // const totalAmount = productsToSync.reduce(
+    //   (sum, product) =>
+    //     sum + (product.inventory?.sell_price || 0) * product.quantity,
+    //   0
+    // );
+    // console.log("💰 Calculated total amount:", totalAmount);
 
-    const inventoryUpdates = productsToSync.map((product) => ({
-      product_id: product.id,
-      user_id: userId,
-      stock: (product.inventory?.stock || 0) - product.quantity,
-      buy_price: product.inventory?.buy_price || 0,
-      sell_price: product.inventory?.sell_price || 0,
-      is_active: true,
-      updated_at: new Date().toISOString(),
-    }));
-    console.log("📦 Inventory updates:", inventoryUpdates);
+    // const saleId = Crypto.randomUUID();
+    // console.log("🆔 Generated sale ID:", saleId);
 
-    // Queue sync mutations (will retry when online)
-    console.log("🔄 Starting sync with data:", {
-      saleData,
-      saleItems,
-      inventoryUpdates,
-    });
+    // const saleData = {
+    //   id: saleId,
+    //   user_id: userId,
+    //   total_amount: totalAmount,
+    //   payment_method: "cash",
+    //   status: "completed",
+    //   created_at: new Date().toISOString(),
+    // };
+    // console.log("📊 Sale data:", saleData);
 
-    try {
-      console.log("🔄 Calling sync mutations...");
-      await Promise.all([
-        syncSale.mutateAsync(saleData),
-        syncSaleItems.mutateAsync(saleItems),
-        syncInventory.mutateAsync(inventoryUpdates),
-      ]);
-      console.log("✅ All sync mutations completed successfully");
-    } catch (error) {
-      console.error("❌ Sync failed:", error);
-      console.error("❌ Error details:", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      });
-      // Mutations will retry automatically when online
-    }
+    // const saleItems = productsToSync.map((product) => ({
+    //   sale_id: saleId,
+    //   inventory_id: product.inventory?.id,
+    //   product_id: product.id,
+    //   quantity: product.quantity,
+    //   unit_price: product.inventory?.sell_price || 0,
+    //   total_price: (product.inventory?.sell_price || 0) * product.quantity,
+    // }));
+    // console.log("🛒 Sale items:", saleItems);
+
+    // const inventoryUpdates = productsToSync.map((product) => ({
+    //   product_id: product.id,
+    //   user_id: userId,
+    //   stock: (product.inventory?.stock || 0) - product.quantity,
+    //   buy_price: product.inventory?.buy_price || 0,
+    //   sell_price: product.inventory?.sell_price || 0,
+    //   is_active: true,
+    //   updated_at: new Date().toISOString(),
+    // }));
+    // console.log("📦 Inventory updates:", inventoryUpdates);
+
+    // // Queue sync mutations (will retry when online)
+    // console.log("🔄 Starting sync with data:", {
+    //   saleData,
+    //   saleItems,
+    //   inventoryUpdates,
+    // });
+
+    // try {
+    //   console.log("🔄 Calling sync mutations...");
+    //   await Promise.all([
+    //     syncSale.mutateAsync(saleData),
+    //     syncSaleItems.mutateAsync(saleItems),
+    //     syncInventory.mutateAsync(inventoryUpdates),
+    //   ]);
+    //   console.log("✅ All sync mutations completed successfully");
+    // } catch (error) {
+    //   console.error("❌ Sync failed:", error);
+    //   console.error("❌ Error details:", {
+    //     message: error.message,
+    //     stack: error.stack,
+    //     name: error.name,
+    //   });
+    //   // Mutations will retry automatically when online
+    // }
   };
 
   return {

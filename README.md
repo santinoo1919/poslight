@@ -1,6 +1,6 @@
 # POS Light - Corner Shop POS System
 
-A fast, offline-capable Point of Sale system built with React Native, Expo, and Medusa.
+A fast, offline-capable Point of Sale system built with React Native, Expo, and TinyBase.
 
 ## 🚀 Features
 
@@ -14,15 +14,14 @@ A fast, offline-capable Point of Sale system built with React Native, Expo, and 
 
 - **Frontend**: React Native + Expo
 - **Styling**: NativeWind (Tailwind CSS)
-- **Backend**: Medusa (E-commerce API)
-- **State Management**: React Hooks
-- **Offline Support**: Local fallback + sync
+- **Database**: TinyBase (Local storage)
+- **State Management**: Zustand + React Hooks
+- **Offline Support**: TinyBase + AsyncStorage
 
 ## 📋 Prerequisites
 
 - Node.js 18+
 - npm or yarn
-- Medusa backend running (see setup below)
 
 ## 🏗️ Setup Instructions
 
@@ -32,18 +31,7 @@ A fast, offline-capable Point of Sale system built with React Native, Expo, and 
 npm install
 ```
 
-### 2. Configure Medusa Backend
-
-Update `config/medusa.js` with your Medusa instance URL:
-
-```javascript
-export const MEDUSA_CONFIG = {
-  BASE_URL: "http://localhost:9000", // Your Medusa URL
-  // ... other config
-};
-```
-
-### 3. Start Development Server
+### 2. Start Development Server
 
 ```bash
 # Start Expo development server
@@ -59,41 +47,16 @@ npx expo start --ios
 npx expo start --android
 ```
 
-## 🔧 Medusa Backend Setup
+## 🔧 Data Management
 
-### Quick Start with Medusa
+### Local Data Storage
 
-```bash
-# Install Medusa CLI
-npm install -g @medusajs/medusa-cli
+The app uses TinyBase for local data storage with AsyncStorage persistence:
 
-# Create new Medusa project
-medusa new my-medusa-store
-
-# Navigate to project
-cd my-medusa-store
-
-# Install dependencies
-npm install
-
-# Start development server
-medusa develop
-```
-
-### Add Test Products
-
-1. **Via Admin Panel** (http://localhost:9000/app)
-2. **Via API** - Use Medusa's product creation endpoints
-3. **Via Seed Scripts** - Create custom seed data
-
-### Required Product Structure
-
-Products need:
-
-- Title (name)
-- Variants with prices
-- Inventory items with stock quantities
-- Collections (categories)
+- **Products**: Stored locally with categories and inventory
+- **Transactions**: Sales history and transaction items
+- **Metrics**: Daily sales and cashflow tracking
+- **Offline-First**: Works without internet connection
 
 ## 📱 App Structure
 
@@ -102,55 +65,57 @@ src/
 ├── components/
 │   ├── common/          # Shared components
 │   ├── platform/        # Platform-specific components
-│   ├── ProductCard.js   # Product display component
-│   ├── ProductGrid.js   # Product grid with search
-│   └── SearchBar.js     # Search input component
+│   ├── ProductCard.tsx  # Product display component
+│   ├── ProductGrid.tsx  # Product grid with search
+│   └── SearchBar.tsx    # Search input component
 ├── hooks/
-│   └── useProducts.js   # Products state management
+│   ├── useProductsQuery.ts # Products data management
+│   └── useDataSync.ts   # Data synchronization
 ├── services/
-│   └── medusaApi.js     # Medusa API integration
-├── config/
-│   └── medusa.js        # Configuration
+│   └── tinybaseStore.ts # TinyBase data store
+├── stores/
+│   ├── productStore.ts  # Zustand product state
+│   └── cartStore.ts     # Zustand cart state
 └── utils/
-    └── responsive.js     # Responsive utilities
+    └── responsive.ts    # Responsive utilities
 ```
 
 ## 🔄 Data Flow
 
-1. **App Loads** → Checks Medusa connection
-2. **Online** → Fetches products from Medusa
-3. **Offline** → Falls back to cached/mock data
-4. **Search** → Real-time filtering (local or API)
-5. **Sync** → Background synchronization when online
+1. **App Loads** → Initializes TinyBase store
+2. **Data Loading** → Loads products and inventory from local storage
+3. **Real-time Updates** → TinyBase reactive updates
+4. **Search** → Fast in-memory filtering
+5. **Persistence** → Automatic save to AsyncStorage
 
 ## 🎯 Next Steps (v1)
 
-- [ ] Cart functionality
-- [ ] Transaction processing
-- [ ] SQLite local storage
-- [ ] Offline queue system
-- [ ] Stock updates
+- [x] Cart functionality
+- [x] Transaction processing
+- [x] Local storage with TinyBase
+- [ ] Data backup and export
+- [ ] Multi-currency support
 - [ ] Receipt generation
 
 ## 🐛 Troubleshooting
 
 ### Search Not Working
 
-- Check Medusa connection in console
-- Verify API endpoints in config
-- Ensure products have proper structure
+- Check TinyBase store initialization
+- Verify products are loaded in local storage
+- Ensure search query is properly formatted
 
-### Offline Mode
+### Data Issues
 
-- App automatically falls back to mock data
-- Check network connectivity
-- Verify Medusa server is running
+- Check AsyncStorage permissions
+- Verify TinyBase store persistence
+- Monitor storage usage (6MB limit on iOS)
 
 ### Performance Issues
 
-- Check product count (limit: 100)
-- Verify image sizes
-- Monitor network requests
+- Check product count in local storage
+- Verify image sizes and optimization
+- Monitor memory usage with large datasets
 
 ## 📄 License
 

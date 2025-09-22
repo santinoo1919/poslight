@@ -20,8 +20,8 @@ import { useTheme } from "./stores/themeStore";
 import LoginScreen from "./components/LoginScreen";
 import { toastConfig } from "./config/toastConfig";
 import Header from "./components/Header";
-import { useDataSync } from "./hooks/useDataSync";
-import { useSyncQueueProcessor } from "./hooks/useSyncMutations";
+// import { useDataSync } from "./hooks/useDataSync";
+// import { useSyncQueueProcessor } from "./hooks/useSyncMutations";
 import SalesSidePanel from "./components/SalesSidePanel";
 import { useDrawerStore } from "./stores/drawerStore";
 import { useMetricsStore } from "./stores/metricsStore";
@@ -64,8 +64,8 @@ function AppContent() {
     initializeStore();
   }, [loadTheme]);
 
-  useDataSync(user?.id);
-  useSyncQueueProcessor(); // Start background sync processing
+  // useDataSync(user?.id);
+  // useSyncQueueProcessor(); // Start background sync processing
 
   // Initialize metrics after store is loaded
   React.useEffect(() => {

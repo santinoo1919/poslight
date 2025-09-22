@@ -1,11 +1,11 @@
 import { useAuthStore } from "../stores/authStore";
 import { useCartStore } from "../stores/cartStore";
 import { ToastService } from "../services/toastService";
-import { useSyncStockUpdate } from "./useSyncMutations";
+// import { useSyncStockUpdate } from "./useSyncMutations";
 
 export const useStockOperations = () => {
   const { selectedProducts, removeFromCart } = useCartStore();
-  const syncStockUpdate = useSyncStockUpdate();
+  // const syncStockUpdate = useSyncStockUpdate();
 
   const handleUpdateStock = async () => {
     // Final validation before stock update
@@ -72,33 +72,36 @@ export const useStockOperations = () => {
     // Clear the cart
     selectedProducts.forEach((product) => removeFromCart(product.id));
 
-    // Prepare sync data for database (only if online)
-    try {
-      const stockUpdates = productsToUpdate.map((product) => {
-        const oldStock = product.inventory?.stock || 0;
-        const stockToAdd = product.quantity;
-        const newStock = oldStock + stockToAdd;
+    // TODO: Reintroduce sync logic later when needed
+    console.log("✅ Stock updated locally - sync disabled for standalone mode");
 
-        return {
-          product_id: product.id,
-          old_stock: oldStock,
-          new_stock: newStock,
-          created_at: new Date().toISOString(),
-        };
-      });
+    // // Prepare sync data for database (only if online)
+    // try {
+    //   const stockUpdates = productsToUpdate.map((product) => {
+    //     const oldStock = product.inventory?.stock || 0;
+    //     const stockToAdd = product.quantity;
+    //     const newStock = oldStock + stockToAdd;
 
-      console.log("🔄 Starting stock sync with data:", stockUpdates);
+    //     return {
+    //       product_id: product.id,
+    //       old_stock: oldStock,
+    //       new_stock: newStock,
+    //       created_at: new Date().toISOString(),
+    //     };
+    //   });
 
-      // Sync each stock update
-      await Promise.all(
-        stockUpdates.map((update) => syncStockUpdate.mutateAsync(update))
-      );
+    //   console.log("🔄 Starting stock sync with data:", stockUpdates);
 
-      console.log("✅ All stock updates synced successfully");
-    } catch (error) {
-      console.error("❌ Stock sync failed:", error);
-      // Updates will retry automatically when online
-    }
+    //   // Sync each stock update
+    //   await Promise.all(
+    //     stockUpdates.map((update) => syncStockUpdate.mutateAsync(update))
+    //   );
+
+    //   console.log("✅ All stock updates synced successfully");
+    // } catch (error) {
+    //   console.error("❌ Stock sync failed:", error);
+    //   // Updates will retry automatically when online
+    // }
   };
 
   return {
