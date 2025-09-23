@@ -1,23 +1,20 @@
 // AddProductModal types and interfaces
 
 export interface ProductFormData {
-  // Step 1: Category
-  categoryId: string;
-  categoryName: string;
-
-  // Step 2: Basic Details
+  // Basic Details
   name: string;
   description: string;
   sku: string;
   barcode: string;
   brand: string;
+  categories: Category[]; // Array of selected categories
 
-  // Step 3: Pricing & Stock
+  // Pricing & Stock
   price: string;
   cost: string;
   initialStock: string;
 
-  // Step 4: Images (future)
+  // Images (future)
   images: any[];
 }
 
@@ -42,7 +39,7 @@ export interface AddProductModalProps {
 
 export interface StepComponentProps {
   formData: ProductFormData;
-  onUpdate: (field: keyof ProductFormData, value: string) => void;
+  onUpdate: (field: keyof ProductFormData, value: string | Category[]) => void;
   onNext?: () => void;
   onPrevious?: () => void;
 }

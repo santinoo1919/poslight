@@ -3,10 +3,8 @@
 import type { Step, Category } from "./types";
 
 export const STEPS: Step[] = [
-  { id: 1, title: "Category", description: "Choose or create category" },
-  { id: 2, title: "Details", description: "Product information" },
-  { id: 3, title: "Stock", description: "Pricing and inventory" },
-  { id: 4, title: "Review", description: "Confirm and save" },
+  { id: 1, title: "Details", description: "Product information" },
+  { id: 2, title: "Stock", description: "Pricing and inventory" },
 ];
 
 export const SAMPLE_CATEGORIES: Category[] = [
@@ -49,13 +47,12 @@ export const SAMPLE_CATEGORIES: Category[] = [
 ];
 
 export const INITIAL_FORM_DATA = {
-  categoryId: "",
-  categoryName: "",
   name: "",
   description: "",
   sku: "",
   barcode: "",
   brand: "",
+  categories: [],
   price: "",
   cost: "",
   initialStock: "",

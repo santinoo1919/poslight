@@ -278,19 +278,28 @@ export const db: {
     lastUpdated: string;
   } => {
     const metrics = store.getTable("dailyMetrics");
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().split("T")[0]; // Use same format as metrics store
+
+    console.log("📊 Getting daily metrics:", {
+      today,
+      allMetrics: metrics,
+      todayMetrics: metrics[today],
+    });
 
     // Check if we have today's metrics
     if (metrics[today]) {
-      return {
+      const result = {
         revenue: (metrics[today].revenue as number) || 0,
         profit: (metrics[today].profit as number) || 0,
         lastUpdated:
           (metrics[today].lastUpdated as string) || new Date().toISOString(),
       };
+      console.log("📊 Found today's metrics:", result);
+      return result;
     }
 
     // Return default values for new day
+    console.log("📊 No metrics for today, returning defaults");
     return {
       revenue: 0,
       profit: 0,
@@ -300,15 +309,28 @@ export const db: {
 
   // Update daily metrics
   updateDailyMetrics: (revenue: number, profit: number): void => {
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().split("T")[0]; // Use same format as metrics store
     const currentMetrics = store.getTable("dailyMetrics")[today] || {
       revenue: 0,
       profit: 0,
     };
 
+    const newRevenue = ((currentMetrics.revenue as number) || 0) + revenue;
+    const newProfit = ((currentMetrics.profit as number) || 0) + profit;
+
+    console.log("📈 Updating daily metrics:", {
+      today,
+      currentRevenue: currentMetrics.revenue,
+      currentProfit: currentMetrics.profit,
+      addingRevenue: revenue,
+      addingProfit: profit,
+      newRevenue,
+      newProfit,
+    });
+
     store.setRow("dailyMetrics", today, {
-      revenue: ((currentMetrics.revenue as number) || 0) + revenue,
-      profit: ((currentMetrics.profit as number) || 0) + profit,
+      revenue: newRevenue,
+      profit: newProfit,
       lastUpdated: new Date().toISOString(),
     });
   },

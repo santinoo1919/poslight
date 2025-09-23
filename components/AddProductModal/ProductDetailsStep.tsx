@@ -1,139 +1,78 @@
 import React from "react";
-import { View, Text, TextInput, ScrollView } from "react-native";
-import { useTheme } from "../../stores/themeStore";
+import {
+  View,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
+import InputField from "../common/InputField";
 import type { StepComponentProps } from "./types";
 
 export default function ProductDetailsStep({
   formData,
   onUpdate,
 }: StepComponentProps) {
-  const { isDark } = useTheme();
-
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
-      <View className="space-y-4">
-        <Text
-          className={`text-lg font-semibold mb-4 ${
-            isDark ? "text-text-inverse" : "text-text-primary"
-          }`}
-        >
-          Product Details
-        </Text>
-
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View className="space-y-4">
-          {/* Product Name */}
-          <View>
-            <Text
-              className={`text-sm font-medium mb-2 ${
-                isDark ? "text-text-inverse" : "text-text-primary"
-              }`}
-            >
-              Product Name *
-            </Text>
-            <TextInput
-              value={formData.name}
-              onChangeText={(value) => onUpdate("name", value)}
-              placeholder="Enter product name"
-              className={`p-3 rounded-lg border ${
-                isDark
-                  ? "bg-surface-dark border-surface-dark text-text-inverse"
-                  : "bg-surface-light border-surface-light text-text-primary"
-              }`}
-              placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
-            />
-          </View>
+          {/* Two-column layout for main fields */}
+          <View className="space-y-4">
+            {/* Row 1: Product Name and SKU */}
+            <View className="flex-row gap-4">
+              <View className="flex-1 mb-8">
+                <InputField
+                  label="Product Name"
+                  required
+                  value={formData.name}
+                  onChangeText={(value) => onUpdate("name", value)}
+                  placeholder="Enter product name"
+                />
+              </View>
+              <View className="flex-1">
+                <InputField
+                  label="SKU"
+                  required
+                  value={formData.sku}
+                  onChangeText={(value) => onUpdate("sku", value)}
+                  placeholder="Enter SKU"
+                />
+              </View>
+            </View>
 
-          {/* Description */}
-          <View>
-            <Text
-              className={`text-sm font-medium mb-2 ${
-                isDark ? "text-text-inverse" : "text-text-primary"
-              }`}
-            >
-              Description
-            </Text>
-            <TextInput
+            {/* Row 2: Barcode and Brand */}
+            <View className="flex-row gap-4 mb-8">
+              <View className="flex-1">
+                <InputField
+                  label="Barcode"
+                  value={formData.barcode}
+                  onChangeText={(value) => onUpdate("barcode", value)}
+                  placeholder="Enter barcode"
+                />
+              </View>
+              <View className="flex-1">
+                <InputField
+                  label="Brand"
+                  value={formData.brand}
+                  onChangeText={(value) => onUpdate("brand", value)}
+                  placeholder="Enter brand name"
+                />
+              </View>
+            </View>
+
+            {/* Full-width Description field with increased height */}
+            <InputField
+              label="Description"
               value={formData.description}
               onChangeText={(value) => onUpdate("description", value)}
               placeholder="Enter product description"
               multiline
-              numberOfLines={3}
-              className={`p-3 rounded-lg border ${
-                isDark
-                  ? "bg-surface-dark border-surface-dark text-text-inverse"
-                  : "bg-surface-light border-surface-light text-text-primary"
-              }`}
-              placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
-            />
-          </View>
-
-          {/* SKU */}
-          <View>
-            <Text
-              className={`text-sm font-medium mb-2 ${
-                isDark ? "text-text-inverse" : "text-text-primary"
-              }`}
-            >
-              SKU *
-            </Text>
-            <TextInput
-              value={formData.sku}
-              onChangeText={(value) => onUpdate("sku", value)}
-              placeholder="Enter SKU"
-              className={`p-3 rounded-lg border ${
-                isDark
-                  ? "bg-surface-dark border-surface-dark text-text-inverse"
-                  : "bg-surface-light border-surface-light text-text-primary"
-              }`}
-              placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
-            />
-          </View>
-
-          {/* Barcode */}
-          <View>
-            <Text
-              className={`text-sm font-medium mb-2 ${
-                isDark ? "text-text-inverse" : "text-text-primary"
-              }`}
-            >
-              Barcode
-            </Text>
-            <TextInput
-              value={formData.barcode}
-              onChangeText={(value) => onUpdate("barcode", value)}
-              placeholder="Enter barcode"
-              className={`p-3 rounded-lg border ${
-                isDark
-                  ? "bg-surface-dark border-surface-dark text-text-inverse"
-                  : "bg-surface-light border-surface-light text-text-primary"
-              }`}
-              placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
-            />
-          </View>
-
-          {/* Brand */}
-          <View>
-            <Text
-              className={`text-sm font-medium mb-2 ${
-                isDark ? "text-text-inverse" : "text-text-primary"
-              }`}
-            >
-              Brand
-            </Text>
-            <TextInput
-              value={formData.brand}
-              onChangeText={(value) => onUpdate("brand", value)}
-              placeholder="Enter brand name"
-              className={`p-3 rounded-lg border ${
-                isDark
-                  ? "bg-surface-dark border-surface-dark text-text-inverse"
-                  : "bg-surface-light border-surface-light text-text-primary"
-              }`}
-              placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+              numberOfLines={5}
+              inputClassName="min-h-[120px]"
             />
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 }

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { useFaceId, checkFaceIdAvailability } from "../utils/faceIdAuth";
+import { usePersistence } from "../utils/persistence";
 
 interface User {
   id: string;
@@ -23,6 +24,7 @@ interface AuthState {
   getCurrentUser: () => User | null;
   getAllUsers: () => User[];
   checkFaceIdAvailability: () => Promise<void>;
+  loadAuth: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -34,63 +36,86 @@ const defaultUsers: User[] = [
   { id: "manager", name: "Manager", role: "manager" },
 ];
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  isUnlocked: false,
-  isLoading: false,
-  error: null,
-  currentUser: null,
-  users: defaultUsers,
-  faceIdAvailable: false,
-  faceIdType: "none",
+export const useAuthStore = create<AuthState>((set, get) => {
+  const persistence = usePersistence("auth-store");
 
-  unlock: async () => {
-    try {
-      set({ isLoading: true, error: null });
-      const result = await useFaceId();
+  return {
+    isUnlocked: false,
+    isLoading: false,
+    error: null,
+    currentUser: null,
+    users: defaultUsers,
+    faceIdAvailable: false,
+    faceIdType: "none",
 
-      if (result.success) {
-        set({ isUnlocked: true, error: null });
-      } else {
-        set({ error: result.error || "Face ID authentication failed" });
+    unlock: async () => {
+      try {
+        set({ isLoading: true, error: null });
+        const result = await useFaceId();
+
+        if (result.success) {
+          // Set default user when unlocking
+          const defaultUser = defaultUsers[0]; // Use first user as default
+          const newState = {
+            isUnlocked: true,
+            currentUser: defaultUser,
+            error: null,
+          };
+          set(newState);
+          // Persist the unlocked state
+          persistence.save(newState);
+        } else {
+          set({ error: result.error || "Face ID authentication failed" });
+        }
+      } catch (error) {
+        set({ error: error.message || "Face ID authentication failed" });
+      } finally {
+        set({ isLoading: false });
       }
-    } catch (error) {
-      set({ error: error.message || "Face ID authentication failed" });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+    },
 
-  lock: () => {
-    set({ isUnlocked: false });
-  },
+    lock: () => {
+      const newState = { isUnlocked: false, currentUser: null };
+      set(newState);
+      // Persist the locked state
+      persistence.save(newState);
+    },
 
-  setCurrentUser: (user: User) => {
-    set({ currentUser: user });
-  },
+    setCurrentUser: (user: User) => {
+      set({ currentUser: user });
+    },
 
-  getCurrentUser: () => {
-    return get().currentUser;
-  },
+    getCurrentUser: () => {
+      return get().currentUser;
+    },
 
-  getAllUsers: () => {
-    return get().users;
-  },
+    getAllUsers: () => {
+      return get().users;
+    },
 
-  checkFaceIdAvailability: async () => {
-    try {
-      const availability = await checkFaceIdAvailability();
-      set({
-        faceIdAvailable: availability.available,
-        faceIdType: availability.type,
-      });
-    } catch (error) {
-      console.error("Error checking Face ID availability:", error);
-      set({
-        faceIdAvailable: false,
-        faceIdType: "none",
-      });
-    }
-  },
+    checkFaceIdAvailability: async () => {
+      try {
+        const availability = await checkFaceIdAvailability();
+        set({
+          faceIdAvailable: availability.available,
+          faceIdType: availability.type,
+        });
+      } catch (error) {
+        console.error("Error checking Face ID availability:", error);
+        set({
+          faceIdAvailable: false,
+          faceIdType: "none",
+        });
+      }
+    },
 
-  clearError: () => set({ error: null }),
-}));
+    loadAuth: async () => {
+      const persisted = await persistence.load();
+      if (persisted) {
+        set(persisted);
+      }
+    },
+
+    clearError: () => set({ error: null }),
+  };
+});

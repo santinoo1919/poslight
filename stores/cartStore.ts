@@ -105,8 +105,8 @@ export const useCartStore = create<CartState>((set, get) => ({
   completeSale: () => {
     const state = get();
     // Get real user ID from auth store
-    const { user } = useAuthStore.getState();
-    const userId = user?.id;
+    const { currentUser } = useAuthStore.getState();
+    const userId = currentUser?.id;
 
     if (!userId) {
       ToastService.show("error", "Not Authenticated", "Please log in again");

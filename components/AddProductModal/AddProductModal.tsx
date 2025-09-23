@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { View, Modal, Alert } from "react-native";
+import {
+  View,
+  Modal,
+  Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import { useTheme } from "../../stores/themeStore";
 import { db } from "../../services/tinybaseStore";
 
@@ -7,14 +13,12 @@ import { db } from "../../services/tinybaseStore";
 import ModalHeader from "./ModalHeader";
 import StepIndicator from "./StepIndicator";
 import StepTitle from "./StepTitle";
-import CategoryStep from "./CategoryStep";
 import ProductDetailsStep from "./ProductDetailsStep";
 import StockStep from "./StockStep";
-import ReviewStep from "./ReviewStep";
 import Navigation from "./Navigation";
 
 // Types and Constants
-import type { AddProductModalProps, ProductFormData } from "./types";
+import type { AddProductModalProps, ProductFormData, Category } from "./types";
 import { STEPS, INITIAL_FORM_DATA } from "./constants";
 
 export default function AddProductModal({
@@ -73,7 +77,8 @@ export default function AddProductModal({
         sku: formData.sku.trim(),
         barcode: formData.barcode.trim() || undefined,
         brand: formData.brand.trim() || undefined,
-        category: formData.categoryId,
+        category:
+          formData.categories.length > 0 ? formData.categories[0].id : "",
         price: price,
         cost: cost,
         initialStock: initialStock,
@@ -93,22 +98,21 @@ export default function AddProductModal({
     }
   };
 
-  const updateFormData = (field: keyof ProductFormData, value: string) => {
+  const updateFormData = (
+    field: keyof ProductFormData,
+    value: string | Category[]
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 1:
-        return formData.categoryId !== "";
-      case 2:
         return formData.name.trim() !== "" && formData.sku.trim() !== "";
-      case 3:
+      case 2:
         return (
           formData.price.trim() !== "" && formData.initialStock.trim() !== ""
         );
-      case 4:
-        return true;
       default:
         return false;
     }
@@ -124,15 +128,11 @@ export default function AddProductModal({
 
     switch (currentStep) {
       case 1:
-        return <CategoryStep {...stepProps} />;
-      case 2:
         return <ProductDetailsStep {...stepProps} />;
-      case 3:
+      case 2:
         return <StockStep {...stepProps} />;
-      case 4:
-        return <ReviewStep {...stepProps} />;
       default:
-        return <CategoryStep {...stepProps} />;
+        return <ProductDetailsStep {...stepProps} />;
     }
   };
 
@@ -143,35 +143,37 @@ export default function AddProductModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View
-        className={`flex-1 ${
-          isDark ? "bg-background-dark" : "bg-background-light"
-        }`}
-      >
-        {/* Header */}
-        <ModalHeader onClose={onClose} />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View
+          className={`flex-1 ${
+            isDark ? "bg-background-dark" : "bg-background-light"
+          }`}
+        >
+          {/* Header */}
+          <ModalHeader onClose={onClose} />
 
-        {/* Content */}
-        <View className="flex-1 px-4 pt-4">
-          <StepIndicator
+          {/* Content */}
+          <View className="flex-1 px-4 pt-4">
+            <StepIndicator
+              currentStep={currentStep}
+              totalSteps={STEPS.length}
+              steps={STEPS}
+            />
+            <StepTitle step={STEPS[currentStep - 1]} />
+            {renderCurrentStep()}
+          </View>
+
+          {/* Navigation */}
+          <Navigation
             currentStep={currentStep}
             totalSteps={STEPS.length}
-            steps={STEPS}
+            canProceed={canProceed()}
+            onPrevious={handlePrevious}
+            onNext={handleNext}
+            onSubmit={handleSubmit}
           />
-          <StepTitle step={STEPS[currentStep - 1]} />
-          {renderCurrentStep()}
         </View>
-
-        {/* Navigation */}
-        <Navigation
-          currentStep={currentStep}
-          totalSteps={STEPS.length}
-          canProceed={canProceed()}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          onSubmit={handleSubmit}
-        />
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
