@@ -19,6 +19,8 @@ import { useCartStore } from "./stores/cartStore";
 import { useTheme } from "./stores/themeStore";
 import { useProductStore } from "./stores/productStore";
 import LoginScreen from "./components/LoginScreen";
+import LoadingScreen from "./components/LoadingScreen";
+import { useAppInitialization } from "./hooks/useAppInitialization";
 import { toastConfig } from "./config/toastConfig";
 import Header from "./components/Header";
 // import { useDataSync } from "./hooks/useDataSync";
@@ -30,12 +32,9 @@ import { loadStore } from "./services/tinybaseStore";
 
 function AppContent() {
   // Get theme
-  const { isDark, loadTheme } = useTheme();
+  const { isDark } = useTheme();
 
-  // Get auth state for logout functionality
-  const { signOut } = useAuthStore();
-
-  const { user } = useAuthStore();
+  // No need for auth state in app lock mode
 
   // Get cart state for global selection clearing
   const { selectedProductForQuantity, setSelectedProductForQuantity } =
@@ -59,19 +58,7 @@ function AppContent() {
   // Get product store
   const { initializeProducts } = useProductStore();
 
-  // Initialize store FIRST, before any queries run
-  React.useEffect(() => {
-    const initializeStore = async () => {
-      await loadStore(); // Load TinyBase from AsyncStorage
-      await loadTheme(); // Load theme after store
-      initializeProducts(); // Initialize products from TinyBase
-
-      // Initialize metrics after store is loaded
-      await loadPersistedMetrics();
-      // Don't recalculate - use persisted values to maintain consistency
-    };
-    initializeStore();
-  }, [loadTheme, initializeProducts, loadPersistedMetrics]);
+  // Store is already initialized in main App component
 
   // useDataSync(user?.id);
   // useSyncQueueProcessor(); // Start background sync processing
@@ -111,16 +98,14 @@ function AppContent() {
 }
 
 export default function App() {
-  const { user, loading, checkSession } = useAuthStore();
+  const { isUnlocked } = useAuthStore();
+  const { isReady } = useAppInitialization();
 
-  React.useEffect(() => {
-    checkSession();
-  }, []);
-
-  if (loading) {
-    return <ActivityIndicator />;
+  if (!isReady) {
+    return <LoadingScreen />;
   }
-  if (!user) {
+
+  if (!isUnlocked) {
     return <LoginScreen />;
   }
 

@@ -63,12 +63,18 @@ export const useThemeStore = create<ThemeState>((set, get) => {
 
     loadTheme: async () => {
       const persisted = await persistence.load();
+      console.log("🎨 Loading theme from AsyncStorage:", persisted);
       if (persisted) {
         set(persisted);
+        console.log("🎨 Theme loaded:", persisted);
       } else {
         // If no persisted theme, initialize with system theme
         const isDark = getSystemTheme();
         set({ mode: "system", isDark });
+        console.log("🎨 No saved theme, using system:", {
+          mode: "system",
+          isDark,
+        });
       }
     },
   };

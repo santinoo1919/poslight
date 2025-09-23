@@ -1,85 +1,94 @@
 import { create } from "zustand";
-import { supabase } from "../lib/supabase";
-import { User, Session } from "@supabase/supabase-js";
+import { useFaceId, checkFaceIdAvailability } from "../utils/faceIdAuth";
+
+interface User {
+  id: string;
+  name: string;
+  role: "owner" | "cashier" | "manager";
+}
 
 interface AuthState {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
+  isUnlocked: boolean;
+  isLoading: boolean;
   error: string | null;
+  currentUser: User | null;
+  users: User[];
+  faceIdAvailable: boolean;
+  faceIdType: "face" | "fingerprint" | "none";
 
   // Actions
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  checkSession: () => Promise<void>;
+  unlock: () => Promise<void>;
+  lock: () => void;
+  setCurrentUser: (user: User) => void;
+  getCurrentUser: () => User | null;
+  getAllUsers: () => User[];
+  checkFaceIdAvailability: () => Promise<void>;
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  session: null,
-  loading: true,
+// Predefined users for POS system
+const defaultUsers: User[] = [
+  { id: "owner", name: "Store Owner", role: "owner" },
+  { id: "cashier1", name: "Cashier 1", role: "cashier" },
+  { id: "cashier2", name: "Cashier 2", role: "cashier" },
+  { id: "manager", name: "Manager", role: "manager" },
+];
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+  isUnlocked: false,
+  isLoading: false,
   error: null,
+  currentUser: null,
+  users: defaultUsers,
+  faceIdAvailable: false,
+  faceIdType: "none",
 
-  signIn: async (email, password) => {
+  unlock: async () => {
     try {
-      set({ loading: true, error: null });
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      set({ isLoading: true, error: null });
+      const result = await useFaceId();
 
-      if (error) throw error;
-
-      set({ user: data.user, session: data.session });
+      if (result.success) {
+        set({ isUnlocked: true, error: null });
+      } else {
+        set({ error: result.error || "Face ID authentication failed" });
+      }
     } catch (error) {
-      set({ error: error.message });
+      set({ error: error.message || "Face ID authentication failed" });
     } finally {
-      set({ loading: false });
+      set({ isLoading: false });
     }
   },
 
-  signUp: async (email, password) => {
+  lock: () => {
+    set({ isUnlocked: false });
+  },
+
+  setCurrentUser: (user: User) => {
+    set({ currentUser: user });
+  },
+
+  getCurrentUser: () => {
+    return get().currentUser;
+  },
+
+  getAllUsers: () => {
+    return get().users;
+  },
+
+  checkFaceIdAvailability: async () => {
     try {
-      set({ loading: true, error: null });
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) throw error;
+      const availability = await checkFaceIdAvailability();
       set({
-        user: data.user,
-        session: data.session,
+        faceIdAvailable: availability.available,
+        faceIdType: availability.type,
       });
     } catch (error) {
-      set({ error: error.message });
-    } finally {
-      set({ loading: false });
-    }
-  },
-
-  signOut: async () => {
-    try {
-      set({ loading: true, error: null });
-      await supabase.auth.signOut();
-      set({ user: null, session: null });
-    } catch (error) {
-      set({ error: error.message });
-    } finally {
-      set({ loading: false });
-    }
-  },
-
-  checkSession: async () => {
-    try {
-      set({ loading: true, error: null });
-      const { data, error } = await supabase.auth.getSession();
+      console.error("Error checking Face ID availability:", error);
       set({
-        user: data.session?.user || null,
-        session: data.session || null,
+        faceIdAvailable: false,
+        faceIdType: "none",
       });
-    } catch (error) {
-      set({ error: error.message });
-    } finally {
-      set({ loading: false });
     }
   },
 

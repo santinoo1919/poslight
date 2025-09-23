@@ -7,7 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 import DailyMetricsCard from "./DailyMetricsCard";
 
 export default function Header() {
-  const { signOut } = useAuthStore();
+  const { lock } = useAuthStore();
   const { isDark } = useTheme();
 
   return (
@@ -42,7 +42,7 @@ export default function Header() {
 
           {/* Logout Icon */}
           <TouchableOpacity
-            onPress={signOut}
+            onPress={lock}
             className="p-2 ml-3"
             activeOpacity={0.7}
           >
