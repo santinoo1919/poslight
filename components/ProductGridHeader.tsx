@@ -65,7 +65,7 @@ export default function ProductGridHeader({
       <AddProductModal
         visible={modalVisible}
         onClose={handleModalClose}
-        onSubmit={handleProductSubmit}
+        onProductAdded={handleProductSubmit}
       />
     </>
   );

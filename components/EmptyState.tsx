@@ -23,9 +23,7 @@ export default function EmptyState({ onAddProducts }: EmptyStateProps) {
     setModalVisible(false);
   };
 
-  const handleProductSubmit = (productData: any) => {
-    console.log("Product submitted:", productData);
-
+  const handleProductSubmit = () => {
     // Refresh the product list to show the new product
     refreshProducts();
 
@@ -108,7 +106,7 @@ export default function EmptyState({ onAddProducts }: EmptyStateProps) {
       <AddProductModal
         visible={modalVisible}
         onClose={handleModalClose}
-        onSubmit={handleProductSubmit}
+        onProductAdded={handleProductSubmit}
       />
     </>
   );
