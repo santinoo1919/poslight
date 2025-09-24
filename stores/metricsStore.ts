@@ -19,8 +19,6 @@ export const useMetricsStore = create<MetricsState>((set, get) => {
     lastUpdatedDate: null,
 
     recordSale: (revenue: number, profit: number) => {
-      console.log("💰 Recording sale:", { revenue, profit });
-
       // Update TinyBase (single source of truth)
       db.updateDailyMetrics(revenue, profit);
 
@@ -45,13 +43,6 @@ export const useMetricsStore = create<MetricsState>((set, get) => {
     loadMetrics: () => {
       const metrics = db.getDailyMetrics();
       const today = new Date().toISOString().split("T")[0];
-
-      console.log("📊 Loading metrics:", {
-        metrics,
-        today,
-        revenue: metrics.revenue,
-        profit: metrics.profit,
-      });
 
       set({
         dailyRevenue: metrics.revenue,

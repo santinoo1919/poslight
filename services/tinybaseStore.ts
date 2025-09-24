@@ -113,6 +113,9 @@ export const initializeStore = async (): Promise<void> => {
     // Store is already initialized with empty tables
     const products = store.getTable("products");
     const categories = store.getTable("categories");
+
+    // Categories will be created dynamically when products are added
+    // No need to initialize default categories
   } catch (error) {
     console.error("Error initializing store:", error);
   }
@@ -181,11 +184,44 @@ export const db: {
     );
   },
 
-  // Get all categories
+  // Get all categories that are actually used by products
   getCategories: (): Array<Category & { key: string }> => {
-    return Object.entries(store.getTable("categories")).map(
-      ([key, category]) => ({ ...category, key })
-    ) as Array<Category & { key: string }>;
+    const products = store.getTable("products");
+    const categories = store.getTable("categories");
+
+    // Get unique category keys from products
+    const usedCategoryKeys = new Set(
+      Object.values(products)
+        .map((product: any) => product.category)
+        .filter(Boolean)
+    );
+
+    // Ensure all used categories exist in the categories table
+    let categoriesUpdated = false;
+    usedCategoryKeys.forEach((categoryKey) => {
+      if (!categories[categoryKey]) {
+        // Create a basic category entry for existing products
+        store.setRow("categories", categoryKey, {
+          name: categoryKey,
+          color: "#6B7280", // Default gray color
+          icon: "📁", // Default folder emoji
+        });
+        categoriesUpdated = true;
+      }
+    });
+
+    // Save to persistent storage if categories were updated
+    if (categoriesUpdated) {
+      saveStore();
+    }
+
+    // Only return categories that are actually used by products
+    return Array.from(usedCategoryKeys)
+      .map((key) => {
+        const category = categories[key];
+        return category ? { ...category, key } : null;
+      })
+      .filter(Boolean) as Array<Category & { key: string }>;
   },
 
   // Search products (super fast in-memory search)
@@ -280,26 +316,17 @@ export const db: {
     const metrics = store.getTable("dailyMetrics");
     const today = new Date().toISOString().split("T")[0]; // Use same format as metrics store
 
-    console.log("📊 Getting daily metrics:", {
-      today,
-      allMetrics: metrics,
-      todayMetrics: metrics[today],
-    });
-
     // Check if we have today's metrics
     if (metrics[today]) {
-      const result = {
+      return {
         revenue: (metrics[today].revenue as number) || 0,
         profit: (metrics[today].profit as number) || 0,
         lastUpdated:
           (metrics[today].lastUpdated as string) || new Date().toISOString(),
       };
-      console.log("📊 Found today's metrics:", result);
-      return result;
     }
 
     // Return default values for new day
-    console.log("📊 No metrics for today, returning defaults");
     return {
       revenue: 0,
       profit: 0,
@@ -317,16 +344,6 @@ export const db: {
 
     const newRevenue = ((currentMetrics.revenue as number) || 0) + revenue;
     const newProfit = ((currentMetrics.profit as number) || 0) + profit;
-
-    console.log("📈 Updating daily metrics:", {
-      today,
-      currentRevenue: currentMetrics.revenue,
-      currentProfit: currentMetrics.profit,
-      addingRevenue: revenue,
-      addingProfit: profit,
-      newRevenue,
-      newProfit,
-    });
 
     store.setRow("dailyMetrics", today, {
       revenue: newRevenue,
@@ -506,6 +523,17 @@ export const db: {
 
     // Save inventory to inventory table
     store.setRow("inventory", inventoryId, inventory);
+
+    // Ensure category exists in categories table
+    const categories = store.getTable("categories");
+    if (!categories[productData.category]) {
+      // Create a basic category entry if it doesn't exist
+      store.setRow("categories", productData.category, {
+        name: productData.category,
+        color: "#6B7280", // Default gray color
+        icon: "📁", // Default folder emoji
+      });
+    }
 
     // Save to persistent storage
     saveStore();

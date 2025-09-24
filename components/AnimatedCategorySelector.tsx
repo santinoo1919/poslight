@@ -61,7 +61,7 @@ export default function CategorySelector({
                 : "text-slate-500"
             }`}
           >
-            {category.icon} {category.name}
+            {category.name}
           </Text>
         </Pressable>
       ))}

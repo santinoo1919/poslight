@@ -10,8 +10,6 @@ export default function DailyMetricsCard() {
   const { dailyRevenue, dailyProfit } = useMetricsStore();
   const { openSalesDrawer } = useDrawerStore();
 
-  console.log("🎯 DailyMetricsCard render:", { dailyRevenue, dailyProfit });
-
   return (
     <TouchableOpacity
       onPress={openSalesDrawer}

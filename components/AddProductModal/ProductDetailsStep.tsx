@@ -6,6 +6,7 @@ import {
   Keyboard,
 } from "react-native";
 import InputField from "../common/InputField";
+import CategorySelector from "./CategorySelector";
 import type { StepComponentProps } from "./types";
 
 export default function ProductDetailsStep({
@@ -59,6 +60,14 @@ export default function ProductDetailsStep({
                 />
               </View>
             </View>
+
+            {/* Categories Section */}
+            <CategorySelector
+              selectedCategories={formData.categories}
+              onCategoriesChange={(categories) =>
+                onUpdate("categories", categories)
+              }
+            />
 
             {/* Full-width Description field with increased height */}
             <InputField

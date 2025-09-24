@@ -30,6 +30,11 @@ export default function AddProductModal({
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ProductFormData>(INITIAL_FORM_DATA);
 
+  const resetForm = () => {
+    setFormData(INITIAL_FORM_DATA);
+    setCurrentStep(1);
+  };
+
   const handleNext = () => {
     if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
@@ -40,6 +45,11 @@ export default function AddProductModal({
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   const handleSubmit = () => {
@@ -88,6 +98,9 @@ export default function AddProductModal({
 
       // Call parent onSubmit callback with the created product data
       onSubmit(formData);
+
+      // Reset form data and step
+      resetForm();
 
       Alert.alert("Success", "Product added successfully!", [
         { text: "OK", onPress: onClose },
@@ -141,7 +154,7 @@ export default function AddProductModal({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View
@@ -150,7 +163,7 @@ export default function AddProductModal({
           }`}
         >
           {/* Header */}
-          <ModalHeader onClose={onClose} />
+          <ModalHeader onClose={handleClose} />
 
           {/* Content */}
           <View className="flex-1 px-4 pt-4">
