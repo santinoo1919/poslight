@@ -49,7 +49,7 @@ export default function StockEntryCard({ stockUpdate }: StockEntryCardProps) {
         </Text>
         <Text
           className={`text-xl font-bold ${
-            isDark ? "text-state-successDark" : "text-state-success"
+            isDark ? "text-text-inverse" : "text-text-primary"
           }`}
         >
           €{totalCost.toFixed(2)}

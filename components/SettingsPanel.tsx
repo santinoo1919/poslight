@@ -18,8 +18,7 @@ export default function SettingsPanel({
 }: SettingsPanelProps) {
   const { isDark, toggleTheme } = useTheme();
   const { lock } = useAuthStore();
-  const { enableBackupLogs, toggleBackupLogs, loadSettings } =
-    useSettingsStore();
+  const { loadSettings } = useSettingsStore();
   const [availableBackups, setAvailableBackups] = useState<string[]>([]);
   const [isLoadingBackups, setIsLoadingBackups] = useState(false);
   const [showBackupOptions, setShowBackupOptions] = useState(false);
@@ -198,68 +197,6 @@ export default function SettingsPanel({
             </View>
           </View>
 
-          {/* Logs Section */}
-          <View className="mb-6">
-            <Text
-              className={`text-lg font-semibold mb-3 ${
-                isDark ? "text-text-inverse" : "text-text-primary"
-              }`}
-            >
-              Logging
-            </Text>
-            <View
-              className={`p-4 rounded-lg ${
-                isDark ? "bg-background-dark" : "bg-background-light"
-              }`}
-            >
-              {/* Backup Logs Toggle */}
-              <View className="flex-row items-center justify-between">
-                <View className="flex-1 mr-3">
-                  <View className="flex-row items-center">
-                    <Ionicons
-                      name="cloud-upload"
-                      size={20}
-                      color={isDark ? "#9ca3af" : "#6b7280"}
-                      style={{ marginRight: 8 }}
-                    />
-                    <Text
-                      className={`text-base ${
-                        isDark ? "text-text-inverse" : "text-text-primary"
-                      }`}
-                    >
-                      Backup Logs
-                    </Text>
-                  </View>
-                  <Text
-                    className={`text-sm ml-7 ${
-                      isDark ? "text-text-muted" : "text-text-secondary"
-                    }`}
-                  >
-                    Log backup operations
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  onPress={toggleBackupLogs}
-                  className={`w-12 h-6 rounded-full p-1 ${
-                    enableBackupLogs
-                      ? isDark
-                        ? "bg-blue-600"
-                        : "bg-blue-500"
-                      : isDark
-                        ? "bg-gray-600"
-                        : "bg-gray-300"
-                  }`}
-                >
-                  <View
-                    className={`w-4 h-4 rounded-full bg-white ${
-                      enableBackupLogs ? "ml-6" : "ml-0"
-                    }`}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
           {/* Backup Section */}
           <View className="mb-6">
             <Text
@@ -285,7 +222,7 @@ export default function SettingsPanel({
               >
                 <View className="flex-row items-center">
                   <Ionicons
-                    name="folder-open"
+                    name="cloud-download"
                     size={20}
                     color={isDark ? "#9ca3af" : "#6b7280"}
                     style={{ marginRight: 8 }}

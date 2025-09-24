@@ -1,34 +1,13 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../stores/themeStore";
 import { useDrawerStore } from "../stores/drawerStore";
 import DailyMetricsCard from "./DailyMetricsCard";
-import { BackupService } from "../services/backupService";
 
 export default function Header() {
   const { isDark } = useTheme();
   const { openSettingsDrawer } = useDrawerStore();
-  const [isBackingUp, setIsBackingUp] = useState(false);
-
-  const handleBackup = async () => {
-    try {
-      setIsBackingUp(true);
-      const fileUri = await BackupService.createBackup();
-      const fileName = fileUri.split("/").pop() || "";
-      const backupInfo = await BackupService.getBackupInfo(fileName);
-
-      Alert.alert(
-        "Backup Created! 🎉",
-        `File: ${fileName}\nSize: ${BackupService.formatFileSize(backupInfo?.size || 0)}\nDate: ${backupInfo?.date}\n\nBackup saved to device storage.`,
-        [{ text: "OK" }]
-      );
-    } catch (error) {
-      Alert.alert("Backup Failed", error.message);
-    } finally {
-      setIsBackingUp(false);
-    }
-  };
 
   return (
     <View
@@ -52,24 +31,10 @@ export default function Header() {
           </Text>
         </View>
 
-        {/* Right side - Daily metrics, backup and settings button */}
+        {/* Right side - Daily metrics and settings button */}
         <View className="flex-shrink-0 flex-row items-center space-x-3">
           {/* Tappable Daily Metrics Card */}
           <DailyMetricsCard />
-
-          {/* Backup Button */}
-          <TouchableOpacity
-            onPress={handleBackup}
-            disabled={isBackingUp}
-            className="p-2"
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name={isBackingUp ? "hourglass-outline" : "cloud-upload-outline"}
-              size={24}
-              color={isDark ? "#9ca3af" : "#6b7280"}
-            />
-          </TouchableOpacity>
 
           {/* Settings Icon */}
           <TouchableOpacity

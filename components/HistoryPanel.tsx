@@ -1,4 +1,4 @@
-// components/SalesSidePanel.tsx
+// components/HistoryPanel.tsx
 import React, { useMemo, useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,15 +9,15 @@ import { BackupService } from "../services/backupService";
 import { isIPad, isIPadPro, isIPadAir, isIPadMini } from "../utils/responsive";
 import StockEntryCard from "./StockEntryCard";
 
-interface SalesSidePanelProps {
+interface HistoryPanelProps {
   isVisible: boolean;
   onClose: () => void;
 }
 
-export default function SalesSidePanel({
+export default function HistoryPanel({
   isVisible,
   onClose,
-}: SalesSidePanelProps) {
+}: HistoryPanelProps) {
   const { isDark } = useTheme();
   const { resetDaily } = useMetricsStore();
   const [refreshKey, setRefreshKey] = useState(0);
@@ -159,7 +159,7 @@ export default function SalesSidePanel({
               isDark ? "text-text-inverse" : "text-text-primary"
             }`}
           >
-            Today's Activity ({activities?.length || 0})
+            Today's History ({activities?.length || 0})
           </Text>
           <TouchableOpacity onPress={onClose} className="p-3">
             <Ionicons
@@ -210,7 +210,9 @@ export default function SalesSidePanel({
                       </Text>
                       <Text
                         className={`text-xl font-bold ${
-                          isDark ? "text-text-inverse" : "text-text-primary"
+                          isDark
+                            ? "text-state-successDark"
+                            : "text-state-success"
                         }`}
                       >
                         €{activity.total_amount.toFixed(2)}

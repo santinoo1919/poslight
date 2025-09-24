@@ -1,6 +1,7 @@
 // components/ProductCard.tsx
 import React from "react";
 import { View, Text, TouchableOpacity, Platform, Image } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import type {
   ProductCardProps,
@@ -77,16 +78,27 @@ export default function ProductCard({
       activeOpacity={isDisabled ? 1 : Platform.OS === "ios" ? 0.7 : 1}
       disabled={isDisabled}
     >
-      {/* Category Badge */}
+      {/* Brand Badge & SKU */}
       <View className="flex-row items-center justify-between mb-2">
-        <View
-          className="px-2 py-1 rounded-full"
-          style={{ backgroundColor: product.color || "#3B82F6" }}
-        >
-          <Text className="text-white text-xs font-medium">
-            {product.icon || "📦"}
-          </Text>
-        </View>
+        {product.brand ? (
+          <View
+            className="px-2 py-1 rounded-full"
+            style={{ backgroundColor: product.color || "#3B82F6" }}
+          >
+            <Text className="text-white text-xs font-medium">
+              {product.brand}
+            </Text>
+          </View>
+        ) : (
+          <View
+            className="px-2 py-1 rounded-full"
+            style={{ backgroundColor: product.color || "#3B82F6" }}
+          >
+            <Text className="text-white text-xs font-medium">
+              {product.icon || "📦"}
+            </Text>
+          </View>
+        )}
         <Text
           className={`text-xs ${isDark ? "text-text-secondary" : "text-text-muted"}`}
         >

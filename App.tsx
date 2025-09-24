@@ -25,7 +25,7 @@ import { toastConfig } from "./config/toastConfig";
 import Header from "./components/Header";
 // import { useDataSync } from "./hooks/useDataSync";
 // import { useSyncQueueProcessor } from "./hooks/useSyncMutations";
-import SalesSidePanel from "./components/SalesSidePanel";
+import HistoryPanel from "./components/HistoryPanel";
 import SettingsPanel from "./components/SettingsPanel";
 import { useDrawerStore } from "./stores/drawerStore";
 import { useMetricsStore } from "./stores/metricsStore";
@@ -90,8 +90,8 @@ function AppContent() {
           rightPanel={<RightPanel />}
         />
 
-        {/* Add Sales Side Panel */}
-        <SalesSidePanel
+        {/* Add History Panel */}
+        <HistoryPanel
           isVisible={isSalesDrawerOpen}
           onClose={closeSalesDrawer}
         />
