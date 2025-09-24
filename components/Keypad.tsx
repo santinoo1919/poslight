@@ -178,12 +178,12 @@ const Keypad: React.FC<KeypadProps> = React.memo(
             />
           </View>
 
-          {/* Row 4: Delete, 0, Enter */}
+          {/* Row 4: C (Clear), 0, Enter */}
           <View className="flex-row space-x-2">
             <KeypadButton
-              value="⌫"
-              variant="function"
-              onPress={handleDelete}
+              value="C"
+              variant="clear"
+              onPress={handleClear}
               disabled={disabled}
             />
             <KeypadButton
@@ -198,18 +198,6 @@ const Keypad: React.FC<KeypadProps> = React.memo(
               onPress={handleEnter}
               disabled={disabled}
             />
-          </View>
-
-          {/* Row 5: Clear */}
-          <View className="flex-row space-x-2">
-            <View className="flex-1" />
-            <KeypadButton
-              value="C"
-              variant="clear"
-              onPress={handleClear}
-              disabled={disabled}
-            />
-            <View className="flex-1" />
           </View>
         </View>
 

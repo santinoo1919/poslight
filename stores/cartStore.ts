@@ -246,8 +246,23 @@ export const useCartStore = create<CartState>((set, get) => ({
     const state = get();
     if (state.keypadInput && state.selectedProductForQuantity) {
       const quantity = parseInt(state.keypadInput);
+      const product = state.selectedProductForQuantity;
+      const availableStock = product.inventory?.stock ?? 0;
+
       if (quantity > 0) {
-        state.addToCart(state.selectedProductForQuantity, quantity);
+        // Check stock before adding to cart
+        if (quantity > availableStock) {
+          // Show error message and don't add to cart
+          const { ToastService } = require("../services/toastService");
+          ToastService.stock.insufficient(
+            product.name,
+            quantity,
+            availableStock
+          );
+          return;
+        }
+
+        state.addToCart(product, quantity);
         set({ selectedProductForQuantity: null, keypadInput: "" });
       }
     }

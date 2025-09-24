@@ -20,23 +20,8 @@ export const useCartOperations = () => {
     console.log("📦 Selected products:", selectedProducts);
     console.log("💰 Total amount:", getTotalAmount());
 
-    // Final validation before sale
-    for (const product of selectedProducts) {
-      const stock = product.inventory?.stock ?? 0;
-      console.log(`🔍 Checking stock for ${product.name}:`, {
-        required: product.quantity,
-        available: stock,
-        sufficient: product.quantity <= stock,
-      });
-
-      if (product.quantity > stock) {
-        console.error("❌ Insufficient stock for:", product.name);
-        ToastService.stock.insufficient(product.name, product.quantity, stock);
-        return;
-      }
-    }
-
-    console.log("✅ Stock validation passed");
+    // Stock validation is now handled at keypad level, so we can proceed directly
+    console.log("✅ Stock validation already passed at keypad level");
 
     // Store selected products before clearing cart
     const productsToSync = [...selectedProducts];

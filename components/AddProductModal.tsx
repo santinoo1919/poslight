@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../stores/themeStore";
 import { db } from "../services/tinybaseStore";
+import {
+  generateSimpleSKU,
+  validateSKU,
+  checkSKUUniqueness,
+} from "../utils/skuGenerator";
 
 interface SimpleAddProductModalProps {
   visible: boolean;
@@ -36,6 +41,11 @@ export default function SimpleAddProductModal({
   const [category, setCategory] = useState("");
   const [brand, setBrand] = useState("");
   const [barcode, setBarcode] = useState("");
+  const [size, setSize] = useState("");
+  const [skuValidation, setSkuValidation] = useState({
+    isValid: true,
+    message: "",
+  });
 
   const resetForm = () => {
     setName("");
@@ -46,7 +56,29 @@ export default function SimpleAddProductModal({
     setCategory("");
     setBrand("");
     setBarcode("");
+    setSize("");
+    setSkuValidation({ isValid: true, message: "" });
   };
+
+  // Auto-generate SKU when name, category, or size changes
+  useEffect(() => {
+    if (name && category) {
+      const generatedSKU = generateSimpleSKU({
+        name,
+        category,
+        size: size || undefined,
+      });
+      setSku(generatedSKU);
+    }
+  }, [name, category, size]);
+
+  // Validate SKU when it changes
+  useEffect(() => {
+    if (sku) {
+      const validation = validateSKU(sku);
+      setSkuValidation(validation);
+    }
+  }, [sku]);
 
   const handleClose = () => {
     resetForm();
@@ -57,6 +89,23 @@ export default function SimpleAddProductModal({
     // Simple validation
     if (!name.trim() || !sku.trim() || !sellPrice.trim() || !stock.trim()) {
       Alert.alert("Error", "Please fill in all required fields.");
+      return;
+    }
+
+    // Check SKU validation
+    if (!skuValidation.isValid) {
+      Alert.alert("Error", `Invalid SKU: ${skuValidation.message}`);
+      return;
+    }
+
+    // Check for duplicate SKU
+    const existingProducts = db.getProducts();
+    const existingSKUs = existingProducts.map((p) => p.sku);
+    if (!checkSKUUniqueness(sku, existingSKUs)) {
+      Alert.alert(
+        "Error",
+        "SKU already exists. Please choose a different one."
+      );
       return;
     }
 
@@ -154,27 +203,58 @@ export default function SimpleAddProductModal({
             showsVerticalScrollIndicator={false}
           >
             <View className="space-y-4">
-              {/* Product Name and SKU Row */}
-              <View className="flex-row gap-4 mb-8">
+              {/* Product Name and Size Row */}
+              <View className="flex-row gap-4 mb-4">
                 <View className="flex-1">
                   <Text className={labelStyle}>Product Name *</Text>
                   <TextInput
                     className={inputStyle}
                     value={name}
                     onChangeText={setName}
-                    placeholder="Enter product name"
+                    placeholder="e.g., Red Onions"
                     placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className={labelStyle}>SKU *</Text>
+                  <Text className={labelStyle}>Size</Text>
                   <TextInput
                     className={inputStyle}
-                    value={sku}
-                    onChangeText={setSku}
-                    placeholder="Enter SKU"
+                    value={size}
+                    onChangeText={setSize}
+                    placeholder="e.g., 5LB, 12OZ"
                     placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
                   />
+                </View>
+              </View>
+
+              {/* Category and SKU Row */}
+              <View className="flex-row gap-4 mb-4">
+                <View className="flex-1">
+                  <Text className={labelStyle}>Category *</Text>
+                  <TextInput
+                    className={inputStyle}
+                    value={category}
+                    onChangeText={setCategory}
+                    placeholder="e.g., Produce"
+                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text className={labelStyle}>SKU (Auto-generated)</Text>
+                  <TextInput
+                    className={`${inputStyle} ${!skuValidation.isValid ? "border-red-500" : ""} ${
+                      isDark ? "bg-gray-700" : "bg-gray-100"
+                    }`}
+                    value={sku}
+                    editable={false}
+                    placeholder="e.g., PRO-ONION-5LB"
+                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                  />
+                  {sku && !skuValidation.isValid && (
+                    <Text className="text-red-500 text-xs mt-1">
+                      {skuValidation.message}
+                    </Text>
+                  )}
                 </View>
               </View>
 
@@ -217,28 +297,16 @@ export default function SimpleAddProductModal({
                 />
               </View>
 
-              {/* Category and Brand Row */}
-              <View className="flex-row gap-4 mb-8">
-                <View className="flex-1">
-                  <Text className={labelStyle}>Category</Text>
-                  <TextInput
-                    className={inputStyle}
-                    value={category}
-                    onChangeText={setCategory}
-                    placeholder="e.g., Electronics"
-                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
-                  />
-                </View>
-                <View className="flex-1">
-                  <Text className={labelStyle}>Brand</Text>
-                  <TextInput
-                    className={inputStyle}
-                    value={brand}
-                    onChangeText={setBrand}
-                    placeholder="Brand name"
-                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
-                  />
-                </View>
+              {/* Brand */}
+              <View className="mb-8">
+                <Text className={labelStyle}>Brand</Text>
+                <TextInput
+                  className={inputStyle}
+                  value={brand}
+                  onChangeText={setBrand}
+                  placeholder="Brand name"
+                  placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                />
               </View>
 
               {/* Barcode */}
