@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuthStore } from "../stores/authStore";
 import { useTheme } from "../stores/themeStore";
-import ThemeToggle from "./ThemeToggle";
+import { useDrawerStore } from "../stores/drawerStore";
 import DailyMetricsCard from "./DailyMetricsCard";
 import { BackupService } from "../services/backupService";
 
 export default function Header() {
-  const { lock } = useAuthStore();
   const { isDark } = useTheme();
+  const { openSettingsDrawer } = useDrawerStore();
   const [isBackingUp, setIsBackingUp] = useState(false);
 
   const handleBackup = async () => {
@@ -53,11 +52,8 @@ export default function Header() {
           </Text>
         </View>
 
-        {/* Right side - Daily metrics, theme toggle, backup and logout button */}
+        {/* Right side - Daily metrics, backup and settings button */}
         <View className="flex-shrink-0 flex-row items-center space-x-3">
-          {/* Theme Toggle */}
-          <ThemeToggle size="small" showIcon={false} />
-
           {/* Tappable Daily Metrics Card */}
           <DailyMetricsCard />
 
@@ -75,14 +71,14 @@ export default function Header() {
             />
           </TouchableOpacity>
 
-          {/* Logout Icon */}
+          {/* Settings Icon */}
           <TouchableOpacity
-            onPress={lock}
+            onPress={openSettingsDrawer}
             className="p-2 ml-3"
             activeOpacity={0.7}
           >
             <Ionicons
-              name="log-out-outline"
+              name="settings-outline"
               size={28}
               color={isDark ? "#9ca3af" : "#6b7280"}
             />

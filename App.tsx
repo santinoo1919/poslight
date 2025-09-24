@@ -26,6 +26,7 @@ import Header from "./components/Header";
 // import { useDataSync } from "./hooks/useDataSync";
 // import { useSyncQueueProcessor } from "./hooks/useSyncMutations";
 import SalesSidePanel from "./components/SalesSidePanel";
+import SettingsPanel from "./components/SettingsPanel";
 import { useDrawerStore } from "./stores/drawerStore";
 import { useMetricsStore } from "./stores/metricsStore";
 import { loadStore } from "./services/tinybaseStore";
@@ -49,11 +50,15 @@ function AppContent() {
   };
 
   // Get drawer state
-  const { isSalesDrawerOpen, closeSalesDrawer } = useDrawerStore();
+  const {
+    isSalesDrawerOpen,
+    closeSalesDrawer,
+    isSettingsDrawerOpen,
+    closeSettingsDrawer,
+  } = useDrawerStore();
 
   // Get metrics store
-  const { loadPersistedMetrics, recalculateFromLocalTransactions } =
-    useMetricsStore();
+  // const { loadPersistedMetrics, recalculateFromLocalTransactions } = useMetricsStore();
 
   // Get product store
   const { initializeProducts } = useProductStore();
@@ -89,6 +94,12 @@ function AppContent() {
         <SalesSidePanel
           isVisible={isSalesDrawerOpen}
           onClose={closeSalesDrawer}
+        />
+
+        {/* Add Settings Panel */}
+        <SettingsPanel
+          isVisible={isSettingsDrawerOpen}
+          onClose={closeSettingsDrawer}
         />
       </View>
 
