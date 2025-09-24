@@ -9,9 +9,11 @@ import { useCartStore } from "../../stores/cartStore";
 import { useMetricsStore } from "../../stores/metricsStore";
 // import { useCategoriesQuery } from "../../hooks/useCategoriesQuery";
 import { useTheme } from "../../stores/themeStore";
+import { useDrawerStore } from "../../stores/drawerStore";
 
 export default function LeftPanel() {
   const { isDark } = useTheme();
+  const { activeTab } = useDrawerStore();
 
   // Get product state from Zustand store
   const {
@@ -51,7 +53,7 @@ export default function LeftPanel() {
 
       {/* Product Grid */}
       <View className="flex-1">
-        <ProductGrid />
+        <ProductGrid mode={activeTab} />
       </View>
     </>
   );

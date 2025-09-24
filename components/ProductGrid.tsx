@@ -18,11 +18,16 @@ const MemoizedProductCard = React.memo(ProductCard, (prevProps, nextProps) => {
   return (
     prevProps.product.id === nextProps.product.id &&
     prevProps.isSelected === nextProps.isSelected &&
-    prevProps.inventory === nextProps.inventory
+    prevProps.inventory === nextProps.inventory &&
+    prevProps.mode === nextProps.mode
   );
 });
 
-export default function ProductGrid() {
+interface ProductGridProps {
+  mode?: "cart" | "stock";
+}
+
+export default function ProductGrid({ mode = "cart" }: ProductGridProps) {
   const { isDark } = useTheme();
   const columns = getGridColumns();
   const cardSpacing = getProductCardSpacing();
@@ -43,7 +48,7 @@ export default function ProductGrid() {
   const { selectedProductForQuantity, handleProductPress } = useCartStore();
 
   // Get current user for inventory query
-  const { user } = useAuthStore();
+  const { currentUser } = useAuthStore();
 
   // TODO: Reintroduce inventory query later when needed
   // const {
@@ -146,6 +151,7 @@ export default function ProductGrid() {
                         isSelected={
                           selectedProductForQuantity?.id === product.id
                         }
+                        mode={mode}
                       />
                     </View>
                   );

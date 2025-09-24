@@ -26,6 +26,7 @@ export interface ProductCardProps {
   inventory?: Inventory; // Business data (user-specific, optional)
   onPress?: (product: ProductWithInventory) => void;
   onLongPress?: () => void;
+  mode?: "cart" | "stock"; // UI mode for different behaviors
 }
 
 export interface ProductGridProps {
@@ -50,6 +51,7 @@ export interface KeypadProps {
   onClear: () => void;
   onEnter: () => void;
   disabled?: boolean;
+  mode?: "cart" | "stock";
 }
 
 export interface SuccessScreenProps {

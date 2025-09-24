@@ -17,6 +17,7 @@ export default function ProductCard({
   inventory,
   onPress,
   isSelected = false,
+  mode = "cart",
 }: ProductCardProps & { isSelected?: boolean }) {
   const { isDark } = useTheme();
   const {
@@ -29,17 +30,26 @@ export default function ProductCard({
     profitLevel,
   } = useProductCardData(product, inventory);
 
+  // Mode-aware UI state
+  const isDisabled = mode === "cart" && isOutOfStock;
+  const isClickable = !isDisabled;
+
   const handleProductPress = () => {
     const stock = inventory?.stock ?? 0;
 
-    if (stock === 0) {
-      // Light haptic for error state
+    // Mode-specific validation
+    if (mode === "cart" && stock === 0) {
+      // In cart mode, block 0-stock products
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       ToastService.stock.insufficient(product.name, 1, 0);
       return;
     }
 
-    if (stock <= 10) {
+    // In stock mode, allow all products (including 0-stock)
+    if (mode === "stock" && stock === 0) {
+      // Light haptic for stock update
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } else if (stock <= 10) {
       // Warning haptic for low stock
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       ToastService.stock.lowStock(product.name, stock);
@@ -57,15 +67,15 @@ export default function ProductCard({
   return (
     <TouchableOpacity
       className={`rounded-lg border p-3 flex-1 ${
-        isOutOfStock
+        isDisabled
           ? `${isDark ? "bg-interactive-disabledDark border-border-dark" : "bg-interactive-disabled border-border-muted"} opacity-50`
           : isSelected
             ? `${isDark ? "bg-interactive-selectedDark border-brand-primaryDark" : "bg-interactive-selected border-brand-primary"}`
             : `${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"}`
       }`}
-      onPress={isOutOfStock ? undefined : handleProductPress}
-      activeOpacity={isOutOfStock ? 1 : Platform.OS === "ios" ? 0.7 : 1}
-      disabled={isOutOfStock}
+      onPress={isDisabled ? undefined : handleProductPress}
+      activeOpacity={isDisabled ? 1 : Platform.OS === "ios" ? 0.7 : 1}
+      disabled={isDisabled}
     >
       {/* Category Badge */}
       <View className="flex-row items-center justify-between mb-2">
@@ -145,14 +155,15 @@ export default function ProductCard({
           </Text>
           <Text
             className={`font-medium ${getResponsiveFontSize("text-sm")} ${
-              isOutOfStock
+              isDisabled
                 ? `${isDark ? "text-state-errorDark" : "text-state-error"}`
                 : isLowStock
                   ? `${isDark ? "text-state-errorDark" : "text-state-error"}`
                   : `${isDark ? "text-text-muted" : "text-text-secondary"}`
             }`}
           >
-            {isLowStock && !isOutOfStock && "⚠️ "}Stock: {stock}
+            {mode === "cart" && isLowStock && !isOutOfStock && "⚠️ "}
+            {isDisabled ? "Out of Stock" : `Stock: ${stock}`}
           </Text>
         </View>
       </View>

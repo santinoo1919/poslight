@@ -10,12 +10,14 @@ import type { Product, CartProduct } from "../../types/components";
 import { useCartStore } from "../../stores/cartStore";
 import { useCartOperations } from "../../hooks/useCartOperations";
 import { useStockOperations } from "../../hooks/useStockOperations";
+import { useKeypadOperations } from "../../hooks/useKeypadOperations";
 import { useTheme } from "../../stores/themeStore";
+import { useDrawerStore } from "../../stores/drawerStore";
 
 export default function RightPanel() {
   const { isDark } = useTheme();
-  // Tab state
-  const [activeTab, setActiveTab] = useState<"cart" | "stock">("cart");
+  // Tab state from store
+  const { activeTab, setActiveTab } = useDrawerStore();
   // Keypad collapse state
   const [isKeypadCollapsed, setIsKeypadCollapsed] = useState(true); // Start collapsed
 
@@ -28,15 +30,17 @@ export default function RightPanel() {
     updateQuantity,
     setSelectedProductForQuantity,
     setKeypadInput,
-    handleKeypadNumber,
-    handleKeypadDelete,
-    handleKeypadClear,
-    handleKeypadEnter,
   } = useCartStore();
 
   // Custom hooks for operations
   const { handleCompleteSale, getTotalAmount } = useCartOperations();
   const { handleUpdateStock } = useStockOperations();
+  const {
+    handleKeypadNumber,
+    handleKeypadDelete,
+    handleKeypadClear,
+    handleKeypadEnter,
+  } = useKeypadOperations();
 
   return (
     <>
@@ -124,12 +128,7 @@ export default function RightPanel() {
                         className={`${isDark ? "bg-background-dark" : "bg-background-light"} border ${isDark ? "border-border-dark" : "border-border-light"} rounded-lg p-3 mb-3`}
                       >
                         <Text
-                          className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
-                        >
-                          {selectedProductForQuantity.name}
-                        </Text>
-                        <Text
-                          className={`text-lg font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
+                          className={`text-4xl font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
                         >
                           {keypadInput || "0"}
                         </Text>
@@ -148,6 +147,7 @@ export default function RightPanel() {
                       onClear={handleKeypadClear}
                       onEnter={handleKeypadEnter}
                       disabled={!selectedProductForQuantity}
+                      mode={activeTab}
                     />
                   </>
                 )}
@@ -180,7 +180,7 @@ export default function RightPanel() {
                   <Text
                     className={`text-lg font-semibold ${isDark ? "text-text-inverse" : "text-text-primary"}`}
                   >
-                    Stock Keypad
+                    Keypad
                   </Text>
                   <Pressable
                     onPress={() => setIsKeypadCollapsed(!isKeypadCollapsed)}
@@ -201,12 +201,7 @@ export default function RightPanel() {
                         className={`${isDark ? "bg-background-dark" : "bg-background-light"} border ${isDark ? "border-border-dark" : "border-border-light"} rounded-lg p-3 mb-3`}
                       >
                         <Text
-                          className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
-                        >
-                          Adding stock to: {selectedProductForQuantity.name}
-                        </Text>
-                        <Text
-                          className={`text-lg font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
+                          className={`text-4xl font-bold ${isDark ? "text-text-inverse" : "text-text-primary"} text-center mt-1`}
                         >
                           +{keypadInput || "0"}
                         </Text>
@@ -228,6 +223,7 @@ export default function RightPanel() {
                       onClear={handleKeypadClear}
                       onEnter={handleKeypadEnter}
                       disabled={!selectedProductForQuantity}
+                      mode={activeTab}
                     />
                   </>
                 )}

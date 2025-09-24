@@ -71,7 +71,14 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
 
 // Main Keypad component - orchestrates the keypad layout
 const Keypad: React.FC<KeypadProps> = React.memo(
-  ({ onNumberPress, onDelete, onClear, onEnter, disabled = false }) => {
+  ({
+    onNumberPress,
+    onDelete,
+    onClear,
+    onEnter,
+    disabled = false,
+    mode = "cart",
+  }) => {
     const { isDark } = useTheme();
     const handleNumberPress = (number: string) => {
       if (onNumberPress && !disabled) {
@@ -99,17 +106,8 @@ const Keypad: React.FC<KeypadProps> = React.memo(
 
     return (
       <View
-        className={`${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"} border-t p-2`}
+        className={`${isDark ? "bg-surface-dark " : "bg-surface-light "} p-2`}
       >
-        {/* Keypad Header */}
-        <View className="mb-3">
-          <Text
-            className={`text-sm font-medium ${isDark ? "text-text-inverse" : "text-text-primary"} text-center`}
-          >
-            💰 Quantity Keypad
-          </Text>
-        </View>
-
         {/* Keypad Grid */}
         <View className="items-center space-y-2">
           {/* Row 1: 1, 2, 3 */}
