@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { db } from "../services/tinybaseStore";
 import { useTheme } from "../stores/themeStore";
 import { isIPad, isIPadPro, isIPadAir, isIPadMini } from "../utils/responsive";
+import StockEntryCard from "./StockEntryCard";
 
 interface SalesSidePanelProps {
   isVisible: boolean;
@@ -33,32 +34,53 @@ export default function SalesSidePanel({
     }
   }, [isVisible]);
 
-  // Get local sales data from TinyBase store
-  const sales = useMemo(() => {
+  // Get local sales and stock data from TinyBase store
+  const activities = useMemo(() => {
     const transactions = db.getTodayTransactions();
+    const stockUpdates = db.getStockUpdates();
     const products = db.getProducts();
 
-    return transactions
-      .map((transaction) => ({
-        id: transaction.id,
-        total_amount: transaction.total_amount,
-        created_at: transaction.created_at,
-        sale_items: db.getTransactionItems(transaction.id).map((item) => {
-          const product = products.find((p) => p.id === item.product_id);
-          return {
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            total_price: item.total_price,
-            products: {
-              name: product?.name || `Product ${item.product_id}`,
-            },
-          };
-        }),
-      }))
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ); // Latest first
+    const salesData = transactions.map((transaction) => ({
+      id: transaction.id,
+      type: "sale" as const,
+      total_amount: transaction.total_amount,
+      created_at: transaction.created_at,
+      sale_items: db.getTransactionItems(transaction.id).map((item) => {
+        const product = products.find((p) => p.id === item.product_id);
+        return {
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price,
+          products: {
+            name: product?.name || `Product ${item.product_id}`,
+          },
+        };
+      }),
+    }));
+
+    const stockEntries = stockUpdates.map((stockUpdate) => {
+      const product = products.find((p) => p.id === stockUpdate.product_id);
+      // Get buy price from inventory
+      const inventory = db.getInventoryForProduct(stockUpdate.product_id);
+      const buy_price = inventory?.buy_price || 0;
+
+      return {
+        id: stockUpdate.id,
+        type: "stock_update" as const,
+        product_name: product?.name || `Product ${stockUpdate.product_id}`,
+        quantity_added: stockUpdate.new_stock - stockUpdate.old_stock,
+        old_stock: stockUpdate.old_stock,
+        new_stock: stockUpdate.new_stock,
+        created_at: stockUpdate.created_at,
+        buy_price: buy_price,
+      };
+    });
+
+    // Combine and sort by timestamp (newest first)
+    return [...salesData, ...stockEntries].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
   }, [refreshKey]);
 
   if (!isVisible) return null;
@@ -92,7 +114,7 @@ export default function SalesSidePanel({
               isDark ? "text-text-inverse" : "text-text-primary"
             }`}
           >
-            Today's Sales ({sales?.length || 0})
+            Today's Activity ({activities?.length || 0})
           </Text>
           <TouchableOpacity onPress={onClose} className="p-3">
             <Ionicons
@@ -109,81 +131,91 @@ export default function SalesSidePanel({
             isDark ? "bg-background-dark" : "bg-background-light"
           }`}
         >
-          {!sales || sales.length === 0 ? (
+          {!activities || activities.length === 0 ? (
             <View className="py-12">
               <Text
                 className={`text-center text-lg ${
                   isDark ? "text-text-muted" : "text-text-secondary"
                 }`}
               >
-                No sales today yet
+                No activity today yet
               </Text>
             </View>
           ) : (
             <View className="space-y-4">
-              {sales.map((sale) => (
-                <View
-                  key={sale.id}
-                  className={`${isDark ? "bg-background-dark" : "bg-background-light"} rounded-lg p-4 border mb-4 ${
-                    isDark ? "border-border-dark" : "border-border-light"
-                  }`}
-                >
-                  {/* Time and Total */}
-                  <View className="flex-row justify-between items-center mb-3">
-                    <Text
-                      className={`text-base ${
-                        isDark ? "text-text-muted" : "text-text-secondary"
-                      }`}
-                    >
-                      {new Date(sale.created_at).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </Text>
-                    <Text
-                      className={`text-xl font-bold ${
-                        isDark ? "text-state-successDark" : "text-state-success"
-                      }`}
-                    >
-                      €{sale.total_amount.toFixed(2)}
-                    </Text>
-                  </View>
-
-                  {/* Items */}
-                  <View className="space-y-3">
-                    {sale.sale_items?.map((item, index) => (
-                      <View
-                        key={index}
-                        className="flex-row justify-between items-center py-2"
+              {activities.map((activity) =>
+                activity.type === "sale" ? (
+                  <View
+                    key={activity.id}
+                    className={`${isDark ? "bg-background-dark" : "bg-background-light"} rounded-lg p-4 border mb-4 ${
+                      isDark ? "border-border-dark" : "border-border-light"
+                    }`}
+                  >
+                    {/* Time and Total */}
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text
+                        className={`text-base ${
+                          isDark ? "text-text-muted" : "text-text-secondary"
+                        }`}
                       >
-                        <View className="flex-1">
+                        {new Date(activity.created_at).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </Text>
+                      <Text
+                        className={`text-xl font-bold ${
+                          isDark
+                            ? "text-state-successDark"
+                            : "text-state-success"
+                        }`}
+                      >
+                        €{activity.total_amount.toFixed(2)}
+                      </Text>
+                    </View>
+
+                    {/* Items */}
+                    <View className="space-y-3">
+                      {activity.sale_items?.map((item, index) => (
+                        <View
+                          key={index}
+                          className="flex-row justify-between items-center py-2"
+                        >
+                          <View className="flex-1">
+                            <Text
+                              className={`text-base font-medium ${
+                                isDark
+                                  ? "text-text-inverse"
+                                  : "text-text-primary"
+                              }`}
+                            >
+                              {item.products?.name || "Unknown Product"}
+                            </Text>
+                            <Text
+                              className={`text-sm ${
+                                isDark
+                                  ? "text-text-muted"
+                                  : "text-text-secondary"
+                              }`}
+                            >
+                              {item.quantity}x @ €{item.unit_price.toFixed(2)}
+                            </Text>
+                          </View>
                           <Text
-                            className={`text-base font-medium ${
+                            className={`text-base font-semibold ${
                               isDark ? "text-text-inverse" : "text-text-primary"
                             }`}
                           >
-                            {item.products?.name || "Unknown Product"}
-                          </Text>
-                          <Text
-                            className={`text-sm ${
-                              isDark ? "text-text-muted" : "text-text-secondary"
-                            }`}
-                          >
-                            {item.quantity}x @ €{item.unit_price.toFixed(2)}
+                            €{item.total_price.toFixed(2)}
                           </Text>
                         </View>
-                        <Text
-                          className={`text-base font-semibold ${
-                            isDark ? "text-text-inverse" : "text-text-primary"
-                          }`}
-                        >
-                          €{item.total_price.toFixed(2)}
-                        </Text>
-                      </View>
-                    ))}
+                      ))}
+                    </View>
                   </View>
-                </View>
-              ))}
+                ) : (
+                  <StockEntryCard key={activity.id} stockUpdate={activity} />
+                )
+              )}
             </View>
           )}
         </ScrollView>

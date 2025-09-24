@@ -144,6 +144,7 @@ export const db: {
   getTransactions: () => Transaction[];
   getTransactionItems: (transactionId: string) => TransactionItem[];
   getTodayTransactions: () => Transaction[];
+  getStockUpdates: () => any[];
   getInventoryForProduct: (productId: string) => any;
   getAllInventory: () => any[];
   addStockUpdate: (
@@ -374,6 +375,12 @@ export const db: {
     return Object.values(transactions).filter((transaction) =>
       (transaction.created_at as string).startsWith(today)
     ) as unknown as Transaction[];
+  },
+
+  // Get all stock updates
+  getStockUpdates: (): any[] => {
+    const stockUpdates = store.getTable("stock_updates");
+    return Object.values(stockUpdates);
   },
 
   // Get inventory data for a specific product
