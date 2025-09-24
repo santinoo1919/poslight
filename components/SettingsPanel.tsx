@@ -20,6 +20,9 @@ export default function SettingsPanel({
   const { lock } = useAuthStore();
   const { loadSettings } = useSettingsStore();
   const [availableBackups, setAvailableBackups] = useState<string[]>([]);
+  const [backupInfos, setBackupInfos] = useState<
+    Record<string, { size: number; date: string; timestamp: string }>
+  >({});
   const [isLoadingBackups, setIsLoadingBackups] = useState(false);
   const [showBackupOptions, setShowBackupOptions] = useState(false);
 
@@ -48,6 +51,23 @@ export default function SettingsPanel({
     try {
       const backups = await BackupService.listBackups();
       setAvailableBackups(backups);
+
+      // Fetch backup info for each file
+      const infos: Record<
+        string,
+        { size: number; date: string; timestamp: string }
+      > = {};
+      for (const backup of backups) {
+        try {
+          const info = await BackupService.getBackupInfo(backup);
+          if (info) {
+            infos[backup] = info;
+          }
+        } catch (error) {
+          console.warn(`Failed to get info for ${backup}:`, error);
+        }
+      }
+      setBackupInfos(infos);
     } catch (error) {
       Alert.alert("Error", `Failed to load backups: ${error.message}`);
     } finally {
@@ -262,25 +282,63 @@ export default function SettingsPanel({
                     </Text>
                   ) : (
                     <View>
-                      {availableBackups.slice(0, 5).map((backup) => (
-                        <TouchableOpacity
-                          key={backup}
-                          onPress={() => handleRestoreBackup(backup)}
-                          className={`p-3 rounded-lg border mb-2 ${
-                            isDark
-                              ? "border-border-dark bg-surface-dark"
-                              : "border-border-light bg-surface-light"
-                          }`}
-                        >
-                          <Text
-                            className={`text-sm font-medium ${
-                              isDark ? "text-text-inverse" : "text-text-primary"
+                      {availableBackups.slice(0, 5).map((backup) => {
+                        const info = backupInfos[backup];
+                        const saveTime = info?.timestamp
+                          ? new Date(info.timestamp).toLocaleString([], {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "Unknown time";
+
+                        return (
+                          <TouchableOpacity
+                            key={backup}
+                            onPress={() => handleRestoreBackup(backup)}
+                            className={`p-3 rounded-lg border mb-2 ${
+                              isDark
+                                ? "border-border-dark bg-surface-dark"
+                                : "border-border-light bg-surface-light"
                             }`}
                           >
-                            {backup}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
+                            <View className="flex-row justify-between items-center">
+                              <View className="flex-1">
+                                <Text
+                                  className={`text-sm font-medium ${
+                                    isDark
+                                      ? "text-text-inverse"
+                                      : "text-text-primary"
+                                  }`}
+                                >
+                                  {backup}
+                                </Text>
+                                <Text
+                                  className={`text-xs ${
+                                    isDark
+                                      ? "text-text-muted"
+                                      : "text-text-secondary"
+                                  }`}
+                                >
+                                  Saved: {saveTime}
+                                </Text>
+                              </View>
+                              {info && (
+                                <Text
+                                  className={`text-xs ${
+                                    isDark
+                                      ? "text-text-muted"
+                                      : "text-text-secondary"
+                                  }`}
+                                >
+                                  {BackupService.formatFileSize(info.size)}
+                                </Text>
+                              )}
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
                       {availableBackups.length > 5 && (
                         <Text
                           className={`text-xs text-center ${
