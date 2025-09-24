@@ -144,7 +144,9 @@ export const db: {
   getTransactions: () => Transaction[];
   getTransactionItems: (transactionId: string) => TransactionItem[];
   getTodayTransactions: () => Transaction[];
+  getAllTransactions: () => Transaction[];
   getStockUpdates: () => any[];
+  getAllStockUpdates: () => any[];
   getInventoryForProduct: (productId: string) => any;
   getAllInventory: () => any[];
   addStockUpdate: (
@@ -377,8 +379,20 @@ export const db: {
     ) as unknown as Transaction[];
   },
 
+  // Get all transactions (not just today's)
+  getAllTransactions: (): Transaction[] => {
+    const transactions = store.getTable("transactions");
+    return Object.values(transactions) as unknown as Transaction[];
+  },
+
   // Get all stock updates
   getStockUpdates: (): any[] => {
+    const stockUpdates = store.getTable("stock_updates");
+    return Object.values(stockUpdates);
+  },
+
+  // Get all stock updates (same as getStockUpdates for now)
+  getAllStockUpdates: (): any[] => {
     const stockUpdates = store.getTable("stock_updates");
     return Object.values(stockUpdates);
   },
