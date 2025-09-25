@@ -88,9 +88,11 @@ export default function HistoryPanel({
               );
             } catch (error) {
               console.error("❌ Failed to close day:", error);
-              Alert.alert("Error", `Failed to close day: ${error.message}`, [
-                { text: "OK" },
-              ]);
+              Alert.alert(
+                "Error",
+                `Failed to close day: ${error instanceof Error ? error.message : "Unknown error"}`,
+                [{ text: "OK" }]
+              );
             } finally {
               setIsClosingDay(false);
             }

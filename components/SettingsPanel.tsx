@@ -4,6 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../stores/themeStore";
 import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore } from "../stores/settingsStore";
+import { useProductStore } from "../stores/productStore";
+import { useMetricsStore } from "../stores/metricsStore";
+import { loadStore } from "../services/tinybaseStore";
 import { BackupService } from "../services/backupService";
 import { TransactionQueue } from "../services/transactionQueue";
 import { isIPad, isIPadPro, isIPadAir, isIPadMini } from "../utils/responsive";
@@ -20,6 +23,8 @@ export default function SettingsPanel({
   const { isDark, toggleTheme } = useTheme();
   const { lock } = useAuthStore();
   const { loadSettings } = useSettingsStore();
+  const { initializeProducts } = useProductStore();
+  const { loadMetrics } = useMetricsStore();
   const [availableBackups, setAvailableBackups] = useState<string[]>([]);
   const [backupInfos, setBackupInfos] = useState<
     Record<string, { size: number; date: string; timestamp: string }>
@@ -94,11 +99,17 @@ export default function SettingsPanel({
             onPress: async () => {
               try {
                 await BackupService.restoreFromBackup(fileName);
+
+                // Reload all data from AsyncStorage after restore
+                await loadStore(); // Reload TinyBase from AsyncStorage
+                await initializeProducts();
+                loadMetrics();
+
                 Alert.alert(
                   "Success",
-                  "Backup restored successfully! The app will reload."
+                  "Backup restored successfully! Data has been refreshed.",
+                  [{ text: "OK", onPress: () => onClose() }]
                 );
-                // Note: In a real app, you'd reload the app or refresh data
               } catch (error) {
                 Alert.alert(
                   "Error",

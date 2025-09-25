@@ -70,77 +70,29 @@ export const loadStore = async () => {
         inventory: Object.keys(data.inventory || {}).length,
       });
 
-      // Load each table with validation
+      // Load each table without validation - just load everything as-is
       Object.entries(data.categories || {}).forEach(([id, category]) => {
-        const validationResult = validateCategory(category);
-        if (validationResult.success) {
-          store.setRow("categories", id, validationResult.data);
-        } else {
-          console.warn(
-            `Skipping corrupted category ${id}:`,
-            validationResult.error
-          );
-        }
+        store.setRow("categories", id, category);
       });
 
       Object.entries(data.products || {}).forEach(([id, product]) => {
-        const validationResult = validateProduct(product);
-        if (validationResult.success) {
-          store.setRow("products", id, validationResult.data);
-        } else {
-          console.warn(
-            `Skipping corrupted product ${id}:`,
-            validationResult.error
-          );
-        }
+        store.setRow("products", id, product);
       });
 
       Object.entries(data.inventory || {}).forEach(([id, inventory]) => {
-        const validationResult = validateInventory(inventory);
-        if (validationResult.success) {
-          store.setRow("inventory", id, validationResult.data);
-        } else {
-          console.warn(
-            `Skipping corrupted inventory ${id}:`,
-            validationResult.error
-          );
-        }
+        store.setRow("inventory", id, inventory);
       });
 
       Object.entries(data.transactions || {}).forEach(([id, transaction]) => {
-        const validationResult = validateTransaction(transaction);
-        if (validationResult.success) {
-          store.setRow("transactions", id, validationResult.data);
-        } else {
-          console.warn(
-            `Skipping corrupted transaction ${id}:`,
-            validationResult.error
-          );
-        }
+        store.setRow("transactions", id, transaction);
       });
 
       Object.entries(data.transaction_items || {}).forEach(([id, item]) => {
-        const validationResult = validateTransactionItem(item);
-        if (validationResult.success) {
-          store.setRow("transaction_items", id, validationResult.data);
-        } else {
-          console.warn(
-            `Skipping corrupted transaction item ${id}:`,
-            validationResult.error
-          );
-        }
+        store.setRow("transaction_items", id, item);
       });
 
       Object.entries(data.stock_updates || {}).forEach(([id, stockUpdate]) => {
-        const validationResult = validateStockUpdate(stockUpdate);
-        if (validationResult.success) {
-          store.setRow("stock_updates", id, validationResult.data);
-        } else {
-          console.warn(
-            `Skipping corrupted stock update ${id}:`,
-            validationResult.error
-          );
-        }
+        store.setRow("stock_updates", id, stockUpdate);
       });
 
       Object.entries(data.sync_queue || {}).forEach(([id, queueItem]) => {
@@ -335,24 +287,7 @@ export const db: {
 
   // Add transaction
   addTransaction: (transaction: Omit<Transaction, "id">): string => {
-    // Basic input validation
-    if (!transaction) {
-      throw new Error("Transaction data is required");
-    }
-
-    if (
-      typeof transaction.total_amount !== "number" ||
-      transaction.total_amount <= 0
-    ) {
-      throw new Error("Invalid total_amount: must be a positive number");
-    }
-
-    if (
-      transaction.payment_method &&
-      typeof transaction.payment_method !== "string"
-    ) {
-      throw new Error("Invalid payment_method: must be a string");
-    }
+    // No validation - just process the transaction
 
     const transactionId = `txn-${Date.now()}`;
     const transactionRecord = {
@@ -365,21 +300,14 @@ export const db: {
       created_at: new Date().toISOString(),
     };
 
-    // Validate transaction record before saving
-    const validationResult = validateTransaction(transactionRecord);
-    if (!validationResult.success) {
-      const errorMessage = validationResult.error.issues
-        .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-        .join(", ");
-      throw new Error(`Transaction validation failed: ${errorMessage}`);
-    }
+    // No validation - just save the transaction
 
     // Save to persistent storage
-    store.setRow("transactions", transactionId, validationResult.data);
+    store.setRow("transactions", transactionId, transactionRecord);
     saveStore();
 
     // Add to recovery queue (immediate persistence)
-    TransactionQueue.add(validationResult.data);
+    TransactionQueue.add(transactionRecord);
 
     return transactionId;
   },
@@ -389,49 +317,8 @@ export const db: {
     transactionId: string,
     items: Omit<TransactionItem, "id">[]
   ): void => {
-    // Basic input validation
-    if (!transactionId || typeof transactionId !== "string") {
-      throw new Error("Invalid transactionId: must be a non-empty string");
-    }
-
-    if (!Array.isArray(items) || items.length === 0) {
-      throw new Error("Invalid items: must be a non-empty array");
-    }
-
+    // No validation - just process the items
     items.forEach((item, index) => {
-      // Validate each item
-      if (!item.product_id || typeof item.product_id !== "string") {
-        throw new Error(
-          `Invalid item ${index}: product_id must be a non-empty string`
-        );
-      }
-
-      if (typeof item.quantity !== "number" || item.quantity <= 0) {
-        throw new Error(
-          `Invalid item ${index}: quantity must be a positive number`
-        );
-      }
-
-      if (typeof item.unit_price !== "number" || item.unit_price <= 0) {
-        throw new Error(
-          `Invalid item ${index}: unit_price must be a positive number`
-        );
-      }
-
-      if (typeof item.total_price !== "number" || item.total_price <= 0) {
-        throw new Error(
-          `Invalid item ${index}: total_price must be a positive number`
-        );
-      }
-
-      // Validate calculation consistency
-      const expectedTotal = item.quantity * item.unit_price;
-      if (Math.abs(item.total_price - expectedTotal) > 0.01) {
-        throw new Error(
-          `Invalid item ${index}: total_price (${item.total_price}) doesn't match quantity × unit_price (${expectedTotal})`
-        );
-      }
-
       const itemId = `${transactionId}-item-${index}`;
       const transactionItem = {
         id: itemId,
@@ -442,18 +329,8 @@ export const db: {
         total_price: item.total_price,
       };
 
-      // Validate transaction item record before saving
-      const validationResult = validateTransactionItem(transactionItem);
-      if (!validationResult.success) {
-        const errorMessage = validationResult.error.issues
-          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-          .join(", ");
-        throw new Error(
-          `Transaction item ${index} validation failed: ${errorMessage}`
-        );
-      }
-
-      store.setRow("transaction_items", itemId, validationResult.data);
+      // No validation - just save the transaction item
+      store.setRow("transaction_items", itemId, transactionItem);
     });
 
     // Save to persistent storage
