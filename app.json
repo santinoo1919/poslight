@@ -35,8 +35,6 @@
         "projectId": "ae58a69d-70ab-456d-b4d7-7d6aeaeed2e2"
       }
     },
-    "plugins": [
-      "expo-mail-composer"
-    ]
+    "plugins": []
   }
 }

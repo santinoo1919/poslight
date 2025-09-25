@@ -82,7 +82,7 @@ export default function SalesSidePanel({
   // Get local sales and stock data from TinyBase store
   const activities = useMemo(() => {
     const transactions = db.getTodayTransactions();
-    const stockUpdates = db.getStockUpdates();
+    const stockUpdates = db.getTodayStockUpdates();
     const products = db.getProducts();
 
     const salesData = transactions.map((transaction) => ({

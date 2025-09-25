@@ -1,6 +1,6 @@
 // components/ProductCard.tsx
 import React from "react";
-import { View, Text, TouchableOpacity, Platform, Image } from "react-native";
+import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import type {
@@ -106,19 +106,14 @@ export default function ProductCard({
         </Text>
       </View>
 
-      {/* Product Image */}
+      {/* Product Icon */}
       <View
-        className={`w-full aspect-[3/2] ${isDark ? "bg-background-dark" : "bg-background-light"} rounded-md mb-2 items-center justify-center overflow-hidden`}
+        className={`w-full aspect-[3/2] ${isDark ? "bg-background-dark" : "bg-background-light"} rounded-md mb-2 items-center justify-center`}
       >
-        <Image
-          source={require("../assets/sicam.png")}
-          style={{
-            width: "100%",
-            height: "100%",
-            maxWidth: "100%",
-            maxHeight: "100%",
-          }}
-          resizeMode="contain"
+        <Ionicons
+          name={(product.icon as any) || "cube-outline"}
+          size={48}
+          color={product.color || (isDark ? "#FFFFFF" : "#000000")}
         />
       </View>
 

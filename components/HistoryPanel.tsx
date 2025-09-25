@@ -103,7 +103,7 @@ export default function HistoryPanel({
   // Get today's activities
   const todayActivities = useMemo(() => {
     const transactions = db.getTodayTransactions();
-    const stockUpdates = db.getStockUpdates();
+    const stockUpdates = db.getTodayStockUpdates();
     const products = db.getProducts();
 
     const salesData = transactions.map((transaction) => ({

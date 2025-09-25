@@ -1,6 +1,15 @@
 import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
+
+// Disable console logs in production
+if (!__DEV__) {
+  console.log = () => {};
+  console.warn = () => {};
+  console.info = () => {};
+  console.debug = () => {};
+  // Keep console.error for critical errors
+}
 import SafeAreaWrapper from "./components/platform/SafeAreaWrapper";
 import MainLayout from "./components/layouts/MainLayout";
 import LeftPanel from "./components/layouts/LeftPanel";
@@ -67,8 +76,6 @@ function AppContent() {
 
   // useDataSync(user?.id);
   // useSyncQueueProcessor(); // Start background sync processing
-
-  console.log("🎨 App render - isDark:", isDark);
 
   return (
     <SafeAreaWrapper

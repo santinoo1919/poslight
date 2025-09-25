@@ -105,10 +105,6 @@ export default function RightPanel() {
                   </Text>
                   <Pressable
                     onPress={() => {
-                      console.log(
-                        "🔄 Toggling keypad collapse:",
-                        !isKeypadCollapsed
-                      );
                       setIsKeypadCollapsed(!isKeypadCollapsed);
                     }}
                     className={`p-2 rounded-lg ${isDark ? "bg-surface-dark" : "bg-surface-light"}`}
