@@ -111,7 +111,7 @@ export default function ProductCard({
         className={`w-full aspect-[3/2] ${isDark ? "bg-background-dark" : "bg-background-light"} rounded-md mb-2 items-center justify-center`}
       >
         <Ionicons
-          name={(product.icon as any) || "cube-outline"}
+          name="cube-outline"
           size={48}
           color={product.color || (isDark ? "#FFFFFF" : "#000000")}
         />

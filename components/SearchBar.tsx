@@ -42,16 +42,16 @@ const SearchBar = React.memo(
 
     return (
       <View
-        className={`${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"} border rounded-lg px-3 py-2 w-64`}
+        className={`${isDark ? "bg-surface-dark border-border-dark" : "bg-surface-light border-border-light"} border rounded-lg px-3 py-2 w-64 h-12`}
       >
-        <View className="flex-row items-center">
+        <View className="flex-row items-center justify-center h-full">
           <Text
             className={`${isDark ? "text-text-muted" : "text-text-secondary"} mr-2`}
           >
             🔍
           </Text>
           <TextInput
-            className={`flex-1 ${isDark ? "text-text-inverse" : "text-text-primary"} text-sm focus:outline-none`}
+            className={`flex-1 ${isDark ? "text-text-inverse" : "text-text-primary"} text-base focus:outline-none`}
             placeholder={placeholder}
             placeholderTextColor="#9CA3AF"
             value={displayValue}
@@ -59,15 +59,19 @@ const SearchBar = React.memo(
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="search"
-            clearButtonMode="while-editing"
             onSubmitEditing={dismissKeyboard} // Dismiss keyboard on search
+            style={{
+              fontSize: 16,
+              textAlignVertical: "center",
+              includeFontPadding: false,
+            }}
           />
           {/* Always render clear button to prevent layout shifts */}
           <View className="ml-2 w-6 h-6 justify-center items-center">
             {displayValue.length > 0 && (
               <TouchableOpacity onPress={clearSearch}>
                 <Text
-                  className={`${isDark ? "text-text-muted" : "text-text-secondary"} text-lg`}
+                  className={`${isDark ? "text-text-muted" : "text-text-secondary"} text-xl`}
                 >
                   ✕
                 </Text>
