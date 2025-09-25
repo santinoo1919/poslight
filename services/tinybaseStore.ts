@@ -8,6 +8,14 @@ import type {
   TransactionItem,
 } from "../types/database";
 import * as Crypto from "expo-crypto";
+import {
+  validateProduct,
+  validateInventory,
+  validateCategory,
+  validateTransaction,
+  validateTransactionItem,
+  validateStockUpdate,
+} from "../utils/validation";
 
 // TinyBase store - persistent, populated by queries from Supabase
 
@@ -61,29 +69,77 @@ export const loadStore = async () => {
         inventory: Object.keys(data.inventory || {}).length,
       });
 
-      // Load each table
+      // Load each table with validation
       Object.entries(data.categories || {}).forEach(([id, category]) => {
-        store.setRow("categories", id, category as any);
+        const validationResult = validateCategory(category);
+        if (validationResult.success) {
+          store.setRow("categories", id, validationResult.data);
+        } else {
+          console.warn(
+            `Skipping corrupted category ${id}:`,
+            validationResult.error
+          );
+        }
       });
 
       Object.entries(data.products || {}).forEach(([id, product]) => {
-        store.setRow("products", id, product as any);
+        const validationResult = validateProduct(product);
+        if (validationResult.success) {
+          store.setRow("products", id, validationResult.data);
+        } else {
+          console.warn(
+            `Skipping corrupted product ${id}:`,
+            validationResult.error
+          );
+        }
       });
 
       Object.entries(data.inventory || {}).forEach(([id, inventory]) => {
-        store.setRow("inventory", id, inventory as any);
+        const validationResult = validateInventory(inventory);
+        if (validationResult.success) {
+          store.setRow("inventory", id, validationResult.data);
+        } else {
+          console.warn(
+            `Skipping corrupted inventory ${id}:`,
+            validationResult.error
+          );
+        }
       });
 
       Object.entries(data.transactions || {}).forEach(([id, transaction]) => {
-        store.setRow("transactions", id, transaction as any);
+        const validationResult = validateTransaction(transaction);
+        if (validationResult.success) {
+          store.setRow("transactions", id, validationResult.data);
+        } else {
+          console.warn(
+            `Skipping corrupted transaction ${id}:`,
+            validationResult.error
+          );
+        }
       });
 
       Object.entries(data.transaction_items || {}).forEach(([id, item]) => {
-        store.setRow("transaction_items", id, item as any);
+        const validationResult = validateTransactionItem(item);
+        if (validationResult.success) {
+          store.setRow("transaction_items", id, validationResult.data);
+        } else {
+          console.warn(
+            `Skipping corrupted transaction item ${id}:`,
+            validationResult.error
+          );
+        }
       });
 
       Object.entries(data.stock_updates || {}).forEach(([id, stockUpdate]) => {
-        store.setRow("stock_updates", id, stockUpdate as any);
+        const validationResult = validateStockUpdate(stockUpdate);
+        if (validationResult.success) {
+          store.setRow("stock_updates", id, validationResult.data);
+        } else {
+          console.warn(
+            `Skipping corrupted stock update ${id}:`,
+            validationResult.error
+          );
+        }
       });
 
       Object.entries(data.sync_queue || {}).forEach(([id, queueItem]) => {
@@ -278,15 +334,45 @@ export const db: {
 
   // Add transaction
   addTransaction: (transaction: Omit<Transaction, "id">): string => {
+    // Basic input validation
+    if (!transaction) {
+      throw new Error("Transaction data is required");
+    }
+
+    if (
+      typeof transaction.total_amount !== "number" ||
+      transaction.total_amount <= 0
+    ) {
+      throw new Error("Invalid total_amount: must be a positive number");
+    }
+
+    if (
+      transaction.payment_method &&
+      typeof transaction.payment_method !== "string"
+    ) {
+      throw new Error("Invalid payment_method: must be a string");
+    }
+
     const transactionId = `txn-${Date.now()}`;
-    store.setRow("transactions", transactionId, {
+    const transactionRecord = {
       id: transactionId,
       total_amount: transaction.total_amount,
       payment_method: transaction.payment_method || "cash",
       status: "completed",
       created_at: new Date().toISOString(),
-    });
+    };
+
+    // Validate transaction record before saving
+    const validationResult = validateTransaction(transactionRecord);
+    if (!validationResult.success) {
+      const errorMessage = validationResult.error.issues
+        .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+        .join(", ");
+      throw new Error(`Transaction validation failed: ${errorMessage}`);
+    }
+
     // Save to persistent storage
+    store.setRow("transactions", transactionId, validationResult.data);
     saveStore();
     return transactionId;
   },
@@ -296,17 +382,73 @@ export const db: {
     transactionId: string,
     items: Omit<TransactionItem, "id">[]
   ): void => {
+    // Basic input validation
+    if (!transactionId || typeof transactionId !== "string") {
+      throw new Error("Invalid transactionId: must be a non-empty string");
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new Error("Invalid items: must be a non-empty array");
+    }
+
     items.forEach((item, index) => {
+      // Validate each item
+      if (!item.product_id || typeof item.product_id !== "string") {
+        throw new Error(
+          `Invalid item ${index}: product_id must be a non-empty string`
+        );
+      }
+
+      if (typeof item.quantity !== "number" || item.quantity <= 0) {
+        throw new Error(
+          `Invalid item ${index}: quantity must be a positive number`
+        );
+      }
+
+      if (typeof item.unit_price !== "number" || item.unit_price <= 0) {
+        throw new Error(
+          `Invalid item ${index}: unit_price must be a positive number`
+        );
+      }
+
+      if (typeof item.total_price !== "number" || item.total_price <= 0) {
+        throw new Error(
+          `Invalid item ${index}: total_price must be a positive number`
+        );
+      }
+
+      // Validate calculation consistency
+      const expectedTotal = item.quantity * item.unit_price;
+      if (Math.abs(item.total_price - expectedTotal) > 0.01) {
+        throw new Error(
+          `Invalid item ${index}: total_price (${item.total_price}) doesn't match quantity × unit_price (${expectedTotal})`
+        );
+      }
+
       const itemId = `${transactionId}-item-${index}`;
-      store.setRow("transaction_items", itemId, {
+      const transactionItem = {
         id: itemId,
         transaction_id: transactionId,
         product_id: item.product_id,
         quantity: item.quantity,
         unit_price: item.unit_price,
         total_price: item.total_price,
-      });
+      };
+
+      // Validate transaction item record before saving
+      const validationResult = validateTransactionItem(transactionItem);
+      if (!validationResult.success) {
+        const errorMessage = validationResult.error.issues
+          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+          .join(", ");
+        throw new Error(
+          `Transaction item ${index} validation failed: ${errorMessage}`
+        );
+      }
+
+      store.setRow("transaction_items", itemId, validationResult.data);
     });
+
     // Save to persistent storage
     saveStore();
   },
@@ -432,6 +574,23 @@ export const db: {
 
   // Update stock for a product
   updateStock: (productId: string, newStock: number): void => {
+    // Validate stock update input
+    if (!productId || typeof productId !== "string") {
+      throw new Error("Invalid productId: must be a non-empty string");
+    }
+
+    if (
+      typeof newStock !== "number" ||
+      isNaN(newStock) ||
+      !isFinite(newStock)
+    ) {
+      throw new Error("Invalid newStock: must be a valid number");
+    }
+
+    if (newStock < 0) {
+      throw new Error("Invalid newStock: cannot be negative");
+    }
+
     const inventory = store.getTable("inventory");
     const inventoryItems = Object.values(inventory);
 
@@ -440,17 +599,35 @@ export const db: {
       (item: any) => item.product_id === productId && item.is_active
     );
 
-    if (inventoryItem) {
-      // Update the stock in the inventory table
-      store.setRow("inventory", inventoryItem.id as string, {
-        ...inventoryItem,
-        stock: newStock,
-        updated_at: new Date().toISOString(),
-      });
-
-      // Save to persistent storage
-      saveStore();
+    if (!inventoryItem) {
+      throw new Error(`Product ${productId} not found in inventory`);
     }
+
+    const oldStock = inventoryItem.stock || 0;
+
+    // Validate stock update using Zod schema
+    const validationResult = validateStockUpdate({
+      productId,
+      oldStock,
+      newStock,
+    });
+
+    if (!validationResult.success) {
+      const errorMessage = validationResult.error.issues
+        .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+        .join(", ");
+      throw new Error(`Stock update validation failed: ${errorMessage}`);
+    }
+
+    // Update the stock in the inventory table
+    store.setRow("inventory", inventoryItem.id as string, {
+      ...inventoryItem,
+      stock: newStock,
+      updated_at: new Date().toISOString(),
+    });
+
+    // Save to persistent storage
+    saveStore();
   },
 
   // Add stock update record for sync
@@ -520,6 +697,24 @@ export const db: {
     cost?: number;
     initialStock: number;
   }): string => {
+    // Basic input validation
+    if (!productData.name || !productData.sku || !productData.category) {
+      throw new Error(
+        "Missing required fields: name, sku, and category are required"
+      );
+    }
+
+    if (typeof productData.price !== "number" || productData.price <= 0) {
+      throw new Error("Invalid price: must be a positive number");
+    }
+
+    if (
+      typeof productData.initialStock !== "number" ||
+      productData.initialStock < 0
+    ) {
+      throw new Error("Invalid initialStock: must be a non-negative number");
+    }
+
     const productId = `prod-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // Create product record
@@ -536,8 +731,17 @@ export const db: {
       price: productData.price, // Legacy field for backward compatibility
     };
 
+    // Validate product record before saving
+    const productValidation = validateProduct(product);
+    if (!productValidation.success) {
+      const errorMessage = productValidation.error.issues
+        .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+        .join(", ");
+      throw new Error(`Product validation failed: ${errorMessage}`);
+    }
+
     // Save product to products table
-    store.setRow("products", productId, product);
+    store.setRow("products", productId, productValidation.data);
 
     // Create inventory record
     const inventoryId = `inv-${productId}`;
@@ -553,18 +757,43 @@ export const db: {
       updated_at: new Date().toISOString(),
     };
 
+    // Validate inventory record before saving
+    const inventoryValidation = validateInventory(inventory);
+    if (!inventoryValidation.success) {
+      const errorMessage = inventoryValidation.error.issues
+        .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+        .join(", ");
+      throw new Error(`Inventory validation failed: ${errorMessage}`);
+    }
+
     // Save inventory to inventory table
-    store.setRow("inventory", inventoryId, inventory);
+    store.setRow("inventory", inventoryId, inventoryValidation.data);
 
     // Ensure category exists in categories table
     const categories = store.getTable("categories");
     if (!categories[productData.category]) {
       // Create a basic category entry if it doesn't exist
-      store.setRow("categories", productData.category, {
+      const categoryData = {
         name: productData.category,
         color: "#6B7280", // Default gray color
         icon: "📁", // Default folder emoji
-      });
+      };
+
+      // Validate category before saving
+      const categoryValidation = validateCategory(categoryData);
+      if (categoryValidation.success) {
+        store.setRow(
+          "categories",
+          productData.category,
+          categoryValidation.data
+        );
+      } else {
+        console.warn(
+          "Category validation failed, using fallback:",
+          categoryValidation.error
+        );
+        store.setRow("categories", productData.category, categoryData);
+      }
     }
 
     // Save to persistent storage
