@@ -23,6 +23,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "santinoo1919@gmail.com",
+        "ascAppId": "6752721739",
+        "appleTeamId": "eb2bbc32-0392-402b-a694-a2307e82c58c"
+      }
+    }
   }
 }

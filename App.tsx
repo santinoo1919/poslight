@@ -1,7 +1,19 @@
 import "./global.css";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { Platform } from "react-native";
 import * as Sentry from "@sentry/react-native";
+// Conditionally import RevenueCat to avoid errors in Expo Go
+let Purchases: any = null;
+let LOG_LEVEL: any = null;
+
+try {
+  const revenueCat = require("react-native-purchases");
+  Purchases = revenueCat.default;
+  LOG_LEVEL = revenueCat.LOG_LEVEL;
+} catch (error) {
+  console.log("RevenueCat not available in Expo Go - using mock mode");
+}
 
 // Initialize Sentry
 Sentry.init({
@@ -44,6 +56,7 @@ import Header from "./components/Header";
 // import { useSyncQueueProcessor } from "./hooks/useSyncMutations";
 import HistoryPanel from "./components/HistoryPanel";
 import SettingsPanel from "./components/SettingsPanel";
+import PaywallModal from "./components/PaywallModal";
 import { useDrawerStore } from "./stores/drawerStore";
 import { useMetricsStore } from "./stores/metricsStore";
 import { loadStore } from "./services/tinybaseStore";
@@ -126,9 +139,97 @@ function AppContent() {
 export default function App() {
   const { isUnlocked } = useAuthStore();
   const { isReady } = useAppInitialization();
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [hasPurchased, setHasPurchased] = useState(false);
+
+  // Initialize RevenueCat (only if available)
+  useEffect(() => {
+    const initializeRevenueCat = async () => {
+      if (!Purchases) {
+        console.log("🔄 RevenueCat not available - using mock mode");
+        return;
+      }
+
+      try {
+        console.log("🔄 Initializing RevenueCat...");
+
+        // Use real API keys from RevenueCat Dashboard
+        if (Platform.OS === "ios") {
+          await Purchases.configure({
+            apiKey:
+              process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY ||
+              "appl_dummy_key_for_preview",
+          });
+        } else if (Platform.OS === "android") {
+          await Purchases.configure({
+            apiKey:
+              process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY ||
+              "goog_dummy_key_for_preview",
+          });
+        }
+
+        console.log("✅ RevenueCat initialized successfully");
+      } catch (error) {
+        console.log(
+          "⚠️ RevenueCat Preview Mode - using mock data (this is normal in Expo Go)"
+        );
+      }
+    };
+
+    initializeRevenueCat();
+  }, []);
+
+  // Check purchase status on app launch
+  useEffect(() => {
+    const checkPurchaseStatus = async () => {
+      if (!Purchases) {
+        // In mock mode, show paywall for testing
+        console.log("Mock Mode: Showing paywall for testing");
+        setShowPaywall(true);
+        return;
+      }
+
+      try {
+        const customerInfo = await Purchases.getCustomerInfo();
+        const isPremium =
+          customerInfo.entitlements.active["pos_light_pro"] !== undefined;
+
+        if (isPremium) {
+          setHasPurchased(true);
+        } else {
+          setShowPaywall(true);
+        }
+      } catch (error) {
+        console.log("Error checking purchase status:", error);
+        // If error, show paywall to be safe
+        setShowPaywall(true);
+      }
+    };
+
+    if (isReady) {
+      checkPurchaseStatus();
+    }
+  }, [isReady]);
 
   if (!isReady) {
     return <LoadingScreen />;
+  }
+
+  // Show paywall if user hasn't purchased
+  if (!hasPurchased) {
+    return (
+      <PaywallModal
+        isVisible={showPaywall}
+        onClose={() => {
+          // Don't allow closing without purchase
+          console.log("Paywall cannot be closed without purchase");
+        }}
+        onPurchaseSuccess={() => {
+          setHasPurchased(true);
+          setShowPaywall(false);
+        }}
+      />
+    );
   }
 
   if (!isUnlocked) {
