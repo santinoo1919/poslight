@@ -1,6 +1,14 @@
 import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
+import * as Sentry from "@sentry/react-native";
+
+// Initialize Sentry
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  // Set tracesSampleRate to 1.0 to capture 100% of the transactions for performance monitoring.
+  tracesSampleRate: 1.0,
+});
 
 // Disable console logs in production
 if (!__DEV__) {

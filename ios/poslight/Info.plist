@@ -62,6 +62,8 @@
     <false/>
     <key>UIStatusBarStyle</key>
     <string>UIStatusBarStyleDefault</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Use Face ID to unlock your POS system</string>
     <key>UISupportedInterfaceOrientations</key>
     <array>
       <string>UIInterfaceOrientationPortrait</string>
