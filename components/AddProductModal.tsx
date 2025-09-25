@@ -18,6 +18,10 @@ import {
   validateSKU,
   checkSKUUniqueness,
 } from "../utils/skuGenerator";
+import {
+  validateAddProductInput,
+  formatValidationErrors,
+} from "../utils/validation";
 
 interface SimpleAddProductModalProps {
   visible: boolean;
@@ -86,12 +90,6 @@ export default function SimpleAddProductModal({
   };
 
   const handleSubmit = () => {
-    // Simple validation
-    if (!name.trim() || !sku.trim() || !sellPrice.trim() || !stock.trim()) {
-      Alert.alert("Error", "Please fill in all required fields.");
-      return;
-    }
-
     // Check SKU validation
     if (!skuValidation.isValid) {
       Alert.alert("Error", `Invalid SKU: ${skuValidation.message}`);
@@ -109,22 +107,32 @@ export default function SimpleAddProductModal({
       return;
     }
 
+    // Parse numeric values
     const sellPriceNum = parseFloat(sellPrice);
-    const buyPriceNum = buyPrice ? parseFloat(buyPrice) : 0;
+    const buyPriceNum = parseFloat(buyPrice);
     const stockNum = parseInt(stock);
 
-    if (isNaN(sellPriceNum) || sellPriceNum <= 0) {
-      Alert.alert("Error", "Please enter a valid sell price.");
-      return;
-    }
+    // Validate using Zod schema
+    const validationResult = validateAddProductInput({
+      name: name.trim(),
+      sku: sku.trim(),
+      sellPrice: sellPriceNum,
+      buyPrice: buyPriceNum,
+      stock: stockNum,
+      category: category.trim(),
+      brand: brand.trim() || undefined,
+      barcode: barcode.trim() || undefined,
+      description: "", // Description field not implemented yet
+      size: size.trim() || undefined,
+    });
 
-    if (buyPrice && (isNaN(buyPriceNum) || buyPriceNum < 0)) {
-      Alert.alert("Error", "Please enter a valid buy price.");
-      return;
-    }
-
-    if (isNaN(stockNum) || stockNum < 0) {
-      Alert.alert("Error", "Please enter a valid stock quantity.");
+    if (!validationResult.success) {
+      const errorMessage = formatValidationErrors(
+        validationResult.error.issues.map(
+          (issue) => `${issue.path.join(".")}: ${issue.message}`
+        )
+      );
+      Alert.alert("Validation Error", errorMessage);
       return;
     }
 
@@ -272,7 +280,7 @@ export default function SimpleAddProductModal({
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className={labelStyle}>Buy Price</Text>
+                  <Text className={labelStyle}>Buy Price *</Text>
                   <TextInput
                     className={inputStyle}
                     value={buyPrice}

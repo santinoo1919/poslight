@@ -547,8 +547,7 @@ export const db: {
       user_id: "local-user", // For standalone mode, use a fixed user ID
       stock: productData.initialStock,
       sell_price: productData.price,
-      buy_price:
-        productData.cost && productData.cost > 0 ? productData.cost : 0,
+      buy_price: productData.cost, // Always required now
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

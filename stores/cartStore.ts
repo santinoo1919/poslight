@@ -1,5 +1,9 @@
 import { create } from "zustand";
 import { calculateSaleTotals } from "../utils/productHelpers";
+import {
+  validateCalculationInput,
+  validateCalculationResult,
+} from "../utils/validation";
 import { ToastService } from "../services/toastService";
 import type { Product } from "../types/database";
 import type { CartProduct } from "../types/components";
@@ -99,7 +103,34 @@ export const useCartStore = create<CartState>((set, get) => ({
       (acc, product) => ({ ...acc, [product.id]: product.quantity }),
       {} as Record<string, number>
     );
-    return calculateSaleTotals(selectedProducts, quantities).totalAmount;
+
+    // Validate calculation input
+    const validationResult = validateCalculationInput({
+      products: selectedProducts,
+      quantities,
+    });
+
+    if (!validationResult.success) {
+      console.error(
+        "Calculation input validation failed:",
+        validationResult.error
+      );
+      return 0;
+    }
+
+    const result = calculateSaleTotals(selectedProducts, quantities);
+
+    // Validate calculation result
+    const resultValidation = validateCalculationResult(result);
+    if (!resultValidation.success) {
+      console.error(
+        "Calculation result validation failed:",
+        resultValidation.error
+      );
+      return 0;
+    }
+
+    return result.totalAmount;
   },
 
   completeSale: () => {
@@ -155,10 +186,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         product_id: product.id,
         user_id: userId,
         stock: (product.inventory?.stock || 0) - product.quantity,
-        buy_price:
-          product.inventory?.buy_price && product.inventory.buy_price > 0
-            ? product.inventory.buy_price
-            : null,
+        buy_price: product.inventory?.buy_price || 0,
         sell_price: product.inventory?.sell_price || product.price || 0,
         is_active: true,
         updated_at: new Date().toISOString(),

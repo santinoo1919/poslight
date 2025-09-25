@@ -55,16 +55,13 @@ export default function StockItemCard({
         <Text
           className={`${isDark ? "text-text-muted" : "text-text-secondary"} text-sm`}
         >
-          {product.inventory?.buy_price && product.inventory.buy_price > 0
-            ? `€${product.inventory.buy_price.toFixed(2)} × ${product.quantity}`
-            : `N/A × ${product.quantity}`}
+          €{product.inventory?.buy_price?.toFixed(2) || "0.00"} × $
+          {product.quantity}
         </Text>
         <Text
           className={`font-semibold ${isDark ? "text-text-inverse" : "text-text-primary"}`}
         >
-          {product.inventory?.buy_price && product.inventory.buy_price > 0
-            ? `€${(product.inventory.buy_price * product.quantity).toFixed(2)}`
-            : "N/A"}
+          €{((product.inventory?.buy_price || 0) * product.quantity).toFixed(2)}
         </Text>
       </View>
 

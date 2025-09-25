@@ -33,15 +33,15 @@ export const calculateProductProfit = (
 };
 
 export const enrichProductWithProfit = (product: Product): Product => {
-  const buyPrice =
-    product.buy_price && product.buy_price > 0 ? product.buy_price : null;
+  // Buy price is now always required, so we can safely calculate profit
+  const buyPrice = product.buy_price || 0;
   const sellPrice = product.sell_price || product.price || 0;
-  const profit = buyPrice ? calculateProductProfit(buyPrice, sellPrice) : null;
+  const profit = calculateProductProfit(buyPrice, sellPrice);
 
   return {
     ...product,
     profit,
-    profitLevel: buyPrice ? calculateProfitLevel(buyPrice, sellPrice) : "low",
+    profitLevel: calculateProfitLevel(buyPrice, sellPrice),
   };
 };
 
@@ -116,17 +116,10 @@ export const calculateSaleTotals = (
         product.sell_price ||
         product.price ||
         0;
-      const buyPrice =
-        product.inventory?.buy_price && product.inventory.buy_price > 0
-          ? product.inventory.buy_price
-          : product.buy_price && product.buy_price > 0
-            ? product.buy_price
-            : null;
+      const buyPrice = product.inventory?.buy_price || product.buy_price || 0;
 
       totalAmount += price * quantity;
-      if (buyPrice) {
-        totalProfit += (price - buyPrice) * quantity;
-      }
+      totalProfit += (price - buyPrice) * quantity;
     }
   });
 

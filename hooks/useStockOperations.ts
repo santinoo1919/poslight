@@ -1,5 +1,6 @@
 import { useCartStore } from "../stores/cartStore";
 import { ToastService } from "../services/toastService";
+import { validateStockUpdate } from "../utils/validation";
 
 export const useStockOperations = () => {
   const { selectedProducts, removeFromCart } = useCartStore();
@@ -23,6 +24,21 @@ export const useStockOperations = () => {
       const oldStock = product.inventory?.stock || 0;
       const stockToAdd = product.quantity;
       const newStock = oldStock + stockToAdd;
+
+      // Validate stock update
+      const validationResult = validateStockUpdate({
+        productId: product.id,
+        newStock,
+        oldStock,
+      });
+
+      if (!validationResult.success) {
+        const errorMessage = validationResult.error.issues
+          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+          .join(", ");
+        ToastService.show("error", "Invalid Stock Update", errorMessage);
+        return;
+      }
 
       // Update stock in TinyBase (add to existing)
       db.updateStock(product.id, newStock);

@@ -11,7 +11,7 @@ interface StockEntryCardProps {
     old_stock: number;
     new_stock: number;
     created_at: string;
-    buy_price: number | null;
+    buy_price: number;
   };
 }
 
@@ -32,7 +32,7 @@ export default function StockEntryCard({ stockUpdate }: StockEntryCardProps) {
     minute: "2-digit",
   });
 
-  const totalCost = buy_price ? buy_price * quantity_added : null;
+  const totalCost = buy_price * quantity_added;
 
   return (
     <View
@@ -52,7 +52,7 @@ export default function StockEntryCard({ stockUpdate }: StockEntryCardProps) {
             isDark ? "text-text-inverse" : "text-text-primary"
           }`}
         >
-          {totalCost ? `€${totalCost.toFixed(2)}` : "N/A"}
+          €{totalCost.toFixed(2)}
         </Text>
       </View>
 
@@ -80,7 +80,7 @@ export default function StockEntryCard({ stockUpdate }: StockEntryCardProps) {
               isDark ? "text-text-inverse" : "text-text-primary"
             }`}
           >
-            {buy_price ? `€${buy_price.toFixed(2)}` : "N/A"}
+            €{buy_price.toFixed(2)}
           </Text>
         </View>
       </View>
