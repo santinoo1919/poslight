@@ -129,7 +129,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
       console.log("📦 Inventory:", inventory.length, "inventory items found");
       console.log(
         "📦 Products:",
-        products.map((p) => ({ id: p.id, name: p.name, category: p.category }))
+        products.map((p: Product) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category,
+        }))
       );
 
       set({

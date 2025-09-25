@@ -1,28 +1,4 @@
-import type { Product, Category } from "../types/database";
-import { calculateProfitLevel } from "./profitLevels";
-
-// 🎯 PRODUCT DATA ENRICHMENT
-export const enrichProductWithCategory = (
-  product: Omit<Product, "id">,
-  productId: string,
-  categories: Record<string, Category>
-): Product => ({
-  id: productId,
-  ...product,
-  categoryName: categories[product.category]?.name || product.category,
-  color: categories[product.category]?.color,
-  icon: categories[product.category]?.icon,
-});
-
-// 🎯 BULK PRODUCT ENRICHMENT
-export const enrichProductsWithCategories = (
-  productsData: Record<string, Omit<Product, "id">>,
-  categoriesData: Record<string, Category>
-): Product[] => {
-  return Object.entries(productsData).map(([productId, product]) =>
-    enrichProductWithCategory(product, productId, categoriesData)
-  );
-};
+import type { Product } from "../types/database";
 
 // 🎯 PROFIT CALCULATIONS
 export const calculateProductProfit = (
@@ -30,45 +6,6 @@ export const calculateProductProfit = (
   sell_price: number
 ): number => {
   return sell_price - buy_price;
-};
-
-export const enrichProductWithProfit = (product: Product): Product => {
-  // Buy price is now always required, so we can safely calculate profit
-  const buyPrice = product.buy_price || 0;
-  const sellPrice = product.sell_price || product.price || 0;
-  const profit = calculateProductProfit(buyPrice, sellPrice);
-
-  return {
-    ...product,
-    profit,
-    profitLevel: calculateProfitLevel(buyPrice, sellPrice),
-  };
-};
-
-// 🎯 STOCK OPERATIONS
-export const updateProductStock = (
-  products: Product[],
-  productId: string,
-  newStock: number
-): Product[] => {
-  return products.map((product) =>
-    product.id === productId ? { ...product, stock: newStock } : product
-  );
-};
-
-export const decrementProductStock = (
-  products: Product[],
-  productId: string,
-  quantity: number
-): Product[] => {
-  return products.map((product) => {
-    if (product.id === productId) {
-      const currentStock = product.stock || 0;
-      const newStock = Math.max(0, currentStock - quantity);
-      return { ...product, stock: newStock };
-    }
-    return product;
-  });
 };
 
 // 🎯 SEARCH & FILTERING
@@ -126,24 +63,6 @@ export const calculateSaleTotals = (
   return { totalAmount, totalProfit };
 };
 
-// 🎯 VALIDATION HELPERS
-export const isValidProduct = (product: any): product is Product => {
-  return (
-    product &&
-    typeof product.id === "string" &&
-    typeof product.name === "string" &&
-    typeof product.price === "number" &&
-    typeof product.stock === "number" &&
-    typeof product.category === "string"
-  );
-};
-
-export const validateProductArray = (
-  products: any[]
-): products is Product[] => {
-  return Array.isArray(products) && products.every(isValidProduct);
-};
-
 // 🎯 UTILITY FUNCTIONS
 export const getProductById = (
   products: Product[],
@@ -161,7 +80,7 @@ export const getProductsByCategory = (
 
 export const sortProductsBy = (
   products: Product[],
-  sortBy: "name" | "price" | "stock" | "profit" = "name",
+  sortBy: "name" | "price" = "name",
   order: "asc" | "desc" = "asc"
 ): Product[] => {
   const sorted = [...products].sort((a, b) => {
@@ -179,22 +98,4 @@ export const sortProductsBy = (
   });
 
   return sorted;
-};
-
-// 🎯 PRODUCT GRID LOGIC HELPERS
-export const getMostBoughtProducts = (
-  products: Product[],
-  count: number = 4,
-  minStock: number = 50
-): Product[] => {
-  // Return empty array for now - we'll show all products in main grid
-  return [];
-};
-
-export const getMainGridProducts = (
-  products: Product[],
-  mostBoughtProducts: Product[]
-): Product[] => {
-  // Since mostBoughtProducts is empty, return all products
-  return products;
 };

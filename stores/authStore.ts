@@ -68,7 +68,12 @@ export const useAuthStore = create<AuthState>((set, get) => {
           set({ error: result.error || "Face ID authentication failed" });
         }
       } catch (error) {
-        set({ error: error.message || "Face ID authentication failed" });
+        set({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Face ID authentication failed",
+        });
       } finally {
         set({ isLoading: false });
       }

@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { store, initializeStore } from "../services/tinybaseStore";
-import {
-  enrichProductsWithCategories,
-  enrichProductWithProfit,
-  updateProductStock as updateProductStockHelper,
-  filterProductsByCategory,
-} from "../utils/productHelpers";
+import { filterProductsByCategory } from "../utils/productHelpers";
 
 export default function useTinyBase() {
   const [products, setProducts] = useState([]);
@@ -113,13 +108,8 @@ export default function useTinyBase() {
     }
   }, []);
 
-  // SIMPLE: Just update the main products array using our helper
-  const updateProductStock = useCallback((productId, newStock) => {
-    // Use our clean helper function
-    setProducts((prevProducts) =>
-      updateProductStockHelper(prevProducts, productId, newStock)
-    );
-  }, []);
+  // Stock updates now go through the database layer with validation
+  // Use db.updateStock() instead of local state updates
 
   // Get total inventory value (instant)
   const getInventoryValue = useCallback(() => {
@@ -140,7 +130,6 @@ export default function useTinyBase() {
     getProductsByCategory,
     resetProducts,
     getInventoryValue,
-    updateProductStock,
 
     // Store access
     store,

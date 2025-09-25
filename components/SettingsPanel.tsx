@@ -69,7 +69,10 @@ export default function SettingsPanel({
       }
       setBackupInfos(infos);
     } catch (error) {
-      Alert.alert("Error", `Failed to load backups: ${error.message}`);
+      Alert.alert(
+        "Error",
+        `Failed to load backups: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     } finally {
       setIsLoadingBackups(false);
     }
@@ -98,7 +101,7 @@ export default function SettingsPanel({
               } catch (error) {
                 Alert.alert(
                   "Error",
-                  `Failed to restore backup: ${error.message}`
+                  `Failed to restore backup: ${error instanceof Error ? error.message : "Unknown error"}`
                 );
               }
             },
@@ -106,7 +109,10 @@ export default function SettingsPanel({
         ]
       );
     } catch (error) {
-      Alert.alert("Error", `Failed to get backup info: ${error.message}`);
+      Alert.alert(
+        "Error",
+        `Failed to get backup info: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   };
 

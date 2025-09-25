@@ -254,7 +254,9 @@ export const validateDataIntegrity = (
   type: "products" | "categories" | "inventories"
 ) => {
   try {
-    let result: z.SafeParseReturnType<any, any>;
+    let result:
+      | { success: true; data: any }
+      | { success: false; error: z.ZodError };
 
     switch (type) {
       case "products":
