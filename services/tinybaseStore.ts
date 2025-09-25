@@ -526,12 +526,12 @@ export const db: {
     const product = {
       id: productId,
       sku: productData.sku,
-      barcode: productData.barcode || null,
+      barcode: productData.barcode || "",
       name: productData.name,
-      description: productData.description || null,
+      description: productData.description || "",
       category: productData.category,
-      brand: productData.brand || null,
-      images: null, // TODO: Add image support later
+      brand: productData.brand || "",
+      images: "", // TODO: Add image support later
       created_at: new Date().toISOString(),
       price: productData.price, // Legacy field for backward compatibility
     };
@@ -547,7 +547,8 @@ export const db: {
       user_id: "local-user", // For standalone mode, use a fixed user ID
       stock: productData.initialStock,
       sell_price: productData.price,
-      buy_price: productData.cost || 0,
+      buy_price:
+        productData.cost && productData.cost > 0 ? productData.cost : 0,
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

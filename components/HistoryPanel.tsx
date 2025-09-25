@@ -128,7 +128,11 @@ export default function HistoryPanel({
       const product = products.find((p) => p.id === stockUpdate.product_id);
       // Get buy price from inventory
       const inventory = db.getInventoryForProduct(stockUpdate.product_id);
-      const buy_price = inventory?.buy_price || 0;
+      // If buy_price is undefined or 0, show N/A
+      const buy_price =
+        inventory?.buy_price && inventory.buy_price > 0
+          ? inventory.buy_price
+          : null;
 
       return {
         id: stockUpdate.id,
@@ -193,7 +197,10 @@ export default function HistoryPanel({
         old_stock: stockUpdate.old_stock,
         new_stock: stockUpdate.new_stock,
         created_at: stockUpdate.created_at,
-        buy_price: inventory?.buy_price || 0,
+        buy_price:
+          inventory?.buy_price && inventory.buy_price > 0
+            ? inventory.buy_price
+            : null,
       };
     });
 

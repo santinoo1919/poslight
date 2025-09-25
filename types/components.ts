@@ -8,7 +8,7 @@ export interface Inventory {
   id: string; // inventory id
   product_id: string; // reference to product
   user_id: string;
-  buy_price: number;
+  buy_price: number; // TinyBase stores as number, UI handles null logic
   sell_price: number;
   stock: number;
   is_active: boolean;

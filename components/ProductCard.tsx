@@ -149,7 +149,7 @@ export default function ProductCard({
                 : getProfitTextColor(profitLevel)
             }`}
           >
-            +€{profit.toFixed(2)}
+            {profit ? `+€${profit.toFixed(2)}` : "N/A"}
           </Text>
         </View>
 
@@ -158,7 +158,7 @@ export default function ProductCard({
           <Text
             className={`${getResponsiveFontSize("text-sm")} ${isDark ? "text-text-muted" : "text-text-secondary"}`}
           >
-            €{buyPrice.toFixed(2)}
+            {buyPrice ? `€${buyPrice.toFixed(2)}` : "N/A"}
           </Text>
           <Text
             className={`font-medium ${getResponsiveFontSize("text-sm")} ${

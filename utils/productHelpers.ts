@@ -32,17 +32,18 @@ export const calculateProductProfit = (
   return sell_price - buy_price;
 };
 
-export const enrichProductWithProfit = (product: Product): Product => ({
-  ...product,
-  profit: calculateProductProfit(
-    product.buy_price || 0,
-    product.sell_price || product.price || 0
-  ),
-  profitLevel: calculateProfitLevel(
-    product.buy_price || 0,
-    product.sell_price || product.price || 0
-  ),
-});
+export const enrichProductWithProfit = (product: Product): Product => {
+  const buyPrice =
+    product.buy_price && product.buy_price > 0 ? product.buy_price : null;
+  const sellPrice = product.sell_price || product.price || 0;
+  const profit = buyPrice ? calculateProductProfit(buyPrice, sellPrice) : null;
+
+  return {
+    ...product,
+    profit,
+    profitLevel: buyPrice ? calculateProfitLevel(buyPrice, sellPrice) : "low",
+  };
+};
 
 // 🎯 STOCK OPERATIONS
 export const updateProductStock = (
@@ -115,10 +116,17 @@ export const calculateSaleTotals = (
         product.sell_price ||
         product.price ||
         0;
-      const buyPrice = product.inventory?.buy_price || product.buy_price || 0;
+      const buyPrice =
+        product.inventory?.buy_price && product.inventory.buy_price > 0
+          ? product.inventory.buy_price
+          : product.buy_price && product.buy_price > 0
+            ? product.buy_price
+            : null;
 
       totalAmount += price * quantity;
-      totalProfit += (price - buyPrice) * quantity;
+      if (buyPrice) {
+        totalProfit += (price - buyPrice) * quantity;
+      }
     }
   });
 

@@ -144,8 +144,10 @@ export const useCartStore = create<CartState>((set, get) => ({
         sale_id: saleId,
         product_id: product.id,
         quantity: product.quantity,
-        unit_price: product.inventory?.sell_price || 0,
-        total_price: (product.inventory?.sell_price || 0) * product.quantity,
+        unit_price: product.inventory?.sell_price || product.price || 0,
+        total_price:
+          (product.inventory?.sell_price || product.price || 0) *
+          product.quantity,
       }));
 
       // Prepare inventory updates
@@ -153,8 +155,11 @@ export const useCartStore = create<CartState>((set, get) => ({
         product_id: product.id,
         user_id: userId,
         stock: (product.inventory?.stock || 0) - product.quantity,
-        buy_price: product.inventory?.buy_price || 0,
-        sell_price: product.inventory?.sell_price || 0,
+        buy_price:
+          product.inventory?.buy_price && product.inventory.buy_price > 0
+            ? product.inventory.buy_price
+            : null,
+        sell_price: product.inventory?.sell_price || product.price || 0,
         is_active: true,
         updated_at: new Date().toISOString(),
       }));

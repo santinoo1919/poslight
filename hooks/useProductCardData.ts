@@ -11,12 +11,20 @@ export const useProductCardData = (product: Product, inventory?: Inventory) => {
     const isOutOfStock = stock === 0;
 
     const buyPrice =
-      inventory?.buy_price ?? (product.price ? product.price * 0.6 : 0);
+      inventory?.buy_price && inventory.buy_price > 0
+        ? inventory.buy_price
+        : null;
     const sellPrice = inventory?.sell_price ?? product.price ?? 0;
-    const profit = sellPrice - buyPrice;
+    const profit = buyPrice ? sellPrice - buyPrice : null;
 
     const profitLevel: ProfitLevel =
-      profit >= 10 ? "high" : profit >= 3 ? "medium" : "low";
+      profit === null
+        ? "low"
+        : profit >= 10
+          ? "high"
+          : profit >= 3
+            ? "medium"
+            : "low";
 
     return {
       stock,
