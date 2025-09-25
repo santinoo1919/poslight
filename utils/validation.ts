@@ -45,7 +45,7 @@ export const InventorySchema = z.object({
 });
 
 export const CategorySchema = z.object({
-  key: z.string().min(1, "Category key is required"),
+  key: z.string().min(1, "Category key is required").optional(),
   name: z.string().min(1, "Name is required").max(50, "Name too long"),
   color: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid color format"),
   icon: z.string().min(1, "Icon is required").max(10, "Icon too long"),

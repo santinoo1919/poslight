@@ -1,5 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import { store, saveStore } from "./tinybaseStore";
+import { TransactionQueue } from "./transactionQueue";
 
 export interface BackupData {
   date: string;
@@ -60,6 +61,10 @@ export class BackupService {
       );
 
       console.log(`✅ Backup created: ${fileName}`);
+
+      // Clear recovery queue after successful backup
+      TransactionQueue.clear();
+
       return fileUri;
     } catch (error) {
       console.error("❌ Backup creation failed:", error);

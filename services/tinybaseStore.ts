@@ -16,6 +16,7 @@ import {
   validateTransactionItem,
   validateStockUpdate,
 } from "../utils/validation";
+import { TransactionQueue } from "./transactionQueue";
 
 // TinyBase store - persistent, populated by queries from Supabase
 
@@ -357,6 +358,8 @@ export const db: {
     const transactionRecord = {
       id: transactionId,
       total_amount: transaction.total_amount,
+      total_cost: transaction.total_cost || 0, // Include total_cost
+      total_profit: transaction.total_profit || 0, // Include total_profit
       payment_method: transaction.payment_method || "cash",
       status: "completed",
       created_at: new Date().toISOString(),
@@ -374,6 +377,10 @@ export const db: {
     // Save to persistent storage
     store.setRow("transactions", transactionId, validationResult.data);
     saveStore();
+
+    // Add to recovery queue (immediate persistence)
+    TransactionQueue.add(validationResult.data);
+
     return transactionId;
   },
 

@@ -5,6 +5,7 @@ import { useTheme } from "../stores/themeStore";
 import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { BackupService } from "../services/backupService";
+import { TransactionQueue } from "../services/transactionQueue";
 import { isIPad, isIPadPro, isIPadAir, isIPadMini } from "../utils/responsive";
 
 interface SettingsPanelProps {
@@ -114,6 +115,40 @@ export default function SettingsPanel({
         `Failed to get backup info: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
+  };
+
+  const handleRecoverData = () => {
+    const queueSize = TransactionQueue.getQueueSize();
+    const todayTransactions = TransactionQueue.getTodayTransactions();
+
+    if (queueSize === 0) {
+      Alert.alert(
+        "No Data to Recover",
+        "There are no transactions in the recovery queue.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    Alert.alert(
+      "Recover Today's Data",
+      `Found ${todayTransactions.length} transactions in recovery queue.\n\nThis will restore any lost transactions from today.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Recover",
+          onPress: () => {
+            // The recovery happens automatically on app restart
+            // This just shows the user what's available
+            Alert.alert(
+              "Recovery Available",
+              `Recovery queue contains ${todayTransactions.length} transactions.\n\nRestart the app to automatically recover this data.`,
+              [{ text: "OK" }]
+            );
+          },
+        },
+      ]
+    );
   };
 
   const handleLogout = () => {
@@ -362,12 +397,28 @@ export default function SettingsPanel({
           </View>
         </ScrollView>
 
-        {/* Footer - Logout Button */}
+        {/* Footer - Recovery and Logout Buttons */}
         <View
           className={`p-4 border-t ${
             isDark ? "border-border-dark" : "border-border-light"
           }`}
         >
+          {/* Recovery Button */}
+          <TouchableOpacity
+            onPress={handleRecoverData}
+            className={`py-3 px-4 rounded-lg mb-3 ${
+              isDark ? "bg-blue-600" : "bg-blue-500"
+            }`}
+          >
+            <View className="flex-row items-center justify-center">
+              <Ionicons name="refresh-outline" size={20} color="white" />
+              <Text className="text-white font-semibold ml-2">
+                Recover Today's Data
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Logout Button */}
           <TouchableOpacity
             onPress={handleLogout}
             className={`py-3 px-4 rounded-lg ${

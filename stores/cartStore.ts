@@ -151,10 +151,16 @@ export const useCartStore = create<CartState>((set, get) => ({
         {} as Record<string, number>
       );
 
-      const { totalProfit } = calculateSaleTotals(
+      const { totalAmount: calculatedTotal, totalProfit } = calculateSaleTotals(
         state.selectedProducts,
         quantities
       );
+
+      // Calculate total cost
+      const totalCost = state.selectedProducts.reduce((sum, product) => {
+        const buyPrice = product.inventory?.buy_price || 0;
+        return sum + buyPrice * product.quantity;
+      }, 0);
 
       // Generate a proper UUID for the sale
       const saleId = Crypto.randomUUID();
@@ -201,6 +207,8 @@ export const useCartStore = create<CartState>((set, get) => ({
       const { db } = require("../services/tinybaseStore");
       const transactionId = db.addTransaction({
         total_amount: totalAmount,
+        total_cost: totalCost,
+        total_profit: totalProfit,
         payment_method: "cash",
         status: "completed",
         created_at: new Date().toISOString(),

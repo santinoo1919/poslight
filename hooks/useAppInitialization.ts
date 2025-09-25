@@ -4,6 +4,7 @@ import { useProductStore } from "../stores/productStore";
 import { useAuthStore } from "../stores/authStore";
 import { useTheme } from "../stores/themeStore";
 import { useMetricsStore } from "../stores/metricsStore";
+import { TransactionQueue } from "../services/transactionQueue";
 
 export const useAppInitialization = () => {
   const [isReady, setIsReady] = useState(false);
@@ -16,6 +17,7 @@ export const useAppInitialization = () => {
   useEffect(() => {
     const initializeApp = async () => {
       await loadStore();
+      await TransactionQueue.loadQueue(); // Load recovery queue
       await loadTheme();
       await loadAuth(); // Load persisted auth state
       loadMetrics(); // Load metrics from TinyBase

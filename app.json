@@ -20,6 +20,8 @@
       }
     },
     "android": {
+      "package": "com.santino1919.poslight",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
