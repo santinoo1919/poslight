@@ -40,13 +40,28 @@ export default function StockEntryCard({ stockUpdate }: StockEntryCardProps) {
     >
       {/* Time and Total Cost - Same structure as sales */}
       <View className="flex-row justify-between items-center mb-3">
-        <Text
-          className={`text-base ${
-            isDark ? "text-text-muted" : "text-text-secondary"
-          }`}
-        >
-          {timeString}
-        </Text>
+        <View className="flex-row items-center">
+          <Text
+            className={`text-base ${
+              isDark ? "text-text-muted" : "text-text-secondary"
+            }`}
+          >
+            {timeString}
+          </Text>
+          <View
+            className={`ml-2 px-2 py-1 rounded-full ${
+              isDark ? "bg-blue-600/20" : "bg-blue-100"
+            }`}
+          >
+            <Text
+              className={`text-xs font-medium ${
+                isDark ? "text-blue-400" : "text-blue-700"
+              }`}
+            >
+              STOCK
+            </Text>
+          </View>
+        </View>
         <Text
           className={`text-xl font-bold ${
             isDark ? "text-text-inverse" : "text-text-primary"

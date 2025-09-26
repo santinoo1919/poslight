@@ -259,13 +259,13 @@ export default function HistoryPanel({
 
           {/* Tab Navigation */}
           <View
-            className={`flex-row ${isDark ? "bg-background-dark" : "bg-background-light"} border-b ${isDark ? "border-border-dark" : "border-border-light"}`}
+            className={`flex-row border-b ${isDark ? "border-border-dark" : "border-border-light"}`}
           >
             <TouchableOpacity
               onPress={() => setActiveTab("today")}
               className={`flex-1 py-3 px-4 ${
                 activeTab === "today"
-                  ? `${isDark ? "bg-surface-dark border-b-2 border-state-successDark" : "bg-surface-light border-b-2 border-state-success"}`
+                  ? `border-b-2 ${isDark ? "border-state-successDark" : "border-state-success"}`
                   : ""
               }`}
             >
@@ -290,7 +290,7 @@ export default function HistoryPanel({
               }}
               className={`flex-1 py-3 px-4 ${
                 activeTab === "past"
-                  ? `${isDark ? "bg-surface-dark border-b-2 border-state-successDark" : "bg-surface-light border-b-2 border-state-success"}`
+                  ? `border-b-2 ${isDark ? "border-state-successDark" : "border-state-success"}`
                   : ""
               }`}
             >
@@ -337,19 +337,34 @@ export default function HistoryPanel({
                     >
                       {/* Time and Total */}
                       <View className="flex-row justify-between items-center mb-3">
-                        <Text
-                          className={`text-base ${
-                            isDark ? "text-text-muted" : "text-text-secondary"
-                          }`}
-                        >
-                          {new Date(activity.created_at).toLocaleTimeString(
-                            [],
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </Text>
+                        <View className="flex-row items-center">
+                          <Text
+                            className={`text-base ${
+                              isDark ? "text-text-muted" : "text-text-secondary"
+                            }`}
+                          >
+                            {new Date(activity.created_at).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </Text>
+                          <View
+                            className={`ml-2 px-2 py-1 rounded-full ${
+                              isDark ? "bg-green-600/20" : "bg-green-100"
+                            }`}
+                          >
+                            <Text
+                              className={`text-xs font-medium ${
+                                isDark ? "text-green-400" : "text-green-700"
+                              }`}
+                            >
+                              SALE
+                            </Text>
+                          </View>
+                        </View>
                         <Text
                           className={`text-xl font-bold ${
                             isDark
@@ -474,20 +489,37 @@ export default function HistoryPanel({
                           >
                             {/* Sale Header */}
                             <View className="flex-row justify-between items-center mb-3">
-                              <Text
-                                className={`text-base ${
-                                  isDark
-                                    ? "text-text-muted"
-                                    : "text-text-secondary"
-                                }`}
-                              >
-                                {new Date(
-                                  activity.created_at
-                                ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </Text>
+                              <View className="flex-row items-center">
+                                <Text
+                                  className={`text-base ${
+                                    isDark
+                                      ? "text-text-muted"
+                                      : "text-text-secondary"
+                                  }`}
+                                >
+                                  {new Date(
+                                    activity.created_at
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </Text>
+                                <View
+                                  className={`ml-2 px-2 py-1 rounded-full ${
+                                    isDark ? "bg-green-600/20" : "bg-green-100"
+                                  }`}
+                                >
+                                  <Text
+                                    className={`text-xs font-medium ${
+                                      isDark
+                                        ? "text-green-400"
+                                        : "text-green-700"
+                                    }`}
+                                  >
+                                    SALE
+                                  </Text>
+                                </View>
+                              </View>
                               <Text
                                 className={`text-xl font-bold ${
                                   isDark

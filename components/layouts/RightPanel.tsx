@@ -46,13 +46,13 @@ export default function RightPanel() {
     <>
       {/* Tab Header */}
       <View
-        className={`flex-row ${isDark ? "bg-background-dark" : "bg-background-light"} border-b ${isDark ? "border-border-dark" : "border-border-light"}`}
+        className={`flex-row border-b ${isDark ? "border-border-dark" : "border-border-light"}`}
       >
         <TouchableOpacity
           onPress={() => setActiveTab("cart")}
           className={`flex-1 py-3 px-4 ${
             activeTab === "cart"
-              ? `${isDark ? "bg-surface-dark border-b-2 border-state-successDark" : "bg-surface-light border-b-2 border-state-success"}`
+              ? `border-b-2 ${isDark ? "border-state-successDark" : "border-state-success"}`
               : ""
           }`}
         >
@@ -70,7 +70,7 @@ export default function RightPanel() {
           onPress={() => setActiveTab("stock")}
           className={`flex-1 py-3 px-4 ${
             activeTab === "stock"
-              ? `${isDark ? "bg-surface-dark border-b-2 border-state-successDark" : "bg-surface-light border-b-2 border-state-success"}`
+              ? `border-b-2 ${isDark ? "border-state-successDark" : "border-state-success"}`
               : ""
           }`}
         >
