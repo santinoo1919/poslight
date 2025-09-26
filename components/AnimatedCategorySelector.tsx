@@ -29,17 +29,19 @@ export default function CategorySelector({
       <Pressable
         className={`mr-3 px-3 py-2 rounded-full ${
           currentCategory === null
-            ? "bg-blue-100 border border-blue-200"
+            ? "bg-interactive-selected border border-brand-primary"
             : "bg-transparent"
         }`}
         onPress={() => onCategorySelect(null)}
       >
         <Text
-          className={`text-sm font-medium ${
-            currentCategory === null ? "text-blue-600" : "text-slate-500"
+          className={`text-base font-medium ${
+            currentCategory === null
+              ? "text-brand-primary"
+              : "text-text-secondary"
           }`}
         >
-          📦 Show All
+          Show All
         </Text>
       </Pressable>
 
@@ -49,16 +51,16 @@ export default function CategorySelector({
           key={category.name}
           className={`mr-3 px-3 py-2 rounded-full ${
             currentCategory === category.key
-              ? "bg-blue-100 border border-blue-200"
+              ? "bg-interactive-selected border border-brand-primary"
               : "bg-transparent"
           }`}
           onPress={() => onCategorySelect(category.key)}
         >
           <Text
-            className={`text-sm ${
+            className={`text-base ${
               currentCategory === category.key
-                ? "text-blue-600 font-medium"
-                : "text-slate-500"
+                ? "text-brand-primary font-medium"
+                : "text-text-secondary"
             }`}
           >
             {category.name}
