@@ -11,6 +11,8 @@ import {
   Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTheme } from "../stores/themeStore";
 import { db } from "../services/tinybaseStore";
 import {
@@ -18,10 +20,25 @@ import {
   validateSKU,
   checkSKUUniqueness,
 } from "../utils/skuGenerator";
-import {
-  validateAddProductInput,
-  formatValidationErrors,
-} from "../utils/validation";
+import { AddProductInputSchema } from "../utils/validation";
+import type { z } from "zod";
+
+// Input form data (strings before transformation)
+type AddProductFormData = {
+  name: string;
+  sku: string;
+  sellPrice: string;
+  buyPrice: string;
+  stock: string;
+  category: string;
+  brand?: string;
+  barcode?: string;
+  description?: string;
+  size?: string;
+};
+
+// Output data after transformation
+type AddProductOutputData = z.infer<typeof AddProductInputSchema>;
 
 interface SimpleAddProductModalProps {
   visible: boolean;
@@ -36,60 +53,80 @@ export default function SimpleAddProductModal({
 }: SimpleAddProductModalProps) {
   const { isDark } = useTheme();
 
-  // Simple form state
-  const [name, setName] = useState("");
-  const [sku, setSku] = useState("");
-  const [sellPrice, setSellPrice] = useState("");
-  const [buyPrice, setBuyPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [category, setCategory] = useState("");
-  const [brand, setBrand] = useState("");
-  const [barcode, setBarcode] = useState("");
-  const [size, setSize] = useState("");
+  // React Hook Form setup
+  const form = useForm<AddProductFormData>({
+    resolver: zodResolver(AddProductInputSchema),
+    mode: "onChange", // Real-time validation
+    defaultValues: {
+      name: "",
+      sku: "",
+      sellPrice: "",
+      buyPrice: "",
+      stock: "",
+      category: "",
+      brand: "",
+      barcode: "",
+      description: "",
+      size: "",
+    },
+  });
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    trigger,
+    formState: { errors, isValid },
+  } = form;
   const [skuValidation, setSkuValidation] = useState({
     isValid: true,
     message: "",
   });
 
-  const resetForm = () => {
-    setName("");
-    setSku("");
-    setSellPrice("");
-    setBuyPrice("");
-    setStock("");
-    setCategory("");
-    setBrand("");
-    setBarcode("");
-    setSize("");
-    setSkuValidation({ isValid: true, message: "" });
-  };
+  // Watch form values for SKU generation
+  const watchedName = watch("name");
+  const watchedCategory = watch("category");
+  const watchedSize = watch("size");
+  const watchedSku = watch("sku");
+  const watchedSellPrice = watch("sellPrice");
+  const watchedBuyPrice = watch("buyPrice");
 
   // Auto-generate SKU when name, category, or size changes
   useEffect(() => {
-    if (name && category) {
+    if (watchedName && watchedCategory) {
       const generatedSKU = generateSimpleSKU({
-        name,
-        category,
-        size: size || undefined,
+        name: watchedName,
+        category: watchedCategory,
+        size: watchedSize || undefined,
       });
-      setSku(generatedSKU);
+      setValue("sku", generatedSKU);
     }
-  }, [name, category, size]);
+  }, [watchedName, watchedCategory, watchedSize, setValue]);
 
   // Validate SKU when it changes
   useEffect(() => {
-    if (sku) {
-      const validation = validateSKU(sku);
+    if (watchedSku) {
+      const validation = validateSKU(watchedSku);
       setSkuValidation(validation);
     }
-  }, [sku]);
+  }, [watchedSku]);
+
+  // Trigger cross-field validation when prices change
+  useEffect(() => {
+    if (watchedSellPrice && watchedBuyPrice) {
+      trigger("buyPrice");
+    }
+  }, [watchedSellPrice, watchedBuyPrice, trigger]);
 
   const handleClose = () => {
-    resetForm();
+    reset();
+    setSkuValidation({ isValid: true, message: "" });
     onClose();
   };
 
-  const handleSubmit = () => {
+  const onSubmit = (data: AddProductFormData) => {
     // Check SKU validation
     if (!skuValidation.isValid) {
       Alert.alert("Error", `Invalid SKU: ${skuValidation.message}`);
@@ -99,7 +136,7 @@ export default function SimpleAddProductModal({
     // Check for duplicate SKU
     const existingProducts = db.getProducts();
     const existingSKUs = existingProducts.map((p) => p.sku);
-    if (!checkSKUUniqueness(sku, existingSKUs)) {
+    if (!checkSKUUniqueness(data.sku, existingSKUs)) {
       Alert.alert(
         "Error",
         "SKU already exists. Please choose a different one."
@@ -107,56 +144,29 @@ export default function SimpleAddProductModal({
       return;
     }
 
-    // Parse numeric values
-    const sellPriceNum = parseFloat(sellPrice);
-    const buyPriceNum = parseFloat(buyPrice);
-    const stockNum = parseInt(stock);
-
-    // Validate using Zod schema
-    const validationResult = validateAddProductInput({
-      name: name.trim(),
-      sku: sku.trim(),
-      sellPrice: sellPriceNum,
-      buyPrice: buyPriceNum,
-      stock: stockNum,
-      category: category.trim(),
-      brand: brand.trim() || undefined,
-      barcode: barcode.trim() || undefined,
-      description: "", // Description field not implemented yet
-      size: size.trim() || undefined,
-    });
-
-    if (!validationResult.success) {
-      const errorMessage = formatValidationErrors(
-        validationResult.error.issues.map(
-          (issue) => `${issue.path.join(".")}: ${issue.message}`
-        )
-      );
-      Alert.alert("Validation Error", errorMessage);
-      return;
-    }
-
     try {
-      // Add product to database
+      // Data is already validated by the schema, just transform for database
       const productId = db.addProduct({
-        name: name.trim(),
-        description: "", // No description for now
-        sku: sku.trim(),
-        barcode: barcode.trim() || undefined,
-        brand: brand.trim() || undefined,
-        category: category.trim() || "General",
-        price: sellPriceNum,
-        cost: buyPriceNum,
-        initialStock: stockNum,
+        name: data.name.trim(),
+        description: data.description?.trim() || "",
+        sku: data.sku.trim(),
+        barcode: data.barcode?.trim() || undefined,
+        brand: data.brand?.trim() || undefined,
+        category: data.category.trim() || "General",
+        price: parseFloat(
+          data.sellPrice.replace(/[€$£¥]/g, "").replace(",", ".")
+        ),
+        cost: parseFloat(
+          data.buyPrice.replace(/[€$£¥]/g, "").replace(",", ".")
+        ),
+        initialStock: parseInt(data.stock),
       });
 
-      console.log("Product created with ID:", productId);
-
       // Reset form and close
-      resetForm();
+      reset();
+      setSkuValidation({ isValid: true, message: "" });
       onProductAdded();
       onClose();
-
       Alert.alert("Success", "Product added successfully!");
     } catch (error) {
       console.error("Error adding product:", error);
@@ -215,22 +225,54 @@ export default function SimpleAddProductModal({
               <View className="flex-row gap-4 mb-4">
                 <View className="flex-1">
                   <Text className={labelStyle}>Product Name *</Text>
-                  <TextInput
-                    className={inputStyle}
-                    value={name}
-                    onChangeText={setName}
-                    placeholder="e.g., Red Onions"
-                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                  <Controller
+                    name="name"
+                    control={control}
+                    render={({
+                      field: { onChange, value },
+                      fieldState: { error },
+                    }) => (
+                      <View>
+                        <TextInput
+                          className={`${inputStyle} ${error ? "border-red-500" : ""}`}
+                          value={value}
+                          onChangeText={onChange}
+                          placeholder="e.g., Red Onions"
+                          placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                        />
+                        {error && (
+                          <Text className="text-red-500 text-xs mt-1">
+                            {error.message}
+                          </Text>
+                        )}
+                      </View>
+                    )}
                   />
                 </View>
                 <View className="flex-1">
                   <Text className={labelStyle}>Size</Text>
-                  <TextInput
-                    className={inputStyle}
-                    value={size}
-                    onChangeText={setSize}
-                    placeholder="e.g., 5LB, 12OZ"
-                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                  <Controller
+                    name="size"
+                    control={control}
+                    render={({
+                      field: { onChange, value },
+                      fieldState: { error },
+                    }) => (
+                      <View>
+                        <TextInput
+                          className={`${inputStyle} ${error ? "border-red-500" : ""}`}
+                          value={value}
+                          onChangeText={onChange}
+                          placeholder="e.g., 5LB, 12OZ"
+                          placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                        />
+                        {error && (
+                          <Text className="text-red-500 text-xs mt-1">
+                            {error.message}
+                          </Text>
+                        )}
+                      </View>
+                    )}
                   />
                 </View>
               </View>
@@ -239,30 +281,57 @@ export default function SimpleAddProductModal({
               <View className="flex-row gap-4 mb-4">
                 <View className="flex-1">
                   <Text className={labelStyle}>Category *</Text>
-                  <TextInput
-                    className={inputStyle}
-                    value={category}
-                    onChangeText={setCategory}
-                    placeholder="e.g., Produce"
-                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                  <Controller
+                    name="category"
+                    control={control}
+                    render={({
+                      field: { onChange, value },
+                      fieldState: { error },
+                    }) => (
+                      <View>
+                        <TextInput
+                          className={`${inputStyle} ${error ? "border-red-500" : ""}`}
+                          value={value}
+                          onChangeText={onChange}
+                          placeholder="e.g., Produce"
+                          placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                        />
+                        {error && (
+                          <Text className="text-red-500 text-xs mt-1">
+                            {error.message}
+                          </Text>
+                        )}
+                      </View>
+                    )}
                   />
                 </View>
                 <View className="flex-1">
                   <Text className={labelStyle}>SKU (Auto-generated)</Text>
-                  <TextInput
-                    className={`${inputStyle} ${!skuValidation.isValid ? "border-red-500" : ""} ${
-                      isDark ? "bg-gray-700" : "bg-gray-100"
-                    }`}
-                    value={sku}
-                    editable={false}
-                    placeholder="e.g., PRO-ONION-5LB"
-                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                  <Controller
+                    name="sku"
+                    control={control}
+                    render={({
+                      field: { onChange, value },
+                      fieldState: { error },
+                    }) => (
+                      <View>
+                        <TextInput
+                          className={`${inputStyle} ${error || !skuValidation.isValid ? "border-red-500" : ""} ${
+                            isDark ? "bg-gray-700" : "bg-gray-100"
+                          }`}
+                          value={value}
+                          editable={false}
+                          placeholder="e.g., PRO-ONION-5LB"
+                          placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                        />
+                        {(error || (!skuValidation.isValid && value)) && (
+                          <Text className="text-red-500 text-xs mt-1">
+                            {error?.message || skuValidation.message}
+                          </Text>
+                        )}
+                      </View>
+                    )}
                   />
-                  {sku && !skuValidation.isValid && (
-                    <Text className="text-red-500 text-xs mt-1">
-                      {skuValidation.message}
-                    </Text>
-                  )}
                 </View>
               </View>
 
@@ -270,24 +339,56 @@ export default function SimpleAddProductModal({
               <View className="flex-row gap-4 mb-8">
                 <View className="flex-1">
                   <Text className={labelStyle}>Sell Price *</Text>
-                  <TextInput
-                    className={inputStyle}
-                    value={sellPrice}
-                    onChangeText={setSellPrice}
-                    placeholder="0.00"
-                    keyboardType="numeric"
-                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                  <Controller
+                    name="sellPrice"
+                    control={control}
+                    render={({
+                      field: { onChange, value },
+                      fieldState: { error },
+                    }) => (
+                      <View>
+                        <TextInput
+                          className={`${inputStyle} ${error ? "border-red-500" : ""}`}
+                          value={value}
+                          onChangeText={onChange}
+                          placeholder="0.00"
+                          keyboardType="numeric"
+                          placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                        />
+                        {error && (
+                          <Text className="text-red-500 text-xs mt-1">
+                            {error.message}
+                          </Text>
+                        )}
+                      </View>
+                    )}
                   />
                 </View>
                 <View className="flex-1">
                   <Text className={labelStyle}>Buy Price *</Text>
-                  <TextInput
-                    className={inputStyle}
-                    value={buyPrice}
-                    onChangeText={setBuyPrice}
-                    placeholder="0.00"
-                    keyboardType="numeric"
-                    placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                  <Controller
+                    name="buyPrice"
+                    control={control}
+                    render={({
+                      field: { onChange, value },
+                      fieldState: { error },
+                    }) => (
+                      <View>
+                        <TextInput
+                          className={`${inputStyle} ${error ? "border-red-500" : ""}`}
+                          value={value}
+                          onChangeText={onChange}
+                          placeholder="0.00"
+                          keyboardType="numeric"
+                          placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                        />
+                        {error && (
+                          <Text className="text-red-500 text-xs mt-1">
+                            {error.message}
+                          </Text>
+                        )}
+                      </View>
+                    )}
                   />
                 </View>
               </View>
@@ -295,37 +396,85 @@ export default function SimpleAddProductModal({
               {/* Stock */}
               <View className="mb-8">
                 <Text className={labelStyle}>Stock *</Text>
-                <TextInput
-                  className={inputStyle}
-                  value={stock}
-                  onChangeText={setStock}
-                  placeholder="0"
-                  keyboardType="numeric"
-                  placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                <Controller
+                  name="stock"
+                  control={control}
+                  render={({
+                    field: { onChange, value },
+                    fieldState: { error },
+                  }) => (
+                    <View>
+                      <TextInput
+                        className={`${inputStyle} ${error ? "border-red-500" : ""}`}
+                        value={value}
+                        onChangeText={onChange}
+                        placeholder="0"
+                        keyboardType="numeric"
+                        placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                      />
+                      {error && (
+                        <Text className="text-red-500 text-xs mt-1">
+                          {error.message}
+                        </Text>
+                      )}
+                    </View>
+                  )}
                 />
               </View>
 
               {/* Brand */}
               <View className="mb-8">
                 <Text className={labelStyle}>Brand</Text>
-                <TextInput
-                  className={inputStyle}
-                  value={brand}
-                  onChangeText={setBrand}
-                  placeholder="Brand name"
-                  placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                <Controller
+                  name="brand"
+                  control={control}
+                  render={({
+                    field: { onChange, value },
+                    fieldState: { error },
+                  }) => (
+                    <View>
+                      <TextInput
+                        className={`${inputStyle} ${error ? "border-red-500" : ""}`}
+                        value={value}
+                        onChangeText={onChange}
+                        placeholder="Brand name"
+                        placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                      />
+                      {error && (
+                        <Text className="text-red-500 text-xs mt-1">
+                          {error.message}
+                        </Text>
+                      )}
+                    </View>
+                  )}
                 />
               </View>
 
               {/* Barcode */}
               <View>
                 <Text className={labelStyle}>Barcode</Text>
-                <TextInput
-                  className={inputStyle}
-                  value={barcode}
-                  onChangeText={setBarcode}
-                  placeholder="Barcode (optional)"
-                  placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                <Controller
+                  name="barcode"
+                  control={control}
+                  render={({
+                    field: { onChange, value },
+                    fieldState: { error },
+                  }) => (
+                    <View>
+                      <TextInput
+                        className={`${inputStyle} ${error ? "border-red-500" : ""}`}
+                        value={value}
+                        onChangeText={onChange}
+                        placeholder="Barcode (optional)"
+                        placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+                      />
+                      {error && (
+                        <Text className="text-red-500 text-xs mt-1">
+                          {error.message}
+                        </Text>
+                      )}
+                    </View>
+                  )}
                 />
               </View>
             </View>
@@ -334,9 +483,16 @@ export default function SimpleAddProductModal({
           {/* Footer */}
           <View className="p-4 ">
             <TouchableOpacity
-              onPress={handleSubmit}
+              onPress={handleSubmit(onSubmit)}
+              disabled={!isValid || !skuValidation.isValid}
               className={`p-4 rounded-lg ${
-                isDark ? "bg-brand-primaryDark" : "bg-brand-primary"
+                !isValid || !skuValidation.isValid
+                  ? isDark
+                    ? "bg-gray-600"
+                    : "bg-gray-400"
+                  : isDark
+                    ? "bg-brand-primaryDark"
+                    : "bg-brand-primary"
               }`}
             >
               <Text className="text-white text-center font-semibold text-base">

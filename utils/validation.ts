@@ -128,28 +128,64 @@ export const AddProductInputSchema = z
     name: z.string().min(1, "Name is required").max(100, "Name too long"),
     sku: z.string().min(1, "SKU is required").max(50, "SKU too long"),
     sellPrice: z
-      .number()
-      .positive("Sell price must be positive")
-      .max(10000, "Sell price too high"),
+      .string()
+      .min(1, "Sell price is required")
+      .refine((val) => {
+        const priceRegex = /^\d+(\.\d{1,2})?$/;
+        const cleaned = val.replace(/[€$£¥]/g, "").replace(",", ".");
+        if (!priceRegex.test(cleaned)) return false;
+        const num = parseFloat(cleaned);
+        return num > 0 && num <= 10000;
+      }, "Invalid price format (use numbers only, e.g., 1.50)"),
     buyPrice: z
-      .number()
-      .positive("Buy price must be positive")
-      .max(10000, "Buy price too high"),
+      .string()
+      .min(1, "Buy price is required")
+      .refine((val) => {
+        const priceRegex = /^\d+(\.\d{1,2})?$/;
+        const cleaned = val.replace(/[€$£¥]/g, "").replace(",", ".");
+        if (!priceRegex.test(cleaned)) return false;
+        const num = parseFloat(cleaned);
+        return num > 0 && num <= 10000;
+      }, "Invalid price format (use numbers only, e.g., 1.50)"),
     stock: z
-      .number()
-      .int()
-      .min(0, "Stock must be non-negative")
-      .max(10000, "Stock too high"),
+      .string()
+      .min(1, "Stock is required")
+      .refine((val) => {
+        const stockRegex = /^\d+$/;
+        if (!stockRegex.test(val)) return false;
+        const num = parseInt(val);
+        return num >= 0 && num <= 10000;
+      }, "Invalid stock format (use numbers only, e.g., 10)"),
     category: z.string().min(1, "Category is required"),
     brand: z.string().optional(),
     barcode: z.string().optional(),
     description: z.string().optional(),
     size: z.string().optional(),
   })
-  .refine((data) => data.sellPrice > data.buyPrice, {
-    message: "Sell price must be greater than buy price",
-    path: ["sellPrice"],
-  });
+  .refine(
+    (data) => {
+      const sellPriceStr = data.sellPrice
+        .replace(/[€$£¥]/g, "")
+        .replace(",", ".");
+      const buyPriceStr = data.buyPrice
+        .replace(/[€$£¥]/g, "")
+        .replace(",", ".");
+
+      // Only validate if both fields have valid numbers
+      if (sellPriceStr === "" || buyPriceStr === "") return true;
+
+      const sellPrice = parseFloat(sellPriceStr);
+      const buyPrice = parseFloat(buyPriceStr);
+
+      if (isNaN(sellPrice) || isNaN(buyPrice)) return true;
+
+      return sellPrice > buyPrice;
+    },
+    {
+      message: "Buy price must be less than sell price",
+      path: ["buyPrice"],
+    }
+  );
 
 // ============================================================================
 // VALIDATION FUNCTIONS
