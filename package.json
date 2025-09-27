@@ -6,13 +6,19 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "doctor": "npx expo-doctor",
+    "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
+    "type-check": "npx tsc --noEmit",
+    "prebuild": "npm run doctor",
+    "build:testflight": "npm run prebuild && npx eas build --platform ios --profile testflight",
+    "build:production": "npm run prebuild && npx eas build --platform ios --profile production"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.5",
     "@hookform/resolvers": "^5.2.2",
     "@react-native-async-storage/async-storage": "2.1.2",
-    "@sentry/react-native": "^7.1.0",
+    "@sentry/react-native": "~6.14.0",
     "@supabase/supabase-js": "^2.57.4",
     "@tanstack/react-query": "^5.87.4",
     "@tanstack/react-query-devtools": "^5.87.4",
@@ -45,6 +51,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@tsconfig/react-native": "^3.0.6",
+    "@types/lodash": "^4.17.20",
     "@types/react": "~19.0.10",
     "@types/react-native": "^0.72.8",
     "typescript": "~5.8.3"

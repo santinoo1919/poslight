@@ -15,12 +15,18 @@ try {
   console.log("RevenueCat not available in Expo Go - using mock mode");
 }
 
-// Initialize Sentry
-Sentry.init({
-  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  // Set tracesSampleRate to 1.0 to capture 100% of the transactions for performance monitoring.
-  tracesSampleRate: 1.0,
-});
+// Sentry is initialized in sentry.config.js
+
+// Test Sentry after a delay to ensure it's initialized
+setTimeout(() => {
+  try {
+    const Sentry = require("@sentry/react-native");
+    Sentry.captureMessage("🚀 App started successfully - Sentry is working!");
+    console.log("✅ Sentry test message sent");
+  } catch (error) {
+    console.log("❌ Sentry test failed:", error);
+  }
+}, 3000);
 
 // Disable console logs in production
 if (!__DEV__) {

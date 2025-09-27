@@ -16,14 +16,22 @@ export const useAppInitialization = () => {
 
   useEffect(() => {
     const initializeApp = async () => {
-      await loadStore();
-      await TransactionQueue.loadQueue(); // Load recovery queue
-      await loadTheme();
-      await loadAuth(); // Load persisted auth state
-      loadMetrics(); // Load metrics from TinyBase
-      await initializeProducts();
-      await checkFaceIdAvailability();
-      setIsReady(true);
+      try {
+        console.log("🔄 Starting app initialization...");
+        await loadStore();
+        await TransactionQueue.loadQueue(); // Load recovery queue
+        await loadTheme();
+        await loadAuth(); // Load persisted auth state
+        loadMetrics(); // Load metrics from TinyBase
+        await initializeProducts();
+        await checkFaceIdAvailability();
+        console.log("✅ App initialization complete");
+        setIsReady(true);
+      } catch (error) {
+        console.error("❌ App initialization failed:", error);
+        // Still set ready to prevent infinite loading
+        setIsReady(true);
+      }
     };
 
     initializeApp();

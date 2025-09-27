@@ -3,7 +3,7 @@
     "name": "poslight",
     "slug": "poslight",
     "version": "1.0.0",
-    "orientation": "landscape",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -22,12 +22,16 @@
         "UIDeviceFamily": [2],
         "UISupportedInterfaceOrientations": [
           "UIInterfaceOrientationLandscapeLeft",
-          "UIInterfaceOrientationLandscapeRight"
+          "UIInterfaceOrientationLandscapeRight",
+          "UIInterfaceOrientationPortrait"
         ],
         "UISupportedInterfaceOrientations~ipad": [
           "UIInterfaceOrientationLandscapeLeft",
-          "UIInterfaceOrientationLandscapeRight"
-        ]
+          "UIInterfaceOrientationLandscapeRight",
+          "UIInterfaceOrientationPortrait"
+        ],
+        "NSFaceIDUsageDescription": "Use Face ID to secure your POS app",
+        "NSCameraUsageDescription": "Scan barcodes for products"
       }
     },
     "android": {
@@ -37,8 +41,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "screenOrientation": "landscape"
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png",
