@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Alert, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  Linking,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../stores/themeStore";
 import { useAuthStore } from "../stores/authStore";
@@ -408,12 +415,64 @@ export default function SettingsPanel({
           </View>
         </ScrollView>
 
-        {/* Footer - Recovery and Logout Buttons */}
+        {/* Footer - Support Links */}
         <View
           className={`p-4 border-t ${
             isDark ? "border-border-dark" : "border-border-light"
           }`}
         >
+          {/* App Version */}
+          <View className="mb-3">
+            <Text
+              className={`text-xs text-center ${isDark ? "text-text-muted" : "text-text-secondary"}`}
+            >
+              POS Light v1.0.0
+            </Text>
+          </View>
+
+          {/* Legal Links */}
+          <View className="mb-3">
+            <Text
+              className={`text-sm font-medium mb-2 ${isDark ? "text-text-muted" : "text-text-secondary"}`}
+            >
+              Legal
+            </Text>
+            <View className="flex-row justify-between">
+              <TouchableOpacity
+                onPress={() =>
+                  Linking.openURL("https://poslight.vercel.app/privacy")
+                }
+                className="flex-1 mr-2"
+              >
+                <Text
+                  className={`text-center py-2 px-3 rounded-lg border ${
+                    isDark
+                      ? "border-border-dark text-brand-primaryDark"
+                      : "border-border-light text-brand-primary"
+                  }`}
+                >
+                  Privacy Policy
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  Linking.openURL("https://poslight.vercel.app/terms")
+                }
+                className="flex-1 ml-1"
+              >
+                <Text
+                  className={`text-center py-2 px-3 rounded-lg border ${
+                    isDark
+                      ? "border-border-dark text-brand-primaryDark"
+                      : "border-border-light text-brand-primary"
+                  }`}
+                >
+                  Terms of Service
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           {/* Recovery Button */}
           <TouchableOpacity
             onPress={handleRecoverData}

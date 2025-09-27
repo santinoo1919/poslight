@@ -1,19 +1,10 @@
 import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { Platform } from "react-native";
+import { Platform, Alert } from "react-native";
 import * as Sentry from "@sentry/react-native";
-// Conditionally import RevenueCat to avoid errors in Expo Go
-let Purchases: any = null;
-let LOG_LEVEL: any = null;
-
-try {
-  const revenueCat = require("react-native-purchases");
-  Purchases = revenueCat.default;
-  LOG_LEVEL = revenueCat.LOG_LEVEL;
-} catch (error) {
-  console.log("RevenueCat not available in Expo Go - using mock mode");
-}
+// Always import RevenueCat for real API usage
+import Purchases, { LOG_LEVEL } from "react-native-purchases";
 
 // Sentry is initialized in sentry.config.js
 
@@ -148,36 +139,47 @@ export default function App() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [hasPurchased, setHasPurchased] = useState(false);
 
-  // Initialize RevenueCat (only if available)
+  // Initialize RevenueCat with real API keys
   useEffect(() => {
     const initializeRevenueCat = async () => {
-      if (!Purchases) {
-        console.log("🔄 RevenueCat not available - using mock mode");
-        return;
-      }
-
       try {
-        console.log("🔄 Initializing RevenueCat...");
+        console.log("🔄 Initializing RevenueCat with real API keys...");
 
-        // Use real API keys from RevenueCat Dashboard
+        // Set debug logging level
+        Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+
+        // Use real API keys from environment variables
         if (Platform.OS === "ios") {
+          const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
+          if (!apiKey) {
+            throw new Error(
+              "iOS RevenueCat API key not found in environment variables"
+            );
+          }
+
           await Purchases.configure({
-            apiKey:
-              process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY ||
-              "appl_dummy_key_for_preview",
+            apiKey: apiKey,
           });
         } else if (Platform.OS === "android") {
+          const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
+          if (!apiKey) {
+            throw new Error(
+              "Android RevenueCat API key not found in environment variables"
+            );
+          }
+
           await Purchases.configure({
-            apiKey:
-              process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY ||
-              "goog_dummy_key_for_preview",
+            apiKey: apiKey,
           });
         }
 
-        console.log("✅ RevenueCat initialized successfully");
+        console.log("✅ RevenueCat initialized successfully with real API");
       } catch (error) {
-        console.log(
-          "⚠️ RevenueCat Preview Mode - using mock data (this is normal in Expo Go)"
+        console.error("❌ RevenueCat initialization failed:", error);
+        // Don't fall back to mock mode - show error
+        Alert.alert(
+          "Configuration Error",
+          "Failed to initialize payment system. Please check your configuration."
         );
       }
     };
@@ -188,25 +190,23 @@ export default function App() {
   // Check purchase status on app launch
   useEffect(() => {
     const checkPurchaseStatus = async () => {
-      if (!Purchases) {
-        // In mock mode, show paywall for testing
-        console.log("Mock Mode: Showing paywall for testing");
-        setShowPaywall(true);
-        return;
-      }
-
       try {
+        console.log("🔄 Checking real purchase status...");
         const customerInfo = await Purchases.getCustomerInfo();
+        console.log("📋 Customer info:", customerInfo);
+
         const isPremium =
           customerInfo.entitlements.active["pos_light_pro"] !== undefined;
 
         if (isPremium) {
+          console.log("✅ User has premium access");
           setHasPurchased(true);
         } else {
+          console.log("🔒 User needs to purchase - showing paywall");
           setShowPaywall(true);
         }
       } catch (error) {
-        console.log("Error checking purchase status:", error);
+        console.error("❌ Error checking purchase status:", error);
         // If error, show paywall to be safe
         setShowPaywall(true);
       }

@@ -9,13 +9,8 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-// Conditionally import RevenueCat
-let Purchases: any = null;
-try {
-  Purchases = require("react-native-purchases").default;
-} catch (error) {
-  console.log("RevenueCat not available - using mock mode");
-}
+// Always import RevenueCat for real API usage
+import Purchases from "react-native-purchases";
 import { useTheme } from "../stores/themeStore";
 
 interface PaywallModalProps {
@@ -40,22 +35,16 @@ export default function PaywallModal({
   }, [isVisible]);
 
   const checkSubscriptionStatus = async () => {
-    if (!Purchases) {
-      console.log("Mock Mode: Using mock customer info");
-      setCustomerInfo({
-        entitlements: {
-          active: {},
-        },
-      });
-      return;
-    }
-
     try {
+      console.log(
+        "🔄 Checking subscription status with real RevenueCat API..."
+      );
       const info = await Purchases.getCustomerInfo();
       setCustomerInfo(info);
+      console.log("✅ Customer info retrieved:", info);
     } catch (error) {
-      console.log("Preview Mode: Using mock customer info");
-      // Mock data for Preview Mode
+      console.error("❌ Error checking subscription status:", error);
+      // Set empty entitlements if error occurs
       setCustomerInfo({
         entitlements: {
           active: {},
@@ -67,45 +56,41 @@ export default function PaywallModal({
   const handlePurchase = async () => {
     setIsLoading(true);
 
-    if (!Purchases) {
-      // Mock purchase in Expo Go
-      console.log("Mock Mode: Simulating successful purchase");
-      Alert.alert(
-        "Mock Mode",
-        "This is a demo purchase. In production, this would be a real purchase!"
-      );
-      onPurchaseSuccess();
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      // In preview mode, this will use mock data
+      console.log("🔄 Starting real purchase flow...");
+
+      // Get real offerings from RevenueCat
       const offerings = await Purchases.getOfferings();
+      console.log("📦 Available offerings:", offerings);
 
       if (offerings.current && offerings.current.availablePackages.length > 0) {
         const packageToPurchase = offerings.current.availablePackages[0];
+        console.log("💰 Purchasing package:", packageToPurchase);
+
         const { customerInfo } =
           await Purchases.purchasePackage(packageToPurchase);
+        console.log("✅ Purchase completed:", customerInfo);
 
         if (customerInfo.entitlements.active["pos_light_pro"]) {
           Alert.alert("Success!", "You now have access to premium features!");
           onPurchaseSuccess();
+        } else {
+          Alert.alert("Error", "Purchase completed but entitlement not found");
         }
       } else {
         Alert.alert("No Products", "No products available for purchase");
       }
     } catch (error: any) {
+      console.error("❌ Purchase error:", error);
+
       if (error.code === "USER_CANCELLED") {
         console.log("User cancelled purchase");
+        Alert.alert("Cancelled", "Purchase was cancelled");
       } else {
-        console.log("Preview Mode: Simulating successful purchase");
-        // Simulate successful purchase in Preview Mode
         Alert.alert(
-          "Preview Mode",
-          "This is a demo purchase. In production, this would be a real purchase!"
+          "Purchase Error",
+          `Failed to complete purchase: ${error.message || "Unknown error"}`
         );
-        onPurchaseSuccess();
       }
     } finally {
       setIsLoading(false);
