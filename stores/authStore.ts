@@ -51,6 +51,9 @@ export const useAuthStore = create<AuthState>((set, get) => {
     unlock: async () => {
       try {
         set({ isLoading: true, error: null });
+
+        // On native: use biometric auth
+        // On web: skip biometric and unlock directly
         const result = await useFaceId();
 
         if (result.success) {
@@ -65,14 +68,12 @@ export const useAuthStore = create<AuthState>((set, get) => {
           // Persist the unlocked state
           persistence.save(newState);
         } else {
-          set({ error: result.error || "Face ID authentication failed" });
+          set({ error: result.error || "Authentication failed" });
         }
       } catch (error) {
         set({
           error:
-            error instanceof Error
-              ? error.message
-              : "Face ID authentication failed",
+            error instanceof Error ? error.message : "Authentication failed",
         });
       } finally {
         set({ isLoading: false });

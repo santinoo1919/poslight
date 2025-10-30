@@ -1,4 +1,15 @@
-import * as LocalAuthentication from "expo-local-authentication";
+import { Platform } from "react-native";
+import { shouldEnableBiometric } from "./platform";
+
+// Conditionally import LocalAuthentication only on native platforms
+let LocalAuthentication: any = null;
+if (Platform.OS !== "web") {
+  try {
+    LocalAuthentication = require("expo-local-authentication");
+  } catch (e) {
+    console.warn("LocalAuthentication not available on this platform");
+  }
+}
 
 export interface FaceIdResult {
   success: boolean;
@@ -6,6 +17,15 @@ export interface FaceIdResult {
 }
 
 export const useFaceId = async (): Promise<FaceIdResult> => {
+  // Guard: Biometric auth only available on native platforms
+  if (!shouldEnableBiometric() || !LocalAuthentication) {
+    console.log("🌐 Web platform - biometric auth not available");
+    return {
+      success: false,
+      error: "Biometric authentication not available on web",
+    };
+  }
+
   try {
     // Check if device supports biometric authentication
     const compatible = await LocalAuthentication.hasHardwareAsync();
@@ -66,6 +86,16 @@ export const checkFaceIdAvailability = async (): Promise<{
   type: "face" | "fingerprint" | "none";
   enrolled: boolean;
 }> => {
+  // Guard: Biometric auth only available on native platforms
+  if (!shouldEnableBiometric() || !LocalAuthentication) {
+    console.log("🌐 Web platform - biometric not available");
+    return {
+      available: false,
+      type: "none",
+      enrolled: false,
+    };
+  }
+
   try {
     const compatible = await LocalAuthentication.hasHardwareAsync();
     const enrolled = await LocalAuthentication.isEnrolledAsync();

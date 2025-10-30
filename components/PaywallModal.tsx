@@ -9,9 +9,19 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-// Always import RevenueCat for real API usage
-import Purchases from "react-native-purchases";
+import { Platform } from "react-native";
+import { shouldEnablePaywall } from "../utils/platform";
 import { useTheme } from "../stores/themeStore";
+
+// Conditionally import RevenueCat only on native platforms
+let Purchases: any = null;
+if (Platform.OS !== "web") {
+  try {
+    Purchases = require("react-native-purchases");
+  } catch (e) {
+    console.warn("RevenueCat not available on this platform");
+  }
+}
 
 interface PaywallModalProps {
   isVisible: boolean;
@@ -35,6 +45,12 @@ export default function PaywallModal({
   }, [isVisible]);
 
   const checkSubscriptionStatus = async () => {
+    // Guard: RevenueCat only available on native platforms
+    if (!Purchases || Platform.OS === "web") {
+      console.log("🌐 Web platform - skipping subscription check");
+      return;
+    }
+
     try {
       console.log(
         "🔄 Checking subscription status with real RevenueCat API..."
@@ -55,6 +71,17 @@ export default function PaywallModal({
 
   const handlePurchase = async () => {
     setIsLoading(true);
+
+    // Guard: RevenueCat only available on native platforms
+    if (!Purchases || Platform.OS === "web") {
+      console.log("🌐 Web platform - purchase not available");
+      Alert.alert(
+        "Not Available",
+        "Purchases are only available on mobile apps."
+      );
+      setIsLoading(false);
+      return;
+    }
 
     try {
       console.log("🔄 Starting real purchase flow...");

@@ -1,23 +1,7 @@
 import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { Platform, Alert } from "react-native";
-import * as Sentry from "@sentry/react-native";
-// Always import RevenueCat for real API usage
-import Purchases, { LOG_LEVEL } from "react-native-purchases";
-
-// Sentry is initialized in sentry.config.js
-
-// Test Sentry after a delay to ensure it's initialized
-setTimeout(() => {
-  try {
-    const Sentry = require("@sentry/react-native");
-    Sentry.captureMessage("🚀 App started successfully - Sentry is working!");
-    console.log("✅ Sentry test message sent");
-  } catch (error) {
-    console.log("❌ Sentry test failed:", error);
-  }
-}, 3000);
+// Sentry disabled on web for now
 
 // Disable console logs in production
 if (!__DEV__) {
@@ -55,8 +39,7 @@ import HistoryPanel from "./components/HistoryPanel";
 import SettingsPanel from "./components/SettingsPanel";
 import PaywallModal from "./components/PaywallModal";
 import { useDrawerStore } from "./stores/drawerStore";
-import { useMetricsStore } from "./stores/metricsStore";
-import { loadStore } from "./services/tinybaseStore";
+import { useSubscription } from "./hooks/useSubscription";
 
 function AppContent() {
   // Get theme
@@ -136,103 +119,40 @@ function AppContent() {
 export default function App() {
   const { isUnlocked } = useAuthStore();
   const { isReady } = useAppInitialization();
+  const { hasAccess, shouldShowPaywall, isChecking, platform } =
+    useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
-  const [hasPurchased, setHasPurchased] = useState(false);
 
-  // Initialize RevenueCat with real API keys
+  // Show loading while checking subscription status
   useEffect(() => {
-    const initializeRevenueCat = async () => {
-      try {
-        console.log("🔄 Initializing RevenueCat with real API keys...");
-
-        // Set debug logging level
-        Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-
-        // Use real API keys from environment variables
-        if (Platform.OS === "ios") {
-          const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
-          if (!apiKey) {
-            throw new Error(
-              "iOS RevenueCat API key not found in environment variables"
-            );
-          }
-
-          await Purchases.configure({
-            apiKey: apiKey,
-          });
-        } else if (Platform.OS === "android") {
-          const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
-          if (!apiKey) {
-            throw new Error(
-              "Android RevenueCat API key not found in environment variables"
-            );
-          }
-
-          await Purchases.configure({
-            apiKey: apiKey,
-          });
-        }
-
-        console.log("✅ RevenueCat initialized successfully with real API");
-      } catch (error) {
-        console.error("❌ RevenueCat initialization failed:", error);
-        // Don't fall back to mock mode - show error
-        Alert.alert(
-          "Configuration Error",
-          "Failed to initialize payment system. Please check your configuration."
-        );
-      }
-    };
-
-    initializeRevenueCat();
-  }, []);
-
-  // Check purchase status on app launch
-  useEffect(() => {
-    const checkPurchaseStatus = async () => {
-      try {
-        console.log("🔄 Checking real purchase status...");
-        const customerInfo = await Purchases.getCustomerInfo();
-        console.log("📋 Customer info:", customerInfo);
-
-        const isPremium =
-          customerInfo.entitlements.active["pos_light_pro"] !== undefined;
-
-        if (isPremium) {
-          console.log("✅ User has premium access");
-          setHasPurchased(true);
-        } else {
-          console.log("🔒 User needs to purchase - showing paywall");
-          setShowPaywall(true);
-        }
-      } catch (error) {
-        console.error("❌ Error checking purchase status:", error);
-        // If error, show paywall to be safe
-        setShowPaywall(true);
-      }
-    };
-
-    if (isReady) {
-      checkPurchaseStatus();
+    if (!isReady || isChecking) {
+      return;
     }
-  }, [isReady]);
 
-  if (!isReady) {
+    if (shouldShowPaywall) {
+      setShowPaywall(true);
+    } else {
+      setShowPaywall(false);
+    }
+  }, [isReady, isChecking, shouldShowPaywall]);
+
+  if (!isReady || isChecking) {
     return <LoadingScreen />;
   }
 
-  // Show paywall if user hasn't purchased
-  if (!hasPurchased) {
+  // Show paywall if user hasn't purchased (only on native platforms)
+  if (shouldShowPaywall && showPaywall) {
     return (
       <PaywallModal
-        isVisible={showPaywall}
+        isVisible={true}
         onClose={() => {
-          // Don't allow closing without purchase
+          // Don't allow closing without purchase on native
           console.log("Paywall cannot be closed without purchase");
         }}
         onPurchaseSuccess={() => {
-          setHasPurchased(true);
+          // This will be handled by the hook
           setShowPaywall(false);
+          console.log("✅ Purchase successful");
         }}
       />
     );

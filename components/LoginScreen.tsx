@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../stores/authStore";
 import { useTheme } from "../stores/themeStore";
+import { isPlatformWeb, shouldEnableBiometric } from "../utils/platform";
 
 export default function LoginScreen() {
   const {
@@ -18,13 +19,36 @@ export default function LoginScreen() {
   } = useAuthStore();
   const { isDark } = useTheme();
 
-  // Check Face ID availability on component mount
-  useEffect(() => {
-    checkFaceIdAvailability();
-  }, []);
+  const isWeb = isPlatformWeb();
+  const biometricEnabled = shouldEnableBiometric();
 
-  const handleFaceIdUnlock = async () => {
-    await unlock();
+  // Check Face ID availability on component mount (only on native)
+  useEffect(() => {
+    if (biometricEnabled) {
+      checkFaceIdAvailability();
+    }
+  }, [biometricEnabled]);
+
+  const handleUnlock = async () => {
+    // On web: skip biometric and unlock directly
+    if (isWeb) {
+      const defaultUser = {
+        id: "owner",
+        name: "Store Owner",
+        role: "owner" as const,
+      };
+      // Directly unlock without biometric
+      const newState = {
+        isUnlocked: true,
+        currentUser: defaultUser,
+        error: null,
+        isLoading: false,
+      };
+      useAuthStore.setState(newState);
+    } else {
+      // On native: use biometric auth
+      await unlock();
+    }
   };
 
   return (
@@ -54,14 +78,36 @@ export default function LoginScreen() {
           </View>
         )}
 
-        {/* Face ID Unlock Button */}
-        {faceIdAvailable ? (
+        {/* Platform-aware unlock button */}
+        {isWeb ? (
+          // Web: Simple continue button
           <View className="mb-6">
             <TouchableOpacity
               className={`py-4 rounded-lg flex-row items-center justify-center ${
                 isDark ? "bg-blue-600" : "bg-blue-500"
               }`}
-              onPress={handleFaceIdUnlock}
+              onPress={handleUnlock}
+              disabled={isLoading}
+            >
+              <Ionicons
+                name="lock-open"
+                size={24}
+                color="white"
+                style={{ marginRight: 12 }}
+              />
+              <Text className="text-white text-center font-semibold text-lg">
+                {isLoading ? "Loading..." : "Continue"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : faceIdAvailable ? (
+          // Native: Face ID/Touch ID button
+          <View className="mb-6">
+            <TouchableOpacity
+              className={`py-4 rounded-lg flex-row items-center justify-center ${
+                isDark ? "bg-blue-600" : "bg-blue-500"
+              }`}
+              onPress={handleUnlock}
               disabled={isLoading}
             >
               <Ionicons
@@ -89,7 +135,9 @@ export default function LoginScreen() {
 
         {/* Help Text */}
         <Text className="text-sm text-center text-text-secondary dark:text-text-muted">
-          Use biometric authentication to unlock your POS system
+          {isWeb
+            ? "Click to continue to your POS system"
+            : "Use biometric authentication to unlock your POS system"}
         </Text>
       </View>
     </View>
