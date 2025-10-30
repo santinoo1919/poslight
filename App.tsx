@@ -1,6 +1,7 @@
 import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
+import { Platform } from "react-native";
 // Sentry disabled on web for now
 
 // Disable console logs in production
@@ -136,7 +137,7 @@ export default function App() {
     }
   }, [isReady, isChecking, shouldShowPaywall]);
 
-  if (!isReady || isChecking) {
+  if (Platform.OS !== "web" && (!isReady || isChecking)) {
     return <LoadingScreen />;
   }
 
@@ -158,7 +159,7 @@ export default function App() {
     );
   }
 
-  if (!isUnlocked) {
+  if (Platform.OS !== "web" && !isUnlocked) {
     return <LoginScreen />;
   }
 

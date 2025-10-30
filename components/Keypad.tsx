@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
 import type {
   KeypadProps,
@@ -7,7 +7,7 @@ import type {
   KeypadButtonProps,
 } from "../types/components";
 import { useTheme } from "../stores/themeStore";
-import { getKeypadButtonSize, getTouchTargetSize } from "../utils/responsive";
+import { getKeypadButtonClass } from "../utils/responsive";
 
 // Keypad button component - single responsibility
 const KeypadButton: React.FC<KeypadButtonProps> = ({
@@ -19,8 +19,8 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
   const { isDark } = useTheme();
 
   const getButtonStyle = (): string => {
-    const touchTarget = getTouchTargetSize();
-    const baseStyle = `flex-1 aspect-square ${touchTarget} rounded-lg items-center justify-center mx-1 mb-2`;
+    const sizeClass = getKeypadButtonClass();
+    const baseStyle = `${sizeClass} rounded-lg items-center justify-center border`;
 
     // Keep subtle tints for action buttons, neutral for numbers
     switch (variant) {
@@ -104,14 +104,21 @@ const Keypad: React.FC<KeypadProps> = React.memo(
       }
     };
 
+    const rowsClass =
+      Platform.OS === "web"
+        ? "w-full grid grid-cols-3 gap-2"
+        : "flex-row space-x-2";
+    const wrapperClass =
+      Platform.OS === "web" ? "space-y-2" : "items-center space-y-2";
+
     return (
       <View
         className={`${isDark ? "bg-surface-dark " : "bg-surface-light "} p-2`}
       >
         {/* Keypad Grid */}
-        <View className="items-center space-y-2">
+        <View className={wrapperClass}>
           {/* Row 1: 1, 2, 3 */}
-          <View className="flex-row space-x-2">
+          <View className={rowsClass}>
             <KeypadButton
               value="1"
               variant="number"
@@ -133,7 +140,7 @@ const Keypad: React.FC<KeypadProps> = React.memo(
           </View>
 
           {/* Row 2: 4, 5, 6 */}
-          <View className="flex-row space-x-2">
+          <View className={rowsClass}>
             <KeypadButton
               value="4"
               variant="number"
@@ -155,7 +162,7 @@ const Keypad: React.FC<KeypadProps> = React.memo(
           </View>
 
           {/* Row 3: 7, 8, 9 */}
-          <View className="flex-row space-x-2">
+          <View className={rowsClass}>
             <KeypadButton
               value="7"
               variant="number"
@@ -177,7 +184,7 @@ const Keypad: React.FC<KeypadProps> = React.memo(
           </View>
 
           {/* Row 4: C (Clear), 0, Enter */}
-          <View className="flex-row space-x-2">
+          <View className={rowsClass}>
             <KeypadButton
               value="C"
               variant="clear"

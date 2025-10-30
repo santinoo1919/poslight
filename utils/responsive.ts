@@ -96,6 +96,19 @@ export const getKeypadButtonSize = (): string => {
   return "w-16 h-16"; // Standard size for phones
 };
 
+// Keypad button sizing class for platform
+// Web: use explicit pixel sizes and prevent shrinking to avoid layout collapse
+// Native: keep flexible square buttons with minimum touch target
+export const getKeypadButtonClass = (): string => {
+  if (Platform.OS === "web") {
+    // Fill grid cell width, keep square, tiny gaps handled by container
+    return "w-full aspect-square shrink-0";
+  }
+  // On native, preserve flexible grid with square aspect and minimum touch target
+  const touchTarget = getTouchTargetSize();
+  return `${touchTarget} flex-1 aspect-square`;
+};
+
 // Adaptive spacing multiplier - device-specific
 export const getAdaptiveSpacing = (base: number): number => {
   if (isIPadPro) return base * 1.5; // Most spacing for iPad Pro
